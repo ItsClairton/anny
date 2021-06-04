@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/ItsClairton/Anny/base"
-	"github.com/ItsClairton/Anny/services/ImageService"
+	"github.com/ItsClairton/Anny/services/image"
 	"github.com/ItsClairton/Anny/utils/Emotes"
 	"github.com/ItsClairton/Anny/utils/rest"
 	"github.com/ItsClairton/Anny/utils/sutils"
@@ -30,7 +30,7 @@ func getURLFromMessage(msg *discordgo.Message) string {
 func sendTraceMessage(ctx *base.CommandContext, attachment string) {
 	msg, _ := ctx.Reply(Emotes.ANIMATED_STAFF, "Obtendo resultados...")
 
-	result, err := ImageService.GetFromTrace(attachment)
+	result, err := image.GetFromTrace(attachment)
 	if err != nil {
 		ctx.EditReply(msg, Emotes.MIKU_CRY, sutils.Fmt("Um erro ocorreu ao entrar em contato com o trace.moe, dsclpa. (`%s`)", err))
 	} else {

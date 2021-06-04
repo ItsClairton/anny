@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/ItsClairton/Anny/base"
-	"github.com/ItsClairton/Anny/services/ImageService"
+	"github.com/ItsClairton/Anny/services/image"
 	"github.com/ItsClairton/Anny/utils/Emotes"
 )
 
@@ -19,12 +19,12 @@ var NekoCommand = base.Command{
 		var err error
 
 		if gif {
-			url, err = ImageService.GetFromNekos("ngif")
+			url, err = image.GetFromNekos("ngif")
 		} else {
 			if rand.Float32() < 0.5 {
-				url, err = ImageService.GetFromNekoBot("neko")
+				url, err = image.GetFromNekoBot("neko")
 			} else {
-				url, err = ImageService.GetFromNekos("neko")
+				url, err = image.GetFromNekos("neko")
 			}
 		}
 
