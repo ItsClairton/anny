@@ -50,9 +50,9 @@ func sendTraceMessage(ctx *base.CommandContext, attachment string) {
 			response += sutils.Fmt(" que aparece no minuto `%s`", fromTime)
 		}
 
-		videoBody, _ := rest.Get(result.Video + "&size=l")
-
 		ctx.EditReply(msg, Emotes.YEAH, sutils.Fmt("%s. (Gerando Preview)", response))
+
+		videoBody, _ := rest.Get(result.Video + "&size=l")
 		ctx.ReplyWithFile(Emotes.YEAH, sutils.Fmt("%s.", response), &discordgo.File{
 			Name:        "preview.mp4",
 			ContentType: "mp4",
