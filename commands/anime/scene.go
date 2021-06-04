@@ -2,6 +2,7 @@ package anime
 
 import (
 	"bytes"
+	"strings"
 	"time"
 
 	"github.com/ItsClairton/Anny/base"
@@ -31,7 +32,7 @@ func sendTraceMessage(ctx *base.CommandContext, attachment string) {
 	msg, _ := ctx.Reply(Emotes.ANIMATED_STAFF, "Obtendo resultados...")
 
 	result, err := image.GetFromTrace(attachment)
-	if err != nil {
+	if err != "" {
 		ctx.EditReply(msg, Emotes.MIKU_CRY, sutils.Fmt("Um erro ocorreu ao entrar em contato com o trace.moe, dsclpa. (`%s`)", err))
 	} else {
 		response := "Talvez seja uma cena"
@@ -42,7 +43,7 @@ func sendTraceMessage(ctx *base.CommandContext, attachment string) {
 			response += sutils.Fmt(" de")
 		}
 
-		if result.Title.EN != nil && sutils.ToLower(result.Title.JP) != sutils.ToLower(result.Title.EN) {
+		if !strings.EqualFold(result.Title.JP, result.Title.EN) {
 			response += sutils.Fmt(" **%s** (**%s**)", result.Title.JP, result.Title.EN)
 		} else {
 			response += sutils.Fmt(" **%s**", result.Title.JP)

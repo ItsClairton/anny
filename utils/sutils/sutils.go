@@ -6,8 +6,6 @@ import (
 	"strings"
 )
 
-type NullabeString interface{}
-
 func Fmt(s string, a ...interface{}) string {
 	return fmt.Sprintf(s, a...)
 }
@@ -17,15 +15,6 @@ func Is(cond bool, afirmative string, negative string) string {
 		return afirmative
 	} else {
 		return negative
-	}
-}
-
-func ToNullabeString(s string) NullabeString {
-	pretty := strings.TrimSpace(s)
-	if len(pretty) > 0 {
-		return pretty
-	} else {
-		return nil
 	}
 }
 

@@ -18,7 +18,7 @@ var (
 
 type ALName struct {
 	JP string
-	EN sutils.NullabeString
+	EN string
 }
 
 type TraceEntry struct {
@@ -29,7 +29,7 @@ type TraceEntry struct {
 	Video, Image string
 }
 
-func GetFromTrace(mediaUrl string) (TraceEntry, sutils.NullabeString) {
+func GetFromTrace(mediaUrl string) (TraceEntry, string) {
 
 	response, err := rest.Get(sutils.Fmt("https://api.trace.moe/search?url=%s&cutBorders=1&info=basic", url.QueryEscape(mediaUrl)))
 
@@ -59,7 +59,7 @@ func GetFromTrace(mediaUrl string) (TraceEntry, sutils.NullabeString) {
 	return TraceEntry{
 		Title: ALName{
 			JP: jpName,
-			EN: sutils.ToNullabeString(enName),
+			EN: enName,
 		},
 		Adult:   adult,
 		Episode: episode,
@@ -67,7 +67,7 @@ func GetFromTrace(mediaUrl string) (TraceEntry, sutils.NullabeString) {
 		To:      to,
 		Video:   video,
 		Image:   image,
-	}, nil
+	}, ""
 
 }
 
