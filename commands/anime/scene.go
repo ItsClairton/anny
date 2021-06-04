@@ -34,7 +34,14 @@ func sendTraceMessage(ctx *base.CommandContext, attachment string) {
 	if err != nil {
 		ctx.EditReply(msg, Emotes.MIKU_CRY, sutils.Fmt("Um erro ocorreu ao entrar em contato com o trace.moe, dsclpa. (`%s`)", err))
 	} else {
-		response := sutils.Fmt("Talvez seja uma cena do episódio **%d** de", result.Episode)
+		response := "Talvez seja uma cena"
+
+		if result.Episode > 0 {
+			response += sutils.Fmt(" do episódio **%d** de", result.Episode)
+		} else {
+			response += sutils.Fmt(" de")
+		}
+
 		if result.Title.EN != nil && sutils.ToLower(result.Title.JP) != sutils.ToLower(result.Title.EN) {
 			response += sutils.Fmt(" **%s** (**%s**)", result.Title.JP, result.Title.EN)
 		} else {
@@ -52,7 +59,13 @@ func sendTraceMessage(ctx *base.CommandContext, attachment string) {
 
 		ctx.EditReply(msg, Emotes.YEAH, sutils.Fmt("%s. (Gerando Preview)", response))
 
-		videoBody, _ := rest.Get(result.Video + "&size=l")
+		videoBody, err := rest.Get(result.Video + "&size=l")
+
+		if err != nil {
+			ctx.EditReply(msg, Emotes.YEAH, sutils.Fmt("%s. (Um erro ocorreu ao tentar gerar um Preview)", response))
+			return
+		}
+
 		ctx.ReplyWithFile(Emotes.YEAH, sutils.Fmt("%s.", response), &discordgo.File{
 			Name:        "preview.mp4",
 			ContentType: "mp4",
