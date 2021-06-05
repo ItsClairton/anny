@@ -37,6 +37,7 @@ func main() {
 
 	base.AddCommand(&anime.SceneCommand)
 	base.AddCommand(&anime.AnimeCommand)
+	base.AddCommand(&anime.MangaCommand)
 
 	err = base.Connect()
 

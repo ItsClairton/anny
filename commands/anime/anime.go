@@ -17,7 +17,7 @@ var AnimeCommand = base.Command{
 	Handler: func(ctx *base.CommandContext) {
 
 		if ctx.Args == nil {
-			ctx.Reply(Emotes.MIKU_CRY, "VocÊ precisa falar o nome do anime.")
+			ctx.Reply(Emotes.MIKU_CRY, "Você precisa falar o nome do anime.")
 			return
 		}
 
@@ -27,7 +27,7 @@ var AnimeCommand = base.Command{
 			if err.Error() == "Not Found." {
 				ctx.Reply(Emotes.MIKU_CRY, "Não encontrei informações sobre esse anime, Desculpa ;(")
 			} else {
-				ctx.Reply(Emotes.MIKU_CRY, sutils.Fmt("Houve um erro ao obter informações sobre esse anime, desculpe. (%s)", err.Error()))
+				ctx.Reply(Emotes.MIKU_CRY, sutils.Fmt("Houve um erro ao obter informações sobre esse anime, desculpa. (%s)", err.Error()))
 			}
 			return
 		}

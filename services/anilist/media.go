@@ -28,6 +28,8 @@ type Media struct {
 	Trailer   Trailer    `json:"trailer"`
 	EndDate   Date       `json:"endDate"`
 	Episodes  int        `json:"episodes"`
+	Chapters  int        `json:""`
+	Volumes   int        `json:""`
 	Genres    []string   `json:"genres"`
 	Cover     CoverImage `json:"coverImage"`
 	Banner    string     `json:"bannerImage"`
@@ -72,12 +74,34 @@ type StaffNode struct {
 	} `json:"name"`
 }
 
+func (m *Media) GetArts() []string {
+
+	var arts []string
+
+	for i, entry := range m.Staff.Edge {
+		if strings.Contains(strings.ToLower(entry.Role), "art") {
+			name := m.Staff.Node[i].Name.Full
+			s := sort.SearchStrings(arts, name)
+			if !(s < len(arts) && arts[s] == name) { // O AniList as vezes pode retornar duplicado
+				arts = append(arts, name)
+			}
+		}
+	}
+
+	return arts
+}
+
 func (m *Media) GetCreator() string {
 
 	var name string
+	pattern := "original creator"
+
+	if m.Type == "MANGA" {
+		pattern = "story"
+	}
 
 	for i, entry := range m.Staff.Edge {
-		if strings.EqualFold(entry.Role, "Original Creator") {
+		if strings.Contains(strings.ToLower(entry.Role), pattern) {
 			name = m.Staff.Node[i].Name.Full
 		}
 	}
@@ -244,6 +268,39 @@ func (m *Media) GetScoreFromMAL() (float64, error) {
 	}
 
 	return jsonparser.GetFloat(result, "score")
+}
+
+func SearchMediaAsManga(title string) (Media, error) {
+
+	result, err := Get(Query{
+		Query: `query ($search: String) {
+			Media (search: $search, type: MANGA) {
+			  id, idMal, type, siteUrl
+			  title { romaji english }
+			  description(asHtml: true)
+			  status(version: 2)
+			  source(version: 2)
+			  startDate { year, month, day }
+			  endDate { year, month, day }
+			  trailer { id site }
+			  coverImage { extraLarge color }
+			  bannerImage, chapters, volumes, genres
+			  staff {
+				nodes { name { full } }
+				edges { role }
+			  }
+			}
+		  }`,
+		Variables: struct {
+			Query string `json:"search"`
+		}{Query: title},
+	})
+
+	if err != nil {
+		return Media{}, err
+	}
+
+	return result.Media, nil
 }
 
 func GetMediaAsAnime(id int) (Media, error) {
