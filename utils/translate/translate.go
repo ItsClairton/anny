@@ -3,7 +3,6 @@ package translate
 import (
 	"encoding/json"
 	"net/url"
-	"strings"
 
 	"github.com/ItsClairton/Anny/utils/rest"
 	"github.com/ItsClairton/Anny/utils/sutils"
@@ -12,15 +11,14 @@ import (
 func Translate(from, to, source string) (string, error) {
 
 	var result []interface{}
-	var text []string
-	response, err := rest.Get("https://translate.googleapis.com/translate_a/single?client=gtx&sl=" + from + "&tl=" + to + "&dt=t&q=" + url.QueryEscape(source))
+	var text string
 
+	response, err := rest.Get("https://translate.googleapis.com/translate_a/single?client=gtx&sl=" + from + "&tl=" + to + "&dt=t&q=" + url.QueryEscape(source))
 	if err != nil {
 		return source, err
 	}
 
 	err = json.Unmarshal(response, &result)
-
 	if err != nil {
 		return source, err
 	}
@@ -28,10 +26,10 @@ func Translate(from, to, source string) (string, error) {
 	inner := result[0]
 	for _, slice := range inner.([]interface{}) {
 		for _, translated := range slice.([]interface{}) {
-			text = append(text, sutils.Fmt("%v", translated))
+			text += sutils.Fmt("%v", translated)
 			break
 		}
 	}
 
-	return strings.Join(text, ""), nil
+	return text, nil
 }
