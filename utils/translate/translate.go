@@ -2,6 +2,7 @@ package translate
 
 import (
 	"encoding/json"
+	"errors"
 	"net/url"
 
 	"github.com/ItsClairton/Anny/utils/rest"
@@ -9,6 +10,10 @@ import (
 )
 
 func Translate(from, to, source string) (string, error) {
+
+	if len(source) < 1 {
+		return source, errors.New("empty source")
+	}
 
 	var result []interface{}
 	var text string

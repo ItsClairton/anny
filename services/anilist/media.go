@@ -79,7 +79,7 @@ func (m *Media) GetArts() []string {
 	var arts []string
 
 	for i, entry := range m.Staff.Edge {
-		if strings.Contains(strings.ToLower(entry.Role), "art") {
+		if strings.Contains(strings.ToLower(entry.Role), "art") || strings.Contains(strings.ToLower(entry.Role), "illustration") {
 			name := m.Staff.Node[i].Name.Full
 			s := sort.SearchStrings(arts, name)
 			if !(s < len(arts) && arts[s] == name) { // O AniList as vezes pode retornar duplicado
@@ -274,7 +274,7 @@ func SearchMediaAsManga(title string) (Media, error) {
 
 	result, err := Get(Query{
 		Query: `query ($search: String) {
-			Media (search: $search, type: MANGA) {
+			Media (search: $search, type: MANGA, isAdult: false) {
 			  id, idMal, type, siteUrl
 			  title { romaji english }
 			  description(asHtml: true)
