@@ -53,6 +53,10 @@ func (ctx *CommandContext) ReplyWithEmbed(embed *discordgo.MessageEmbed) (*disco
 	})
 }
 
+func (ctx *CommandContext) EditWithEmbed(msg *discordgo.Message, embed *discordgo.MessageEmbed) (*discordgo.Message, error) {
+	return ctx.Client.ChannelMessageEditEmbed(msg.ChannelID, msg.ID, embed)
+}
+
 func (ctx *CommandContext) ReplyTextWithEmbed(emote string, text string, embed *discordgo.MessageEmbed) (*discordgo.Message, error) {
 	return ctx.Client.ChannelMessageSendComplex(ctx.Message.ID, &discordgo.MessageSend{
 		Content:   sutils.Fmt("%s | %s %s", emote, ctx.Author.Mention(), text),

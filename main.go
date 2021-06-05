@@ -36,6 +36,7 @@ func main() {
 	base.AddCommand(&image.NekoCommand)
 
 	base.AddCommand(&anime.SceneCommand)
+	base.AddCommand(&anime.AnimeCommand)
 
 	err = base.Connect()
 

@@ -4,7 +4,9 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/ItsClairton/Anny/utils/rest"
 	"github.com/ItsClairton/Anny/utils/sutils"
+	"github.com/buger/jsonparser"
 )
 
 type MediaTitle struct {
@@ -15,6 +17,7 @@ type MediaTitle struct {
 type Media struct {
 	Id        int        `json:"id"`
 	IdMal     int        `json:"idMal"`
+	Type      string     `json:"type"`
 	Title     MediaTitle `json:"title"`
 	Synopsis  string     `json:"description"`
 	SiteURL   string     `json:"siteUrl"`
@@ -28,7 +31,6 @@ type Media struct {
 	Genres    []string   `json:"genres"`
 	Cover     CoverImage `json:"coverImage"`
 	Banner    string     `json:"bannerImage"`
-	IsAdult   bool       `json:"isAdult"`
 	Source    string     `json:"source"`
 	Studio    struct {
 		Node []StudioNode `json:"nodes"`
@@ -128,6 +130,19 @@ func (m *Media) GetAnimationStudios() []string {
 }
 
 func (m *Media) GetPrettyStartDate() string {
+
+	if m.Status == "NOT_YET_RELEASED" {
+		if m.StartDate.Year > 0 {
+			return sutils.Fmt("Previsto para %d", m.StartDate.Year)
+		} else {
+			return "Ainda não divulgado."
+		}
+	}
+
+	if m.StartDate.Day == 0 || m.StartDate.Month == 0 || m.StartDate.Year == 0 {
+		return "N/A"
+	}
+
 	return sutils.Fmt("%d %s de %d", m.StartDate.Day, sutils.ToPrettyMonth(m.StartDate.Month), m.StartDate.Year)
 }
 
@@ -221,6 +236,16 @@ func (m *Media) GetPrettySource() string {
 
 }
 
+func (m *Media) GetScoreFromMAL() (float64, error) {
+	result, err := rest.Get(sutils.Fmt("https://api.jikan.moe/v3/%s/%d", strings.ToLower(m.Type), m.IdMal))
+
+	if err != nil {
+		return -1, nil
+	}
+
+	return jsonparser.GetFloat(result, "score")
+}
+
 func GetMediaAsAnime(id int) (Media, error) {
 
 	variables := struct {
@@ -230,7 +255,7 @@ func GetMediaAsAnime(id int) (Media, error) {
 	}
 
 	result, err := Get(Query{
-		Query:     "query ($id: Int) { Media (id: $id, type: ANIME) { id title { romaji english } description, status, season, format, siteUrl, source startDate { year month day }, endDate { year month day }, trailer { id site } coverImage { extraLarge, color } bannerImage isAdult episodes genres studios { nodes { name isAnimationStudio } } staff { nodes { name { full } } edges { role } } } }",
+		Query:     "query ($id: Int) { Media (id: $id, type: ANIME) { id idMal type title { romaji english } description(asHtml: true), status, season, format, siteUrl, source startDate { year month day }, endDate { year month day }, trailer { id site } coverImage { extraLarge, color } bannerImage episodes genres studios { nodes { name isAnimationStudio } } staff { nodes { name { full } } edges { role } } } }",
 		Variables: variables,
 	})
 
@@ -251,7 +276,7 @@ func SearchMediaAsAnime(title string) (Media, error) {
 	}
 
 	result, err := Get(Query{
-		Query:     "query ($search: String) { Media (search: $search, type: ANIME){ id title { romaji english } description, status, season, format, siteUrl, source startDate { year month day }, endDate { year month day }, trailer { id site } coverImage { extraLarge, color } bannerImage isAdult episodes genres studios { nodes { name isAnimationStudio } } staff { nodes { name { full } } edges { role } } } }",
+		Query:     "query ($search: String) { Media (search: $search, type: ANIME){ id idMal type title { romaji english } description(asHtml: true), status, season, format, siteUrl, source startDate { year month day }, endDate { year month day }, trailer { id site } coverImage { extraLarge, color } bannerImage episodes genres studios { nodes { name isAnimationStudio } } staff { nodes { name { full } } edges { role } } } }",
 		Variables: variables,
 	})
 

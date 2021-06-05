@@ -5,7 +5,11 @@ import (
 	"math"
 	"strconv"
 	"strings"
+
+	md "github.com/JohannesKaufmann/html-to-markdown"
 )
+
+var converter = md.NewConverter("", true, nil)
 
 func Fmt(s string, a ...interface{}) string {
 	return fmt.Sprintf(s, a...)
@@ -75,4 +79,10 @@ func ToHexNumber(hex string) (int, error) {
 	}
 
 	return int(result), nil
+}
+
+func ToMD(html string) string {
+	md, _ := converter.ConvertString(html)
+
+	return md
 }

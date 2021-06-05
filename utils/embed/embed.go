@@ -52,6 +52,32 @@ func (e *Embed) SetImage(url string) *Embed {
 	return e
 }
 
+func (e *Embed) SetField(index int, title string, value string, inline bool) *Embed {
+	if index > len(e.Fields) {
+		return e
+	}
+
+	if len(title) > 256 {
+		title = title[:256]
+	}
+
+	if len(value) > 1024 {
+		value = value[:1024]
+	}
+
+	if len(value) < 1 {
+		value = "N/A"
+	}
+
+	e.Fields[index] = &discordgo.MessageEmbedField{
+		Name:   title,
+		Value:  value,
+		Inline: inline,
+	}
+
+	return e
+}
+
 func (e *Embed) AddField(title, value string, inline bool) *Embed {
 
 	if len(title) > 256 {
