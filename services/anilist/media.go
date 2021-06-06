@@ -156,10 +156,19 @@ func (m *Media) GetAnimationStudios() []string {
 func (m *Media) GetPrettyStartDate() string {
 
 	if m.Status == "NOT_YET_RELEASED" {
+
 		if m.StartDate.Year > 0 {
-			return sutils.Fmt("Previsto para %d", m.StartDate.Year)
+			str := "Previsto para"
+			if m.StartDate.Day > 0 {
+				str += sutils.Fmt(" %d", m.StartDate.Day)
+			}
+			if m.StartDate.Month > 0 {
+				str += sutils.Fmt(" %s de", sutils.ToPrettyMonth(m.StartDate.Month))
+			}
+			str += sutils.Fmt(" %d", m.StartDate.Year)
+			return str
 		} else {
-			return "Ainda não divulgado."
+			return "Ainda não divulgado"
 		}
 	}
 
