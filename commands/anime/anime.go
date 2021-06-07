@@ -35,10 +35,12 @@ var AnimeCommand = base.Command{
 		launchStr := sutils.Fmt("%s", anime.GetPrettyStartDate())
 
 		if anime.EndDate.Year > 0 && anime.StartDate != anime.EndDate {
-			launchStr += sutils.Fmt("\n%s", anime.GetPrettyEndDate())
+			launchStr += sutils.Fmt(" até %s", anime.GetPrettyEndDate())
 		}
 
-		if len(anime.GetTrailerURL()) > 0 {
+		hasTrailer := len(anime.GetTrailerURL()) > 0
+
+		if hasTrailer {
 			launchStr = sutils.Fmt("[%s](%s)", launchStr, anime.GetTrailerURL())
 		}
 
@@ -50,29 +52,25 @@ var AnimeCommand = base.Command{
 		}
 
 		eb := embed.NewEmbed().
-			SetTitle(sutils.Fmt("📺 %s - %s - %d Episódios", anime.Title.JP, anime.GetPrettyFormat(), anime.Episodes)).
+			SetAuthor(sutils.Fmt("Tipo: %s - Episódios: %d", anime.GetPrettyFormat(), anime.Episodes), "https://cdn.discordapp.com/avatars/743538534589267990/a6c5e905673d041a88b49203d6bc74dd.png?size=2048").
+			SetTitle(sutils.Fmt("%s | %s", Emotes.HAPPY, anime.Title.JP)).
 			SetDescription(rawSynopsis).
 			SetURL(anime.SiteURL).
 			SetThumbnail(anime.Cover.ExtraLarge).
 			SetImage(anime.Banner).
+			SetColor(sutils.ToHexNumber(anime.Cover.Color)).
 			AddField("Direção", strings.Join(anime.GetDirectors(), "\n"), true).
 			AddField("Estudio", strings.Join(anime.GetAnimationStudios(), "\n"), true).
 			AddField("Criador", anime.GetCreator(), true).
-			AddField("Status", anime.GetPrettyStatus(), true).
-			AddField("Gêneros", strings.Join(anime.Genres, ", "), true).
-			AddField("Temporada", anime.GetPrettySeason(), true).
-			AddField("Pontuação", "...", true).
-			AddField("Data de Lançamento", launchStr, true).
 			AddField("Adaptação", anime.GetPrettySource(), true).
-			SetFooter("Powered By AniList & MAL", "https://anilist.co/img/icons/favicon-32x32.png")
+			AddField("Gênero", strings.Join(anime.Genres, ", "), true).
+			AddField("Temporada", anime.GetPrettySeason(), true).
+			AddField("Pontuação", "N/A", true).
+			AddField("Data de Estreia", launchStr, true).
+			AddField("Status", anime.GetPrettyStatus(), true).
+			SetFooter(sutils.Is(hasTrailer, "Clique na data de estreia para ver o Trailer", "Powered By AniList & MAL"), "https://anilist.co/img/icons/favicon-32x32.png")
 
-		hex, err := sutils.ToHexNumber(anime.Cover.Color)
-
-		if err == nil {
-			eb.SetColor(hex)
-		}
-
-		msg, err := ctx.ReplyWithEmbed(eb.MessageEmbed)
+		msg, err := ctx.ReplyWithEmbed(eb.Build())
 
 		if err != nil {
 			logger.Warn(err.Error())
@@ -98,16 +96,16 @@ var AnimeCommand = base.Command{
 				}
 			}
 
-			eb.SetField(4, "Gêneros", strings.Join(newArray, ", "), true)
+			eb.SetField(4, "Gênero", strings.Join(newArray, ", "), true)
 		}
 
-		ctx.EditWithEmbed(msg, eb.MessageEmbed)
+		ctx.EditWithEmbed(msg, eb.Build())
 
 		score, err := anime.GetScoreFromMAL()
 
 		if err == nil {
 			eb.SetField(6, "Pontuação", sutils.Fmt("%.2f", score), true)
-			ctx.EditWithEmbed(msg, eb.MessageEmbed)
+			ctx.EditWithEmbed(msg, eb.Build())
 		}
 
 	},

@@ -47,37 +47,35 @@ var MangaCommand = base.Command{
 		launchStr := sutils.Fmt("%s", manga.GetPrettyStartDate())
 
 		if manga.EndDate.Year > 0 && manga.StartDate != manga.EndDate {
-			launchStr += sutils.Fmt("\n%s", manga.GetPrettyEndDate())
+			launchStr += sutils.Fmt(" até %s", manga.GetPrettyEndDate())
 		}
 
-		if len(manga.GetTrailerURL()) > 0 {
+		hasTrailer := len(manga.GetTrailerURL()) > 0
+
+		if hasTrailer {
 			launchStr = sutils.Fmt("[%s](%s)", launchStr, manga.GetTrailerURL())
 		}
 
 		eb := embed.NewEmbed().
-			SetTitle(sutils.Fmt("📰 %s", manga.Title.JP)).
+			SetAuthor(sutils.Fmt("Tipo: %s - Episódios: %d", manga.GetPrettyFormat(), manga.Episodes), "https://cdn.discordapp.com/avatars/743538534589267990/a6c5e905673d041a88b49203d6bc74dd.png?size=2048").
+			SetTitle(sutils.Fmt("%s | %s", Emotes.HAPPY, manga.Title.JP)).
 			SetDescription(rawSynopsis).
 			SetURL(manga.SiteURL).
 			SetThumbnail(manga.Cover.ExtraLarge).
 			SetImage(manga.Banner).
+			SetColor(sutils.ToHexNumber(manga.Cover.Color)).
 			AddField("História", manga.GetCreator(), true).
-			AddField("Status", manga.GetPrettyStatus(), true).
-			AddField("Arte", strings.Join(manga.GetArts(), "\n"), true).
+			AddField("Gênero", strings.Join(manga.Genres, ", "), true).
+			AddField("Ilustração", strings.Join(manga.GetArts(), "\n"), true).
 			AddField("Capitulos", chapters, true).
-			AddField("Gêneros", strings.Join(manga.Genres, ", "), true).
-			AddField("Volumes", volumes, true).
-			AddField("Pontuação", "...", true).
-			AddField("Data de Lançamento", launchStr, true).
 			AddField("Adaptação", manga.GetPrettySource(), true).
-			SetFooter("Powered By AniList & MAL", "https://anilist.co/img/icons/favicon-32x32.png")
+			AddField("Volumes", volumes, true).
+			AddField("Pontuação", "N/A", true).
+			AddField("Data de Estreia", launchStr, true).
+			AddField("Status", manga.GetPrettyStatus(), true).
+			SetFooter(sutils.Is(hasTrailer, "Clique na data de estreia para ver o Trailer", "Powered By AniList & MAL"), "https://anilist.co/img/icons/favicon-32x32.png")
 
-		color, err := sutils.ToHexNumber(manga.Cover.Color)
-
-		if err == nil {
-			eb.SetColor(color)
-		}
-
-		msg, err := ctx.ReplyWithEmbed(eb.MessageEmbed)
+		msg, err := ctx.ReplyWithEmbed(eb.Build())
 
 		if err != nil {
 			logger.Warn(err.Error())
@@ -103,16 +101,16 @@ var MangaCommand = base.Command{
 				}
 			}
 
-			eb.SetField(4, "Gêneros", strings.Join(newArray, ", "), true)
+			eb.SetField(1, "Gênero", strings.Join(newArray, ", "), true)
 		}
 
-		ctx.EditWithEmbed(msg, eb.MessageEmbed)
+		ctx.EditWithEmbed(msg, eb.Build())
 
 		score, err := manga.GetScoreFromMAL()
 
 		if err == nil {
 			eb.SetField(6, "Pontuação", sutils.Fmt("%.2f", score), true)
-			ctx.EditWithEmbed(msg, eb.MessageEmbed)
+			ctx.EditWithEmbed(msg, eb.Build())
 		}
 
 	},

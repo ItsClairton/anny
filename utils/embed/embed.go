@@ -10,6 +10,28 @@ func NewEmbed() *Embed {
 	return &Embed{&discordgo.MessageEmbed{}}
 }
 
+func (e *Embed) Build() *discordgo.MessageEmbed {
+	return e.MessageEmbed
+}
+
+func (e *Embed) SetAuthor(args ...string) *Embed {
+
+	author := &discordgo.MessageEmbedAuthor{
+		Name: args[0],
+	}
+
+	if len(args) >= 2 {
+		author.IconURL = args[1]
+	}
+
+	if len(args) >= 3 {
+		author.URL = args[2]
+	}
+
+	e.Author = author
+	return e
+}
+
 func (e *Embed) SetTitle(content string) *Embed {
 	if len(content) > 256 {
 		content = content[:256]

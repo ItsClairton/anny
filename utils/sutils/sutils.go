@@ -68,17 +68,11 @@ func ToLower(s interface{}) string {
 	return strings.ToLower(Fmt("%v", s))
 }
 
-func ToHexNumber(hex string) (int, error) {
-
+func ToHexNumber(hex string) int {
 	hex = strings.TrimPrefix(hex, "#")
+	result, _ := strconv.ParseUint(hex, 16, 64)
 
-	result, err := strconv.ParseUint(hex, 16, 64)
-
-	if err != nil {
-		return -1, err
-	}
-
-	return int(result), nil
+	return int(result)
 }
 
 func ToMD(html string) string {
