@@ -57,7 +57,6 @@ var MangaCommand = base.Command{
 		}
 
 		eb := embed.NewEmbed().
-			SetAuthor(sutils.Fmt("Tipo: %s - Episódios: %d", manga.GetPrettyFormat(), manga.Episodes), "https://cdn.discordapp.com/avatars/743538534589267990/a6c5e905673d041a88b49203d6bc74dd.png?size=2048").
 			SetTitle(sutils.Fmt("%s | %s", Emotes.HAPPY, manga.Title.JP)).
 			SetDescription(rawSynopsis).
 			SetURL(manga.SiteURL).
