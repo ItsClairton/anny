@@ -242,6 +242,45 @@ func (m *Media) GetPrettyStatus() string {
 
 }
 
+func (m *Media) GetPrettyGenres() []string {
+
+	var genres []string
+
+	for _, genre := range m.Genres {
+		genres = append(genres, getPrettyGenre(genre))
+	}
+
+	return genres
+}
+
+func getPrettyGenre(genre string) string {
+	genre = strings.ToLower(genre)
+	switch genre {
+	case "action":
+		return "Ação"
+	case "adventure":
+		return "Aventura"
+	case "comedy":
+		return "Comédia"
+	case "fantasy":
+		return "Fantasia"
+	case "music":
+		return "Música"
+	case "mystery":
+		return "Mistério"
+	case "psychological":
+		return "Psícologico"
+	case "sports":
+		return "Esportes"
+	case "supernatural":
+		return "Sobrenatural"
+	case "thriller":
+		return "Suspense"
+	default:
+		return strings.Title(genre)
+	}
+}
+
 func (m *Media) GetPrettySource() string {
 
 	switch m.Source {
@@ -269,14 +308,42 @@ func (m *Media) GetPrettySource() string {
 
 }
 
-func (m *Media) GetScoreFromMAL() (float64, error) {
+type MALBasicInfo struct {
+	Genres []string
+	Score  float64
+}
+
+func (m *Media) GetBasicFromMAL() (MALBasicInfo, error) {
+
 	result, err := rest.Get(sutils.Fmt("https://api.jikan.moe/v3/%s/%d", strings.ToLower(m.Type), m.IdMal))
 
 	if err != nil {
-		return -1, nil
+		return MALBasicInfo{}, err
 	}
 
-	return jsonparser.GetFloat(result, "score")
+	var genres []string
+
+	jsonparser.ArrayEach(result, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+		if err != nil {
+			return
+		}
+
+		name, err := jsonparser.GetString(value, "name")
+		if err == nil {
+			s := sort.SearchStrings(m.Genres, name)
+
+			if !(s < len(m.Genres) && m.Genres[s] == name) { // O AniList as vezes pode retornar duplicado
+				genres = append(genres, name)
+			}
+		}
+	}, "genres")
+
+	score, _ := jsonparser.GetFloat(result, "score")
+
+	return MALBasicInfo{
+		Genres: genres,
+		Score:  score,
+	}, nil
 }
 
 func SearchMediaAsManga(title string) (Media, error) {

@@ -65,7 +65,7 @@ var MangaCommand = base.Command{
 			SetImage(manga.Banner).
 			SetColor(sutils.ToHexNumber(manga.Cover.Color)).
 			AddField("História", manga.GetCreator(), true).
-			AddField("Gênero", strings.Join(manga.Genres, ", "), true).
+			AddField("Gênero", strings.Join(manga.GetPrettyGenres(), ", "), true).
 			AddField("Ilustração", strings.Join(manga.GetArts(), "\n"), true).
 			AddField("Capitulos", chapters, true).
 			AddField("Adaptação", manga.GetPrettySource(), true).
@@ -88,28 +88,29 @@ var MangaCommand = base.Command{
 			eb.SetDescription(translatedSynopsis)
 		}
 
-		translatedGenres, err := translate.Translate("auto", "pt", strings.Join(manga.Genres, ", "))
-
-		if err == nil {
-			array := strings.Split(translatedGenres, ", ")
-			var newArray []string
-			for _, t := range array {
-				if strings.Contains(strings.ToLower(t), "fatia") {
-					newArray = append(newArray, "Slice of Life")
-				} else {
-					newArray = append(newArray, strings.Title(t))
-				}
-			}
-
-			eb.SetField(1, "Gênero", strings.Join(newArray, ", "), true)
-		}
-
 		ctx.EditWithEmbed(msg, eb.Build())
 
-		score, err := manga.GetScoreFromMAL()
+		mal, err := manga.GetBasicFromMAL()
 
 		if err == nil {
-			eb.SetField(6, "Pontuação", sutils.Fmt("%.2f", score), true)
+			if mal.Score > 0 {
+				eb.SetField(6, "Pontuação", sutils.Fmt("%.2f", mal.Score), true)
+			}
+
+			if len(mal.Genres) > 0 {
+				translatedGenres, err := translate.Translate("en", "pt", strings.Join(mal.Genres, ", "))
+
+				if err == nil {
+					var finalGenres []string
+					finalGenres = manga.GetPrettyGenres()
+
+					for _, genre := range strings.Split(translatedGenres, ", ") {
+						finalGenres = append(finalGenres, strings.Title(genre))
+					}
+
+					eb.SetField(1, "Gênero", strings.Join(finalGenres, ", "), true)
+				}
+			}
 			ctx.EditWithEmbed(msg, eb.Build())
 		}
 

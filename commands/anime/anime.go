@@ -63,7 +63,7 @@ var AnimeCommand = base.Command{
 			AddField("Estudio", strings.Join(anime.GetAnimationStudios(), "\n"), true).
 			AddField("Criador", anime.GetCreator(), true).
 			AddField("Adaptação", anime.GetPrettySource(), true).
-			AddField("Gênero", strings.Join(anime.Genres, ", "), true).
+			AddField("Gênero", strings.Join(anime.GetPrettyGenres(), ", "), true).
 			AddField("Temporada", anime.GetPrettySeason(), true).
 			AddField("Pontuação", "N/A", true).
 			AddField("Data de Estreia", launchStr, true).
@@ -83,28 +83,29 @@ var AnimeCommand = base.Command{
 			eb.SetDescription(translatedSynopsis)
 		}
 
-		translatedGenres, err := translate.Translate("auto", "pt", strings.Join(anime.Genres, ", "))
-
-		if err == nil {
-			array := strings.Split(translatedGenres, ", ")
-			var newArray []string
-			for _, t := range array {
-				if strings.Contains(strings.ToLower(t), "fatia") {
-					newArray = append(newArray, "Slice of Life")
-				} else {
-					newArray = append(newArray, strings.Title(t))
-				}
-			}
-
-			eb.SetField(4, "Gênero", strings.Join(newArray, ", "), true)
-		}
-
 		ctx.EditWithEmbed(msg, eb.Build())
 
-		score, err := anime.GetScoreFromMAL()
+		mal, err := anime.GetBasicFromMAL()
 
 		if err == nil {
-			eb.SetField(6, "Pontuação", sutils.Fmt("%.2f", score), true)
+			if mal.Score > 0 {
+				eb.SetField(6, "Pontuação", sutils.Fmt("%.2f", mal.Score), true)
+			}
+
+			if len(mal.Genres) > 0 {
+				translatedGenres, err := translate.Translate("en", "pt", strings.Join(mal.Genres, ", "))
+
+				if err == nil {
+					var finalGenres []string
+					finalGenres = anime.GetPrettyGenres()
+
+					for _, genre := range strings.Split(translatedGenres, ", ") {
+						finalGenres = append(finalGenres, strings.Title(genre))
+					}
+
+					eb.SetField(4, "Gênero", strings.Join(finalGenres, ", "), true)
+				}
+			}
 			ctx.EditWithEmbed(msg, eb.Build())
 		}
 
