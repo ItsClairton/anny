@@ -33,6 +33,10 @@ func ToHHMMSS(baseSeconds float64) string {
 		int64(seconds))
 }
 
+func SplitString(r rune) bool {
+	return r == ' ' || r == '\n'
+}
+
 func ToPrettyMonth(m int) string {
 	switch m {
 	case 1:

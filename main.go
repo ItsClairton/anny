@@ -10,6 +10,7 @@ import (
 	"github.com/ItsClairton/Anny/commands/image"
 	"github.com/ItsClairton/Anny/commands/misc"
 	"github.com/ItsClairton/Anny/listeners"
+	"github.com/ItsClairton/Anny/utils/i18n"
 	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/joho/godotenv"
 )
@@ -17,13 +18,18 @@ import (
 func main() {
 
 	err := godotenv.Load()
-
 	if err != nil {
 		logger.ErrorAndExit("Um erro ocorreu ao carregar o arquivo .env de configurações. (%s)", err.Error())
 	}
 
-	err = base.Init(os.Getenv("DISCORD_TOKEN"))
+	err = i18n.Load("./i18n")
+	if err != nil {
+		logger.ErrorAndExit("Um erro ocorreu ao carregar os arquivos de tradução. (%s)", err.Error())
+	}
 
+	logger.Info(i18n.GetLocale("pt_BR").GetString("anime.test", "Mundo"))
+
+	err = base.Init(os.Getenv("DISCORD_TOKEN"))
 	if err != nil {
 		logger.ErrorAndExit("Um erro ocorreu ao criar o cliente do discord. (%s)", err.Error())
 	}

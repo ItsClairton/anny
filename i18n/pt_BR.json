@@ -1,0 +1,73 @@
+{
+    "name": "Português Brasileiro",
+    "authors": ["463751142199787521"],
+    "error": "Um erro ocorreu ao executar esse comando, Dsclpa. (`{0}`)",
+    "usage": "O Uso correto deste comando é `{0} {1}`.",
+    "genres": {
+        "action": "Ação", "adventure": "Aventura",
+        "comedy": "Comédia", "drama": "Drama",
+        "ecchi": "Ecchi", "fantasy": "Fantasia",
+        "horror": "Horror", "mahou shoujo": "Mahou Shoujo",
+        "mecha": "Mecha", "music": "Música",
+        "mystery": "Mistério", "psychological": "Psicológico",
+        "romance": "Romance", "sci-fi": "Ficção Científica",
+        "slice of life": "Slice of Life", "sports": "Esportes",
+        "supernatural": "Sobrenatural", "thriller": "Suspense",
+        "cars": "Carros", "dementia": "Demência",
+        "demons": "Demônios", "game": "Jogo",
+        "kids": "Crianças", "magic": "Mágia",
+        "martial arts": "Artes marciais", "military": "Militar",
+        "parody": "Paródia", "police": "Polícia",
+        "samurai": "Samurai", "school": "Escolar",
+        "seinen": "Seinen", "shoujo": "Shoujo",
+        "shoujo ai": "Shoujo Ai", "shounen": "Shounen",
+        "shounen ai": "Shounen Ai", "space": "Espacial",
+        "super power": "Superpoderes", "vampire": "Vampiros",
+        "yaoi": "Yaoi", "yuri": "Yuri"
+    },
+    "months": ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
+    "prettyDate": "{0} {1} de {2}",
+    "prevDate": "Previsto para {0}",
+    "untilDate": "{0} até {1}",
+    "notYetReleased": "Ainda não divulgado.",
+    "searching": "Obtendo resultados...",
+    "anime": {
+        "trailer-footer": "Clique na data de estreia para ver o Trailer",
+        "type": ["TV", "Filme", "Especial", "OVA", "ONA", "Música"],
+        "source": ["Original", "Mangá", "Light Novel", "Visual Novel", "Jogo", "Outros", "Novela", "Doujinshi", "Anime"],
+        "season": ["Inverno", "Primavera", "Verão", "Outono"],
+        "status": ["FInalizado", "Em estreia", "Ainda não estreou", "Cancelado", "Hiato"],
+        "anime": {
+            "description": "Mostra informações básicas sobre um Anime.",
+            "not-found": "Não encontrei esse anime, Dsclpa.",
+            "embed": {
+                "author": "Tipo: {0} - Episódios: {1}",
+                "fields": ["Direção", "Estudio", "Criador", "Fonte", "Gênero", "Temporada", "Pontuação", "Data de Estreia", "Status"]
+            }
+        },
+        "manga": {
+            "description": "Mostra informações básicas sobre um Mangá.",
+            "not-found": "Não encontrei esse mangá, Dsclpa.",
+            "embed": {
+                "fields": ["História", "Gênero", "Ilustração", "Capitulos", "Fonte", "Volumes", "Pontuação", "Data de Estreia", "Status"]
+            }
+        },
+        "scene": {
+            "description": "Saber de qual episódio, qual minutagem e em qual anime aparece uma cena especifica",
+            "base": "Talvez seja uma cena {0} que aparece {1}",
+            "ofEpisode": "do episódio **{0}** de {1}",
+            "of": "de {0}",
+            "betweenMinutes": "entre os minutos **{0}** até **{1}**",
+            "betweenMinute": "no minuto **{0}**",
+            "generatingPreview": "Gerando Preview",
+            "previewError": "Um erro ocorreu ao gerar um Preview",
+            "usage": "Você precisa mandar um link, ou anexar uma imagem, um GIF, ou um vídeo. (Lembrando que GIF e Vídeo só é analsiado o primeiro frame), você também pode mencionar uma mensagem que contenha algo disso."
+        }
+    },
+    "misc": {
+        "ping": {
+            "description": "Se o Discord-kun não tiver me matado, é para eu responder Pong ;)",
+            "reply": "O meu tempo de resposta é `{0}`ms."
+        }
+    }
+}

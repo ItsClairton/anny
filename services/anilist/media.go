@@ -4,6 +4,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/ItsClairton/Anny/utils/date"
 	"github.com/ItsClairton/Anny/utils/rest"
 	"github.com/ItsClairton/Anny/utils/sutils"
 	"github.com/buger/jsonparser"
@@ -24,9 +25,9 @@ type Media struct {
 	Status    string     `json:"status"`
 	Format    string     `json:"format"`
 	Season    string     `json:"season"`
-	StartDate Date       `json:"startDate"`
+	StartDate date.Date  `json:"startDate"`
 	Trailer   Trailer    `json:"trailer"`
-	EndDate   Date       `json:"endDate"`
+	EndDate   date.Date  `json:"endDate"`
 	Episodes  int        `json:"episodes"`
 	Chapters  int        `json:""`
 	Volumes   int        `json:""`
@@ -48,12 +49,6 @@ type Trailer struct {
 	Site string `json:"site"`
 }
 
-type Date struct {
-	Year  int `json:"year"`
-	Month int `json:"month"`
-	Day   int `json:"day"`
-}
-
 type CoverImage struct {
 	ExtraLarge string `json:"extraLarge"` // Se não tiver disponível, automáticamente a API do AniList manda a imagem do tipo Large
 	Color      string `json:"color"`
@@ -72,6 +67,11 @@ type StaffNode struct {
 	Name struct {
 		Full string `json:"full"`
 	} `json:"name"`
+}
+
+type MALBasicInfo struct {
+	Genres []string
+	Score  float64
 }
 
 func (m *Media) GetArts() []string {
@@ -153,164 +153,86 @@ func (m *Media) GetAnimationStudios() []string {
 	return studios
 }
 
-func (m *Media) GetPrettyStartDate() string {
-
-	if m.Status == "NOT_YET_RELEASED" {
-
-		if m.StartDate.Year > 0 {
-			str := "Previsto para"
-			if m.StartDate.Day > 0 {
-				str += sutils.Fmt(" %d", m.StartDate.Day)
-			}
-			if m.StartDate.Month > 0 {
-				str += sutils.Fmt(" %s de", sutils.ToPrettyMonth(m.StartDate.Month))
-			}
-			str += sutils.Fmt(" %d", m.StartDate.Year)
-			return str
-		} else {
-			return "Ainda não divulgado"
-		}
-	}
-
-	if m.StartDate.Day == 0 || m.StartDate.Month == 0 || m.StartDate.Year == 0 {
-		return "N/A"
-	}
-
-	return sutils.Fmt("%d %s de %d", m.StartDate.Day, sutils.ToPrettyMonth(m.StartDate.Month), m.StartDate.Year)
-}
-
-func (m *Media) GetPrettyEndDate() string {
-	return sutils.Fmt("%d %s de %d", m.EndDate.Day, sutils.ToPrettyMonth(m.EndDate.Month), m.EndDate.Year)
-}
-
-func (m *Media) GetPrettySeason() string {
-
-	switch m.Season {
-	case "WINTER":
-		return "Inverno"
-	case "SPRING":
-		return "Primavera"
-	case "SUMMER":
-		return "Verão"
-	case "FALL":
-		return "Outono"
-	default:
-		return "N/A"
-	}
-
-}
-
-func (m *Media) GetPrettyFormat() string {
+func (m *Media) GetType() int {
 
 	switch m.Format {
 	case "TV":
-		return "TV"
+		return 0
 	case "TV_SHORT":
-		return "TV"
+		return 0
 	case "MOVIE":
-		return "Filme"
+		return 1
 	case "SPECIAL":
-		return "Especial"
+		return 2
 	case "OVA":
-		return "OVA"
+		return 3
 	case "ONA":
-		return "ONA"
+		return 4
 	case "MUSIC":
-		return "Música"
+		return 5
 	default:
-		return "N/A"
+		return -1
 	}
 
 }
 
-func (m *Media) GetPrettyStatus() string {
-
-	switch m.Status {
-	case "FINISHED":
-		return "FInalizado"
-	case "RELEASING":
-		return "Em Lançamento"
-	case "NOT_YET_RELEASED":
-		return "Não Lançado"
-	case "CANCELLED":
-		return "Cancelado"
-	case "HIATUS":
-		return "Pausado"
-	default:
-		return "N/A"
-	}
-
-}
-
-func (m *Media) GetPrettyGenres() []string {
-
-	var genres []string
-
-	for _, genre := range m.Genres {
-		genres = append(genres, getPrettyGenre(genre))
-	}
-
-	return genres
-}
-
-func getPrettyGenre(genre string) string {
-	genre = strings.ToLower(genre)
-	switch genre {
-	case "action":
-		return "Ação"
-	case "adventure":
-		return "Aventura"
-	case "comedy":
-		return "Comédia"
-	case "fantasy":
-		return "Fantasia"
-	case "music":
-		return "Música"
-	case "mystery":
-		return "Mistério"
-	case "psychological":
-		return "Psícologico"
-	case "sports":
-		return "Esportes"
-	case "supernatural":
-		return "Sobrenatural"
-	case "thriller":
-		return "Suspense"
-	default:
-		return strings.Title(genre)
-	}
-}
-
-func (m *Media) GetPrettySource() string {
-
+func (m *Media) GetSource() int {
 	switch m.Source {
 	case "ORIGINAL":
-		return "Original"
+		return 0
 	case "MANGA":
-		return "Manga"
+		return 1
 	case "LIGHT_NOVEL":
-		return "Light Novel"
+		return 2
 	case "VISUAL_NOVEL":
-		return "Visual Novel"
+		return 3
 	case "VIDEO_GAME":
-		return "Jogos"
+		return 4
 	case "OTHER":
-		return "Outros"
+		return 5
 	case "NOVEL":
-		return "Novel"
+		return 6
 	case "DOUJINSHI":
-		return "Doujinshi"
+		return 7
 	case "ANIME":
-		return "Anime"
+		return 8
 	default:
-		return "N/A"
+		return -1
+	}
+}
+
+func (m *Media) GetSeason() int {
+
+	switch m.Season {
+	case "WINTER":
+		return 0
+	case "SPRING":
+		return 1
+	case "SUMMER":
+		return 2
+	case "FALL":
+		return 3
+	default:
+		return -1
 	}
 
 }
 
-type MALBasicInfo struct {
-	Genres []string
-	Score  float64
+func (m *Media) GetStatus() int {
+	switch m.Status {
+	case "FINISHED":
+		return 0
+	case "RELEASING":
+		return 1
+	case "NOT_YET_RELEASED":
+		return 2
+	case "CANCELLED":
+		return 3
+	case "HIATUS":
+		return 4
+	default:
+		return -1
+	}
 }
 
 func (m *Media) GetBasicFromMAL() (MALBasicInfo, error) {

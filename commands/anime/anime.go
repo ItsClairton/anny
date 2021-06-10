@@ -4,20 +4,22 @@ import (
 	"strings"
 
 	"github.com/ItsClairton/Anny/base"
+	"github.com/ItsClairton/Anny/base/embed"
+	"github.com/ItsClairton/Anny/base/response"
 	"github.com/ItsClairton/Anny/services/anilist"
 	"github.com/ItsClairton/Anny/utils/Emotes"
-	"github.com/ItsClairton/Anny/utils/embed"
+	"github.com/ItsClairton/Anny/utils/date"
+	"github.com/ItsClairton/Anny/utils/i18n"
 	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/ItsClairton/Anny/utils/sutils"
-	"github.com/ItsClairton/Anny/utils/translate"
 )
 
 var AnimeCommand = base.Command{
-	Name: "anime", Description: "Saber informações básicas sobre um anime",
+	Name: "anime",
 	Handler: func(ctx *base.CommandContext) {
 
 		if ctx.Args == nil {
-			ctx.Reply(Emotes.MIKU_CRY, "Você precisa falar o nome do anime.")
+			ctx.ReplyWithUsage("<nome de um anime>")
 			return
 		}
 
@@ -25,17 +27,21 @@ var AnimeCommand = base.Command{
 
 		if err != nil {
 			if err.Error() == "Not Found." {
-				ctx.Reply(Emotes.MIKU_CRY, "Não encontrei informações sobre esse anime, Desculpa ;(")
+				ctx.Reply(Emotes.MIKU_CRY, "anime.anime.not-found")
 			} else {
-				ctx.Reply(Emotes.MIKU_CRY, sutils.Fmt("Houve um erro ao obter informações sobre esse anime, desculpa. (%s)", err.Error()))
+				ctx.ReplyWithError(err)
 			}
 			return
 		}
 
-		launchStr := sutils.Fmt("%s", anime.GetPrettyStartDate())
+		launchStr := sutils.Fmt("%s", date.ToPrettyDate(ctx.Locale, &anime.StartDate))
+
+		if anime.Status == "NOT_YET_RELEASED" {
+			launchStr = ctx.Locale.GetString("prevDate", launchStr)
+		}
 
 		if anime.EndDate.Year > 0 && anime.StartDate != anime.EndDate {
-			launchStr += sutils.Fmt(" até %s", anime.GetPrettyEndDate())
+			launchStr = ctx.Locale.GetString("untilDate", launchStr, date.ToPrettyDate(ctx.Locale, &anime.EndDate))
 		}
 
 		hasTrailer := len(anime.GetTrailerURL()) > 0
@@ -47,67 +53,66 @@ var AnimeCommand = base.Command{
 		rawSynopsis := sutils.ToMD(anime.Synopsis)
 
 		if err != nil {
-			ctx.Reply(Emotes.MIKU_CRY, sutils.Fmt("Um erro ocorreu ao obter a tradução da sinopse. (%s)", err.Error()))
+			ctx.ReplyWithError(err)
 			return
 		}
 
-		eb := embed.NewEmbed().
-			SetAuthor(sutils.Fmt("Tipo: %s - Episódios: %d", anime.GetPrettyFormat(), anime.Episodes), "https://cdn.discordapp.com/avatars/743538534589267990/a6c5e905673d041a88b49203d6bc74dd.png?size=2048").
+		typeStr := ctx.Locale.GetFromArray("anime.type", anime.GetType())
+		sourceStr := ctx.Locale.GetFromArray("anime.source", anime.GetSource())
+		seasonStr := ctx.Locale.GetFromArray("anime.season", anime.GetSeason())
+		statusStr := ctx.Locale.GetFromArray("anime.status", anime.GetStatus())
+
+		eb := embed.NewEmbed(ctx.Locale, "anime.anime.embed").
+			WithAuthor("https://cdn.discordapp.com/avatars/743538534589267990/a6c5e905673d041a88b49203d6bc74dd.png?size=2048", "", typeStr, anime.Episodes).
 			SetTitle(sutils.Fmt("%s | %s", Emotes.HAPPY, anime.Title.JP)).
 			SetDescription(rawSynopsis).
 			SetURL(anime.SiteURL).
 			SetThumbnail(anime.Cover.ExtraLarge).
 			SetImage(anime.Banner).
 			SetColor(sutils.ToHexNumber(anime.Cover.Color)).
-			AddField("Direção", strings.Join(anime.GetDirectors(), "\n"), true).
-			AddField("Estudio", strings.Join(anime.GetAnimationStudios(), "\n"), true).
-			AddField("Criador", anime.GetCreator(), true).
-			AddField("Adaptação", anime.GetPrettySource(), true).
-			AddField("Gênero", strings.Join(anime.GetPrettyGenres(), ", "), true).
-			AddField("Temporada", anime.GetPrettySeason(), true).
-			AddField("Pontuação", "N/A", true).
-			AddField("Data de Estreia", launchStr, true).
-			AddField("Status", anime.GetPrettyStatus(), true).
-			SetFooter(sutils.Is(hasTrailer, "Clique na data de estreia para ver o Trailer", "Powered By AniList & MAL"), "https://anilist.co/img/icons/favicon-32x32.png")
+			WithField(strings.Join(anime.GetDirectors(), "\n"), true).
+			WithField(strings.Join(anime.GetAnimationStudios(), "\n"), true).
+			WithField(anime.GetCreator(), true).
+			WithField(sourceStr, true).
+			WithField(strings.Join(ctx.Locale.GetPrettyGenres(anime.Genres), ", "), true).
+			WithField(seasonStr, true).
+			WithField("N/A", true).
+			WithField(launchStr, true).
+			WithField(statusStr, true).
+			SetFooter(sutils.Is(hasTrailer, ctx.Locale.GetString("anime.trailer-footer"), "Powered By AniList & MAL"), "https://anilist.co/img/icons/favicon-32x32.png")
 
-		msg, err := ctx.ReplyWithEmbed(eb.Build())
+		response := response.New(ctx.Locale).WithEmbed(eb)
+		msg, err := ctx.ReplyWithResponse(response)
 
 		if err != nil {
 			logger.Warn(err.Error())
 			return
 		}
 
-		translatedSynopsis, err := translate.Translate("auto", "pt", rawSynopsis)
+		if ctx.Locale.ID != "en_US" {
 
-		if err == nil {
-			eb.SetDescription(translatedSynopsis)
+			translatedSynopsis, err := i18n.FromGoogle("en", strings.Split(ctx.Locale.ID, "_")[0], rawSynopsis)
+
+			if err == nil {
+				eb.SetDescription(translatedSynopsis)
+				ctx.EditWithResponse(msg.ID, response)
+			}
+
 		}
-
-		ctx.EditWithEmbed(msg, eb.Build())
 
 		mal, err := anime.GetBasicFromMAL()
 
 		if err == nil {
 			if mal.Score > 0 {
-				eb.SetField(6, "Pontuação", sutils.Fmt("%.2f", mal.Score), true)
+				eb.SetFieldValue(6, sutils.Fmt("%.2f", mal.Score))
 			}
 
 			if len(mal.Genres) > 0 {
-				translatedGenres, err := translate.Translate("en", "pt", strings.Join(mal.Genres, ", "))
-
-				if err == nil {
-					var finalGenres []string
-					finalGenres = anime.GetPrettyGenres()
-
-					for _, genre := range strings.Split(translatedGenres, ", ") {
-						finalGenres = append(finalGenres, strings.Title(genre))
-					}
-
-					eb.SetField(4, "Gênero", strings.Join(finalGenres, ", "), true)
-				}
+				totalGenres := append(anime.Genres, mal.Genres...)
+				eb.SetFieldValue(4, strings.Join(ctx.Locale.GetPrettyGenres(totalGenres), ", "))
 			}
-			ctx.EditWithEmbed(msg, eb.Build())
-		}
 
+			ctx.EditWithResponse(msg.ID, response)
+		}
 	},
 }

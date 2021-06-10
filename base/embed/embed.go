@@ -1,17 +1,27 @@
 package embed
 
-import "github.com/bwmarrin/discordgo"
+import (
+	"github.com/ItsClairton/Anny/utils/i18n"
+	"github.com/ItsClairton/Anny/utils/sutils"
+	"github.com/bwmarrin/discordgo"
+)
 
 type Embed struct {
 	*discordgo.MessageEmbed
+	key    string
+	locale *i18n.Locale
 }
 
-func NewEmbed() *Embed {
-	return &Embed{&discordgo.MessageEmbed{}}
+func NewEmbed(locale *i18n.Locale, path string) *Embed {
+	return &Embed{&discordgo.MessageEmbed{}, path, locale}
 }
 
 func (e *Embed) Build() *discordgo.MessageEmbed {
 	return e.MessageEmbed
+}
+
+func (e *Embed) WithAuthor(iconUrl, url string, args ...interface{}) *Embed {
+	return e.SetAuthor(e.locale.GetString(sutils.Fmt("%s.author", e.key), args...), iconUrl, url)
 }
 
 func (e *Embed) SetAuthor(args ...string) *Embed {
@@ -32,12 +42,22 @@ func (e *Embed) SetAuthor(args ...string) *Embed {
 	return e
 }
 
+func (e *Embed) WithTitle(args ...interface{}) *Embed {
+	e.SetTitle(e.locale.GetString(sutils.Fmt("%s.title", e.key), args...))
+	return e
+}
+
 func (e *Embed) SetTitle(content string) *Embed {
 	if len(content) > 256 {
 		content = content[:256]
 	}
 
 	e.Title = content
+	return e
+}
+
+func (e *Embed) WithDescription(args ...interface{}) *Embed {
+	e.SetDescription(e.locale.GetString(sutils.Fmt("%s.description", e.key), args...))
 	return e
 }
 
@@ -71,6 +91,26 @@ func (e *Embed) SetImage(url string) *Embed {
 	e.Image = &discordgo.MessageEmbedImage{
 		URL: url,
 	}
+	return e
+}
+
+func (e *Embed) WithField(value string, inline bool) *Embed {
+	return e.AddField(e.locale.GetString(sutils.Fmt("%s.fields.[%v]", e.key, len(e.Fields))), value, inline)
+}
+
+func (e *Embed) SetFieldValue(index int, value string) *Embed {
+	if index > len(e.Fields) {
+		return e
+	}
+
+	if len(value) > 1024 {
+		value = value[:1024]
+	}
+	if len(value) < 1 {
+		value = "N/A"
+	}
+
+	e.Fields[index].Value = value
 	return e
 }
 

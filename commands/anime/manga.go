@@ -4,20 +4,22 @@ import (
 	"strings"
 
 	"github.com/ItsClairton/Anny/base"
+	"github.com/ItsClairton/Anny/base/embed"
+	"github.com/ItsClairton/Anny/base/response"
 	"github.com/ItsClairton/Anny/services/anilist"
 	"github.com/ItsClairton/Anny/utils/Emotes"
-	"github.com/ItsClairton/Anny/utils/embed"
+	"github.com/ItsClairton/Anny/utils/date"
+	"github.com/ItsClairton/Anny/utils/i18n"
 	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/ItsClairton/Anny/utils/sutils"
-	"github.com/ItsClairton/Anny/utils/translate"
 )
 
 var MangaCommand = base.Command{
-	Name: "manga", Description: "Saber informações básicas sobre um mangá",
+	Name: "manga",
 	Handler: func(ctx *base.CommandContext) {
 
 		if ctx.Args == nil {
-			ctx.Reply(Emotes.MIKU_CRY, "Você precisa falar o nome do mangá")
+			ctx.ReplyWithUsage("<nome de um mangá>")
 			return
 		}
 
@@ -25,9 +27,9 @@ var MangaCommand = base.Command{
 
 		if err != nil {
 			if err.Error() == "Not Found." {
-				ctx.Reply(Emotes.MIKU_CRY, "Não encontrei informações sobre esse mangá, Desculpa ;(")
+				ctx.Reply(Emotes.MIKU_CRY, "anime.manga.not-found")
 			} else {
-				ctx.Reply(Emotes.MIKU_CRY, sutils.Fmt("Houve um erro ao obter informações sobre esse mangá, desculpa. (%s)", err.Error()))
+				ctx.ReplyWithError(err)
 			}
 			return
 		}
@@ -44,10 +46,14 @@ var MangaCommand = base.Command{
 			volumes = "N/A"
 		}
 
-		launchStr := sutils.Fmt("%s", manga.GetPrettyStartDate())
+		launchStr := sutils.Fmt("%s", date.ToPrettyDate(ctx.Locale, &manga.StartDate))
+
+		if manga.Status == "NOT_YET_RELEASED" {
+			launchStr = ctx.Locale.GetString("prevDate", launchStr)
+		}
 
 		if manga.EndDate.Year > 0 && manga.StartDate != manga.EndDate {
-			launchStr += sutils.Fmt(" até %s", manga.GetPrettyEndDate())
+			launchStr = ctx.Locale.GetString("untilDate", launchStr, date.ToPrettyDate(ctx.Locale, &manga.EndDate))
 		}
 
 		hasTrailer := len(manga.GetTrailerURL()) > 0
@@ -56,61 +62,56 @@ var MangaCommand = base.Command{
 			launchStr = sutils.Fmt("[%s](%s)", launchStr, manga.GetTrailerURL())
 		}
 
-		eb := embed.NewEmbed().
+		sourceStr := ctx.Locale.GetFromArray("anime.source", manga.GetSource())
+		statusStr := ctx.Locale.GetFromArray("anime.status", manga.GetStatus())
+
+		eb := embed.NewEmbed(ctx.Locale, "anime.manga.embed").
 			SetTitle(sutils.Fmt("%s | %s", Emotes.HAPPY, manga.Title.JP)).
 			SetDescription(rawSynopsis).
 			SetURL(manga.SiteURL).
 			SetThumbnail(manga.Cover.ExtraLarge).
 			SetImage(manga.Banner).
 			SetColor(sutils.ToHexNumber(manga.Cover.Color)).
-			AddField("História", manga.GetCreator(), true).
-			AddField("Gênero", strings.Join(manga.GetPrettyGenres(), ", "), true).
-			AddField("Ilustração", strings.Join(manga.GetArts(), "\n"), true).
-			AddField("Capitulos", chapters, true).
-			AddField("Adaptação", manga.GetPrettySource(), true).
-			AddField("Volumes", volumes, true).
-			AddField("Pontuação", "N/A", true).
-			AddField("Data de Estreia", launchStr, true).
-			AddField("Status", manga.GetPrettyStatus(), true).
-			SetFooter(sutils.Is(hasTrailer, "Clique na data de estreia para ver o Trailer", "Powered By AniList & MAL"), "https://anilist.co/img/icons/favicon-32x32.png")
+			WithField(manga.GetCreator(), true).
+			WithField(strings.Join(ctx.Locale.GetPrettyGenres(manga.Genres), ", "), true).
+			WithField(strings.Join(manga.GetArts(), "\n"), true).
+			WithField(chapters, true).
+			WithField(sourceStr, true).
+			WithField(volumes, true).
+			WithField("N/A", true).
+			WithField(launchStr, true).
+			WithField(statusStr, true).
+			SetFooter(sutils.Is(hasTrailer, ctx.Locale.GetString("anime.trailer-footer"), "Powered By AniList & MAL"), "https://anilist.co/img/icons/favicon-32x32.png")
 
-		msg, err := ctx.ReplyWithEmbed(eb.Build())
+		response := response.New(ctx.Locale).WithEmbed(eb)
+		msg, err := ctx.ReplyWithResponse(response)
 
 		if err != nil {
 			logger.Warn(err.Error())
 			return
 		}
 
-		translatedSynopsis, err := translate.Translate("auto", "pt", rawSynopsis)
+		if ctx.Locale.ID != "en_US" {
+			translatedSynopsis, err := i18n.FromGoogle("auto", strings.Split(ctx.Locale.ID, "_")[0], rawSynopsis)
 
-		if err == nil {
-			eb.SetDescription(translatedSynopsis)
+			if err == nil {
+				eb.SetDescription(translatedSynopsis)
+				ctx.EditWithResponse(msg.ID, response)
+			}
 		}
-
-		ctx.EditWithEmbed(msg, eb.Build())
 
 		mal, err := manga.GetBasicFromMAL()
 
 		if err == nil {
 			if mal.Score > 0 {
-				eb.SetField(6, "Pontuação", sutils.Fmt("%.2f", mal.Score), true)
+				eb.SetFieldValue(6, sutils.Fmt("%.2f", mal.Score))
 			}
 
 			if len(mal.Genres) > 0 {
-				translatedGenres, err := translate.Translate("en", "pt", strings.Join(mal.Genres, ", "))
-
-				if err == nil {
-					var finalGenres []string
-					finalGenres = manga.GetPrettyGenres()
-
-					for _, genre := range strings.Split(translatedGenres, ", ") {
-						finalGenres = append(finalGenres, strings.Title(genre))
-					}
-
-					eb.SetField(1, "Gênero", strings.Join(finalGenres, ", "), true)
-				}
+				totalGenres := append(manga.Genres, mal.Genres...)
+				eb.SetFieldValue(1, strings.Join(ctx.Locale.GetPrettyGenres(totalGenres), ", "))
 			}
-			ctx.EditWithEmbed(msg, eb.Build())
+			ctx.EditWithResponse(msg.ID, response)
 		}
 
 	},

@@ -6,11 +6,10 @@ import (
 
 	"github.com/ItsClairton/Anny/base"
 	"github.com/ItsClairton/Anny/services/image"
-	"github.com/ItsClairton/Anny/utils/Emotes"
 )
 
 var NekoCommand = base.Command{
-	Name: "neko", Description: "Manda uma imagem aleatoria de uma neko",
+	Name: "neko",
 	Handler: func(ctx *base.CommandContext) {
 
 		gif := ctx.Args != nil && strings.HasPrefix(ctx.Args[0], "gif") || rand.Float32() < 0.2
@@ -29,9 +28,9 @@ var NekoCommand = base.Command{
 		}
 
 		if err != nil {
-			ctx.Reply(Emotes.MIKU_CRY, "Um erro ocorreu ao procurar por uma neko, desculpa.")
+			ctx.ReplyWithError(err)
 		} else {
-			ctx.Send(url)
+			ctx.ReplyRaw(url)
 		}
 	},
 }
