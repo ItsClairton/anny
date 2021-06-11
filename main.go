@@ -27,8 +27,6 @@ func main() {
 		logger.ErrorAndExit("Um erro ocorreu ao carregar os arquivos de tradução. (%s)", err.Error())
 	}
 
-	logger.Info(i18n.GetLocale("pt_BR").GetString("anime.test", "Mundo"))
-
 	err = base.Init(os.Getenv("DISCORD_TOKEN"))
 	if err != nil {
 		logger.ErrorAndExit("Um erro ocorreu ao criar o cliente do discord. (%s)", err.Error())
