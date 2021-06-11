@@ -42,7 +42,7 @@ func sendTraceMessage(ctx *base.CommandContext, attachment string) {
 		var titleStr string
 		var timeStr string
 
-		if !strings.EqualFold(result.Title.JP, result.Title.EN) {
+		if len(result.Title.EN) > 0 && !strings.EqualFold(result.Title.JP, result.Title.EN) {
 			titleStr = sutils.Fmt("**%s** (**%s**)", result.Title.JP, result.Title.EN)
 		} else {
 			titleStr = sutils.Fmt("**%s**", result.Title.JP)
@@ -76,7 +76,7 @@ func sendTraceMessage(ctx *base.CommandContext, attachment string) {
 		}
 
 		ctx.ReplyWithResponse(response.SetContentEmote(Emotes.YEAH, finalResponse).WithFile(&discordgo.File{
-			Name:        sutils.Is(result.Adult, "spoiler-preview.mp4", "preview.mp4"),
+			Name:        sutils.Is(result.Adult, "SPOILER_preview.mp4", "preview.mp4"),
 			ContentType: "mp4",
 			Reader:      bytes.NewReader(videoBody),
 		}))
