@@ -27,10 +27,12 @@ func ToHHMMSS(baseSeconds float64) string {
 	hours := math.Floor(baseSeconds / 3600)
 	minutes := math.Floor((baseSeconds - hours*3600) / 60)
 	seconds := baseSeconds - hours*3600 - minutes*60
-	return Fmt("%s%d:%d",
-		Is(hours < 1, "", Fmt("%d:", int64(hours))),
-		int64(minutes),
-		int64(seconds))
+
+	if hours >= 1 {
+		return Fmt("%02v:%02v:%02v", hours, minutes, seconds)
+	}
+
+	return Fmt("%02v:%02v", minutes, seconds)
 }
 
 func SplitString(r rune) bool {
