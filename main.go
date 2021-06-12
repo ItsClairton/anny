@@ -9,6 +9,7 @@ import (
 	"github.com/ItsClairton/Anny/commands/anime"
 	"github.com/ItsClairton/Anny/commands/image"
 	"github.com/ItsClairton/Anny/commands/misc"
+	"github.com/ItsClairton/Anny/commands/music"
 	"github.com/ItsClairton/Anny/listeners"
 	"github.com/ItsClairton/Anny/utils/i18n"
 	"github.com/ItsClairton/Anny/utils/logger"
@@ -42,6 +43,8 @@ func main() {
 	base.AddCommand(&anime.SceneCommand)
 	base.AddCommand(&anime.AnimeCommand)
 	base.AddCommand(&anime.MangaCommand)
+
+	base.AddCommand(&music.PlayCommand)
 
 	err = base.Connect()
 
