@@ -4,6 +4,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/ItsClairton/Anny/utils/sutils"
 	"github.com/buger/jsonparser"
 )
@@ -48,7 +49,13 @@ func (lc *Locale) GetPrettyGenres(genres []string) []string {
 }
 
 func (lc *Locale) GetPrettyGenre(genre string) string {
-	return lc.GetString(sutils.Fmt("genres.%s", genre))
+	genreResult := lc.GetString(sutils.Fmt("genres.%s", genre))
+
+	if genreResult == "N/A" {
+		logger.Warn("Não encontrei o gênero %s nos arquivos de tradução.", genre)
+		return strings.Title(genre)
+	}
+	return genreResult
 }
 
 func (lc *Locale) GetFromArray(path string, i int) string {
