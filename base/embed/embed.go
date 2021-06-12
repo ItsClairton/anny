@@ -61,6 +61,11 @@ func (e *Embed) WithDescription(args ...interface{}) *Embed {
 	return e
 }
 
+func (e *Embed) WithEmoteDescription(emote string, args ...interface{}) *Embed {
+	e.SetDescription(sutils.Fmt("%s %s", emote, e.locale.GetString(sutils.Fmt("%s.description", e.key), args...)))
+	return e
+}
+
 func (e *Embed) SetDescription(content string) *Embed {
 	if len(content) > 2048 {
 		content = content[:2048]
@@ -166,6 +171,15 @@ func (e *Embed) SetFooter(content string, imgUrl string) *Embed {
 
 	e.Footer = &discordgo.MessageEmbedFooter{
 		Text:    content,
+		IconURL: imgUrl,
+	}
+	return e
+}
+
+func (e *Embed) WithFooter(imgUrl string, values ...interface{}) *Embed {
+
+	e.Footer = &discordgo.MessageEmbedFooter{
+		Text:    e.locale.GetString(sutils.Fmt("%s.footer", e.key), values...),
 		IconURL: imgUrl,
 	}
 	return e
