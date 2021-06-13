@@ -124,7 +124,7 @@ func (e *EncodeSession) readStdout(stdout io.ReadCloser) {
 			continue
 		}
 		if err != nil {
-			if err != io.EOF {
+			if err != io.EOF && err != io.ErrUnexpectedEOF {
 				logger.Error("Um erro ocorreu ao ler a saida do ffmpeg: %s", err.Error())
 			}
 			break
@@ -198,6 +198,7 @@ func (e *EncodeSession) OpusFrame() ([]byte, error) {
 
 func (e *EncodeSession) ReadFrame() ([]byte, error) {
 	f := <-e.channel
+
 	if f == nil {
 		return nil, io.EOF
 	}

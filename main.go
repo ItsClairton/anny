@@ -45,6 +45,8 @@ func main() {
 	base.AddCommand(&anime.MangaCommand)
 
 	base.AddCommand(&music.PlayCommand)
+	base.AddCommand(&music.SkipCommand)
+	base.AddCommand(&music.PauseCommand)
 
 	err = base.Connect()
 

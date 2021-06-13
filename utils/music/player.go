@@ -14,12 +14,13 @@ import (
 )
 
 type Player struct {
-	State      string
-	Guild      *discordgo.Guild
-	Connection *discordgo.VoiceConnection
-	Ctx        *base.CommandContext
-	Current    CurrentTrack
-	Tracks     []Track
+	State       string
+	Guild       *discordgo.Guild
+	Connection  *discordgo.VoiceConnection
+	Ctx         *base.CommandContext
+	lastMessage string
+	Current     CurrentTrack
+	Tracks      []Track
 }
 
 type Track struct {
@@ -50,7 +51,7 @@ func (p *Player) LoadTrack(track Track) {
 
 func (p *Player) Play() {
 
-	if p.State == PlayingState {
+	if p.State != StoppedState {
 		return
 	}
 
@@ -66,6 +67,10 @@ func (p *Player) Play() {
 	defer encodingSession.Cleanup()
 	p.State = PlayingState
 
+	if p.lastMessage != "" {
+		p.Ctx.Client.ChannelMessageDelete(p.Ctx.Message.ChannelID, p.lastMessage)
+	}
+
 	eb := embed.NewEmbed(p.Ctx.Locale, "music.playingEmbed").
 		WithEmoteDescription(Emotes.YEAH, sutils.Fmt("[%s](%s)", p.Current.Name, p.Current.URL)).
 		WithField(p.Current.Author, true).
@@ -74,7 +79,8 @@ func (p *Player) Play() {
 		SetColor(0x006798).
 		WithFooter(p.Current.Requester.AvatarURL(""), p.Current.Requester.Username)
 
-	p.Ctx.SendWithResponse(response.New(p.Ctx.Locale).WithEmbed(eb))
+	msg, _ := p.Ctx.SendWithResponse(response.New(p.Ctx.Locale).WithEmbed(eb))
+	p.lastMessage = msg.ID
 
 	done := make(chan error)
 	p.Current.Session = audio.NewStream(encodingSession, p.Connection, done)

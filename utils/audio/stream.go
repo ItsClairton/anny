@@ -19,7 +19,7 @@ type OpusReader interface {
 
 type StreamingSession struct {
 	sync.Mutex
-	source     OpusReader
+	source     *EncodeSession
 	connection *discordgo.VoiceConnection
 	running    bool
 	paused     bool
@@ -30,7 +30,7 @@ type StreamingSession struct {
 	err      error
 }
 
-func NewStream(source OpusReader, vc *discordgo.VoiceConnection, callback chan error) *StreamingSession {
+func NewStream(source *EncodeSession, vc *discordgo.VoiceConnection, callback chan error) *StreamingSession {
 
 	session := &StreamingSession{
 		source:     source,
@@ -49,7 +49,7 @@ func (s *StreamingSession) stream() {
 
 	if s.running {
 		s.Unlock()
-		logger.Warn("Voice already ruining")
+		logger.Warn("Voice already running")
 		return
 	}
 
@@ -128,6 +128,39 @@ func (s *StreamingSession) Pause() {
 		return
 	}
 
-	s.paused = !(s.paused)
+	isPaused := !(s.paused)
+
+	s.paused = isPaused
+	if !isPaused {
+		go s.stream()
+	}
 	s.Unlock()
+}
+
+func (s *StreamingSession) Finished() (bool, error) {
+	s.Lock()
+
+	err := s.err
+	state := s.finished
+
+	s.Unlock()
+	return state, err
+}
+
+func (s *StreamingSession) Paused() bool {
+	s.Lock()
+
+	state := s.paused
+
+	s.Unlock()
+	return state
+}
+
+func (s *StreamingSession) Source() *EncodeSession {
+	s.Lock()
+
+	source := s.source
+
+	s.Unlock()
+	return source
 }

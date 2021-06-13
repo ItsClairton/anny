@@ -23,7 +23,7 @@ func getVoice(userId string, guild *discordgo.Guild) string {
 
 var PlayCommand = base.Command{
 	Name:    "tocar",
-	Aliases: []string{},
+	Aliases: []string{"play", "p"},
 	Handler: func(ctx *base.CommandContext) {
 		if ctx.Args == nil {
 			ctx.ReplyWithUsage("<nome de uma música>")
