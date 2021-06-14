@@ -29,6 +29,7 @@ type Track struct {
 	URL       string
 	ThumbURL  string
 	StreamURL string
+	isOpus    bool
 	Duration  int64
 	Requester *discordgo.User
 }
@@ -62,7 +63,7 @@ func (p *Player) Play() {
 	p.Current = CurrentTrack{p.Tracks[0], nil}
 	p.Tracks = p.Tracks[1:]
 
-	encodingSession := audio.EncodeData(p.Current.StreamURL)
+	encodingSession := audio.EncodeData(p.Current.StreamURL, p.Current.isOpus)
 
 	defer encodingSession.Cleanup()
 	p.State = PlayingState

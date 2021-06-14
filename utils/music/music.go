@@ -42,14 +42,17 @@ func GetTrackFromYouTube(url string) (*Track, error) {
 	}
 
 	var audioFormat *youtube.Format
+	var isOpus bool
 
 	if len(info.Formats.Type("opus")) < 1 {
 		if len(info.Formats.Type("audio")) < 1 {
 			return nil, errors.New("not found audio format")
 		}
 		audioFormat = &info.Formats.Type("audio")[0]
+		isOpus = false
 	} else {
 		audioFormat = &info.Formats.Type("opus")[0]
+		isOpus = true
 	}
 
 	resultUrl, err := client.GetStreamURL(info, audioFormat)
@@ -65,6 +68,7 @@ func GetTrackFromYouTube(url string) (*Track, error) {
 		ThumbURL:  sutils.Fmt("https://img.youtube.com/vi/%s/maxresdefault.jpg", info.ID),
 		URL:       sutils.Fmt("https://youtu.be/%s", info.ID),
 		StreamURL: resultUrl,
+		isOpus:    isOpus,
 	}, nil
 
 }

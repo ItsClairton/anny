@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/ItsClairton/Anny/utils/logger"
+	"github.com/ItsClairton/Anny/utils/sutils"
 	"github.com/jonas747/ogg"
 )
 
@@ -28,15 +29,17 @@ type EncodeSession struct {
 
 	lastFrame int
 	err       error
+	isOpus    bool
 
 	buff bytes.Buffer
 }
 
-func EncodeData(path string) *EncodeSession {
+func EncodeData(path string, isOpus bool) *EncodeSession {
 
 	session := &EncodeSession{
 		path:    path,
 		channel: make(chan []byte, 100),
+		isOpus:  isOpus,
 	}
 
 	go session.run()
@@ -60,13 +63,13 @@ func (e *EncodeSession) run() {
 		"-reconnect_streamed", "1",
 		"-reconnect_delay_max", "2",
 		"-i", e.path,
+		"-analyzeduration", "0",
+		"-loglevel", "0",
 		"-map", "0:a",
-		"-acodec", "libopus",
+		"-acodec", sutils.Is(e.isOpus, "copy", "libopus"),
 		"-f", "ogg",
-		"-vbr", "off",
 		"-ar", "48000",
 		"-ac", "2",
-		"-b:a", "96000",
 		"-application", "lowdelay",
 		"-frame_duration", "20", "pipe:1"}
 
