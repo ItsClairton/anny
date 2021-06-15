@@ -66,7 +66,12 @@ func (p *Player) loadNextTrack() {
 
 func (p *Player) Play() {
 
-	if p.State != StoppedState || len(p.Tracks) < 1 {
+	if p.State != StoppedState {
+		return
+	}
+
+	if len(p.Tracks) < 1 {
+		RemovePlayer(p)
 		return
 	}
 

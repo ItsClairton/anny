@@ -17,3 +17,8 @@ func AddPlayer(player *Player) *Player {
 	players[player.GuildID] = player
 	return player
 }
+
+func RemovePlayer(player *Player) {
+	player.Connection.Disconnect()
+	players[player.GuildID] = nil
+}

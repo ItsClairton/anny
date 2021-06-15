@@ -22,7 +22,7 @@ var PlayCommand = base.Command{
 		voiceId := ctx.GetVoice()
 		if voiceId != "" {
 
-			msg, err := ctx.Reply(Emotes.ANIMATED_STAFF, "searching")
+			msg, err := ctx.Reply(Emotes.KANNAPEER, "searching")
 			if err != nil {
 				return
 			}
