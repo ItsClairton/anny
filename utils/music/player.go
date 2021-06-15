@@ -112,13 +112,13 @@ func (p *Player) Play() {
 
 	err = <-done
 	if err != nil {
-		if err == io.EOF {
-			p.State = StoppedState
-			p.Play()
-			return
+
+		if err != io.EOF {
+			p.Ctx.Reply(Emotes.MIKU_CRY, "music.error", track.Title, track.Requester.Mention(), err.Error())
 		}
-		p.Ctx.Reply(Emotes.MIKU_CRY, "music.error", track.Title, track.Requester.Mention(), err.Error())
-		return
+
+		p.State = StoppedState
+		p.Play()
 	}
 
 }
