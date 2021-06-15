@@ -8,29 +8,24 @@ import (
 	"github.com/ItsClairton/Anny/base/response"
 	"github.com/ItsClairton/Anny/utils/Emotes"
 	"github.com/ItsClairton/Anny/utils/audio"
-	"github.com/ItsClairton/Anny/utils/logger"
+	"github.com/ItsClairton/Anny/utils/music/provider"
 	"github.com/ItsClairton/Anny/utils/sutils"
 	"github.com/bwmarrin/discordgo"
 )
 
 type Player struct {
 	State       string
-	Guild       *discordgo.Guild
+	GuildID     string
 	Connection  *discordgo.VoiceConnection
 	Ctx         *base.CommandContext
-	lastMessage string
-	Current     CurrentTrack
 	Tracks      []Track
+	Current     CurrentTrack
+	lastMessage string
 }
 
 type Track struct {
-	Name      string
-	Author    string
-	URL       string
-	ThumbURL  string
-	StreamURL string
-	isOpus    bool
-	Duration  int64
+	*provider.PartialInfo
+	Stream    *provider.StreamInfo
 	Requester *discordgo.User
 }
 
@@ -45,56 +40,80 @@ var (
 	PausedState  = "PAUSED"
 )
 
-func (p *Player) LoadTrack(track Track) {
+func (p *Player) AddQueue(track Track) {
 	p.Tracks = append(p.Tracks, track)
 	go p.Play()
+	go p.loadNextTrack()
+}
+
+func (p *Player) loadNextTrack() {
+	if len(p.Tracks) < 1 {
+		return
+	}
+
+	track := &p.Tracks[0]
+	if track.Stream != nil {
+		return
+	}
+
+	stream, err := track.Provider.GetStream(track.PartialInfo)
+
+	if err != nil {
+		return
+	}
+	track.Stream = stream
 }
 
 func (p *Player) Play() {
 
-	if p.State != StoppedState {
-		return
-	}
-
-	if len(p.Tracks) < 1 {
+	if p.State != StoppedState || len(p.Tracks) < 1 {
 		return
 	}
 
 	p.Current = CurrentTrack{p.Tracks[0], nil}
 	p.Tracks = p.Tracks[1:]
 
-	encodingSession := audio.EncodeData(p.Current.StreamURL, p.Current.isOpus)
+	track := &p.Current
 
-	defer encodingSession.Cleanup()
-	p.State = PlayingState
+	if track.Stream == nil {
+		stream, err := track.Provider.GetStream(track.PartialInfo)
 
-	if p.lastMessage != "" {
-		p.Ctx.Client.ChannelMessageDelete(p.Ctx.Message.ChannelID, p.lastMessage)
+		if err != nil {
+			p.Ctx.Reply(Emotes.MIKU_CRY, "music.error", track.Title, track.Requester.Mention(), err.Error())
+			return
+		}
+		track.Stream = stream
 	}
-
-	eb := embed.NewEmbed(p.Ctx.Locale, "music.playingEmbed").
-		WithEmoteDescription(Emotes.YEAH, sutils.Fmt("[%s](%s)", p.Current.Name, p.Current.URL)).
-		WithField(p.Current.Author, true).
-		WithField(sutils.ToHHMMSS(float64(p.Current.Duration)/1000), true).
-		SetImage(p.Current.ThumbURL).
-		SetColor(0x006798).
-		WithFooter(p.Current.Requester.AvatarURL(""), p.Current.Requester.Username)
-
-	msg, _ := p.Ctx.SendWithResponse(response.New(p.Ctx.Locale).WithEmbed(eb))
-	p.lastMessage = msg.ID
+	session := audio.EncodeData(track.Stream.StreamURL, track.Stream.IsOpus)
+	defer session.Cleanup()
 
 	done := make(chan error)
-	p.Current.Session = audio.NewStream(encodingSession, p.Connection, done)
-	err := <-done
+	track.Session = audio.NewStream(session, p.Connection, done)
 
+	p.State = PlayingState
+	eb := embed.NewEmbed(p.Ctx.Locale, "music.playingEmbed").
+		WithEmoteDescription(Emotes.YEAH, sutils.Fmt("[%s](%s)", track.Title, track.URL)).
+		WithField(track.Author, true).
+		WithField(track.Duration, true).
+		SetImage(track.ThumbURL).
+		SetColor(0x006798).
+		WithFooter(track.Requester.AvatarURL(""), track.Requester.Username)
+
+	msg, err := p.Ctx.SendWithResponse(response.New(p.Ctx.Locale).WithEmbed(eb))
+	if err == nil {
+		p.lastMessage = msg.ID
+	}
+	go p.loadNextTrack()
+
+	err = <-done
 	if err != nil {
-
 		if err == io.EOF {
 			p.State = StoppedState
 			p.Play()
 			return
 		}
-		logger.Warn(err.Error())
+		p.Ctx.Reply(Emotes.MIKU_CRY, "music.error", track.Title, track.Requester.Mention(), err.Error())
+		return
 	}
 
 }

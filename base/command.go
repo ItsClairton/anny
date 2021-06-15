@@ -28,6 +28,21 @@ type CommandContext struct {
 	Args     []string
 }
 
+func (ctx *CommandContext) GetGuild() *discordgo.Guild {
+	g, _ := ctx.Client.State.Guild(ctx.Message.GuildID)
+	return g
+}
+
+func (ctx *CommandContext) GetVoice() string {
+	for _, vs := range ctx.GetGuild().VoiceStates {
+		if vs.UserID == ctx.Author.ID {
+			return vs.ChannelID
+		}
+	}
+
+	return ""
+}
+
 func (ctx *CommandContext) ReplyWithUsage(usage string) (*discordgo.Message, error) {
 	return ctx.ReplyWithResponse(response.New(ctx.Locale).WithContentEmote(Emotes.MIKU_CRY, "usage", strings.FieldsFunc(ctx.Message.Content, sutils.SplitString)[0], usage))
 }
@@ -70,6 +85,10 @@ func (ctx *CommandContext) SendRaw(content string) (*discordgo.Message, error) {
 
 func (ctx *CommandContext) Send(path string, args ...interface{}) (*discordgo.Message, error) {
 	return ctx.Client.ChannelMessageSend(ctx.Message.ChannelID, ctx.Locale.GetString(path, args...))
+}
+
+func (ctx *CommandContext) EditWithEmote(id string, emote string, path string, args ...interface{}) (*discordgo.Message, error) {
+	return ctx.Client.ChannelMessageEdit(ctx.Message.ChannelID, id, sutils.Fmt("%s | %s", emote, ctx.Locale.GetString(path, args...)))
 }
 
 func (ctx *CommandContext) DeleteMessage(message *discordgo.Message) {
