@@ -177,10 +177,5 @@ func (e *Embed) SetFooter(content string, imgUrl string) *Embed {
 }
 
 func (e *Embed) WithFooter(imgUrl string, values ...interface{}) *Embed {
-
-	e.Footer = &discordgo.MessageEmbedFooter{
-		Text:    e.locale.GetString(sutils.Fmt("%s.footer", e.key), values...),
-		IconURL: imgUrl,
-	}
-	return e
+	return e.SetFooter(imgUrl, e.locale.GetString(sutils.Fmt("%s.footer", e.key), values...))
 }

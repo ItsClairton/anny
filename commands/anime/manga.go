@@ -5,7 +5,6 @@ import (
 
 	"github.com/ItsClairton/Anny/base"
 	"github.com/ItsClairton/Anny/base/embed"
-	"github.com/ItsClairton/Anny/base/response"
 	"github.com/ItsClairton/Anny/services/anilist"
 	"github.com/ItsClairton/Anny/utils/Emotes"
 	"github.com/ItsClairton/Anny/utils/date"
@@ -83,8 +82,7 @@ var MangaCommand = base.Command{
 			WithField(statusStr, true).
 			SetFooter(sutils.Is(hasTrailer, ctx.Locale.GetString("anime.trailer-footer"), "Powered By AniList & MAL"), "https://anilist.co/img/icons/favicon-32x32.png")
 
-		response := response.New(ctx.Locale).WithEmbed(eb)
-		msg, err := ctx.ReplyWithResponse(response)
+		msg, err := ctx.ReplyWithEmbed(eb)
 
 		if err != nil {
 			logger.Warn(err.Error())
@@ -96,7 +94,7 @@ var MangaCommand = base.Command{
 
 			if err == nil {
 				eb.SetDescription(translatedSynopsis)
-				ctx.EditWithResponse(msg.ID, response)
+				ctx.EditWithEmbed(msg.ID, eb)
 			}
 		}
 
@@ -111,7 +109,7 @@ var MangaCommand = base.Command{
 				totalGenres := append(manga.Genres, mal.Genres...)
 				eb.SetFieldValue(1, strings.Join(ctx.Locale.GetPrettyGenres(totalGenres), ", "))
 			}
-			ctx.EditWithResponse(msg.ID, response)
+			ctx.EditWithEmbed(msg.ID, eb)
 		}
 
 	},

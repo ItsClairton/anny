@@ -3,7 +3,6 @@ package sutils
 import (
 	"fmt"
 	"math"
-	"regexp"
 	"strconv"
 	"strings"
 
@@ -12,16 +11,11 @@ import (
 
 var converter = md.NewConverter("", true, nil)
 
-func GetRegex(reg string) *regexp.Regexp {
-	result, _ := regexp.Compile(reg)
-	return result
-}
-
 func Fmt(s string, a ...interface{}) string {
 	return fmt.Sprintf(s, a...)
 }
 
-func Is(cond bool, afirmative string, negative string) string {
+func Is(cond bool, afirmative, negative string) string {
 	if cond {
 		return afirmative
 	} else {

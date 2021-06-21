@@ -34,11 +34,11 @@ var PlayCommand = base.Command{
 			}
 
 			if info == nil {
-				ctx.EditWithEmote(msg.ID, Emotes.MIKU_CRY, "music.notFound")
+				ctx.Edit(msg.ID, Emotes.MIKU_CRY, "music.notFound")
 				return
 			}
 
-			go ctx.EditWithEmote(msg.ID, Emotes.TOHRU, "music.addedQueue", info.Title, info.Author)
+			go ctx.Edit(msg.ID, Emotes.TOHRU, "music.addedQueue", info.Title, info.Author)
 
 			player := music.GetPlayer(ctx.Message.GuildID)
 			if player == nil {
