@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ItsClairton/Anny/utils/logger"
+	"github.com/ItsClairton/Anny/logger"
 	"github.com/bwmarrin/discordgo"
 )
 

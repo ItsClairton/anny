@@ -5,12 +5,11 @@ import (
 
 	"github.com/ItsClairton/Anny/base"
 	"github.com/ItsClairton/Anny/base/embed"
+	"github.com/ItsClairton/Anny/i18n"
+	"github.com/ItsClairton/Anny/logger"
 	"github.com/ItsClairton/Anny/services/anilist"
-	"github.com/ItsClairton/Anny/utils/Emotes"
-	"github.com/ItsClairton/Anny/utils/date"
-	"github.com/ItsClairton/Anny/utils/i18n"
-	"github.com/ItsClairton/Anny/utils/logger"
-	"github.com/ItsClairton/Anny/utils/sutils"
+	"github.com/ItsClairton/Anny/utils"
+	"github.com/ItsClairton/Anny/utils/constants"
 )
 
 var AnimeCommand = base.Command{
@@ -26,30 +25,30 @@ var AnimeCommand = base.Command{
 
 		if err != nil {
 			if err.Error() == "Not Found." {
-				ctx.Reply(Emotes.MIKU_CRY, "anime.anime.not-found")
+				ctx.Reply(constants.MIKU_CRY, "anime.anime.not-found")
 			} else {
 				ctx.ReplyWithError(err)
 			}
 			return
 		}
 
-		launchStr := sutils.Fmt("%s", date.ToPrettyDate(ctx.Locale, &anime.StartDate))
+		launchStr := utils.Fmt("%s", ctx.Locale.ToPrettyDate(&anime.StartDate))
 
 		if anime.Status == "NOT_YET_RELEASED" {
 			launchStr = ctx.Locale.GetString("prevDate", launchStr)
 		}
 
 		if anime.EndDate.Year > 0 && anime.StartDate != anime.EndDate {
-			launchStr = ctx.Locale.GetString("untilDate", launchStr, date.ToPrettyDate(ctx.Locale, &anime.EndDate))
+			launchStr = ctx.Locale.GetString("untilDate", launchStr, ctx.ToPrettyDate(&anime.EndDate))
 		}
 
 		hasTrailer := len(anime.GetTrailerURL()) > 0
 
 		if hasTrailer {
-			launchStr = sutils.Fmt("[%s](%s)", launchStr, anime.GetTrailerURL())
+			launchStr = utils.Fmt("[%s](%s)", launchStr, anime.GetTrailerURL())
 		}
 
-		rawSynopsis := sutils.ToMD(anime.Synopsis)
+		rawSynopsis := utils.ToMD(anime.Synopsis)
 
 		if err != nil {
 			ctx.ReplyWithError(err)
@@ -63,12 +62,12 @@ var AnimeCommand = base.Command{
 
 		eb := embed.NewEmbed(ctx.Locale, "anime.anime.embed").
 			WithAuthor("https://cdn.discordapp.com/avatars/743538534589267990/a6c5e905673d041a88b49203d6bc74dd.png?size=2048", "", typeStr, anime.Episodes).
-			SetTitle(sutils.Fmt("%s | %s", Emotes.HAPPY, anime.Title.JP)).
+			SetTitle(utils.Fmt("%s | %s", constants.HAPPY, anime.Title.JP)).
 			SetDescription(rawSynopsis).
 			SetURL(anime.SiteURL).
 			SetThumbnail(anime.Cover.ExtraLarge).
 			SetImage(anime.Banner).
-			SetColor(sutils.ToHexNumber(anime.Cover.Color)).
+			SetColor(utils.ToHexNumber(anime.Cover.Color)).
 			WithField(strings.Join(anime.GetDirectors(), "\n"), true).
 			WithField(strings.Join(anime.GetAnimationStudios(), "\n"), true).
 			WithField(anime.GetCreator(), true).
@@ -78,7 +77,7 @@ var AnimeCommand = base.Command{
 			WithField("N/A", true).
 			WithField(launchStr, true).
 			WithField(statusStr, true).
-			SetFooter(sutils.Is(hasTrailer, ctx.Locale.GetString("anime.trailer-footer"), "Powered By AniList & MAL"), "https://anilist.co/img/icons/favicon-32x32.png")
+			SetFooter(utils.Is(hasTrailer, ctx.Locale.GetString("anime.trailer-footer"), "Powered By AniList & MAL"), "https://anilist.co/img/icons/favicon-32x32.png")
 
 		msg, err := ctx.ReplyWithEmbed(eb)
 
@@ -102,7 +101,7 @@ var AnimeCommand = base.Command{
 
 		if err == nil {
 			if mal.Score > 0 {
-				eb.SetFieldValue(6, sutils.Fmt("%.2f", mal.Score))
+				eb.SetFieldValue(6, utils.Fmt("%.2f", mal.Score))
 			}
 
 			if len(mal.Genres) > 0 {

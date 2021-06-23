@@ -1,4 +1,4 @@
-package Emotes
+package constants
 
 var (
 	PING_PONG      = ":ping_pong:"

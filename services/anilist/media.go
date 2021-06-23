@@ -4,9 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/ItsClairton/Anny/utils/date"
-	"github.com/ItsClairton/Anny/utils/rest"
-	"github.com/ItsClairton/Anny/utils/sutils"
+	"github.com/ItsClairton/Anny/utils"
 	"github.com/buger/jsonparser"
 )
 
@@ -25,9 +23,9 @@ type Media struct {
 	Status    string     `json:"status"`
 	Format    string     `json:"format"`
 	Season    string     `json:"season"`
-	StartDate date.Date  `json:"startDate"`
+	StartDate utils.Date `json:"startDate"`
 	Trailer   Trailer    `json:"trailer"`
-	EndDate   date.Date  `json:"endDate"`
+	EndDate   utils.Date `json:"endDate"`
 	Episodes  int        `json:"episodes"`
 	Chapters  int        `json:""`
 	Volumes   int        `json:""`
@@ -113,9 +111,9 @@ func (m *Media) GetTrailerURL() string {
 
 	switch m.Trailer.Site {
 	case "youtube":
-		return sutils.Fmt("https://www.youtube.com/watch?v=%s", m.Trailer.Id)
+		return utils.Fmt("https://www.youtube.com/watch?v=%s", m.Trailer.Id)
 	case "dailymotion":
-		return sutils.Fmt("https://www.dailymotion.com/video/", m.Trailer.Id)
+		return utils.Fmt("https://www.dailymotion.com/video/", m.Trailer.Id)
 	default:
 		return ""
 	}
@@ -237,7 +235,7 @@ func (m *Media) GetStatus() int {
 
 func (m *Media) GetBasicFromMAL() (MALBasicInfo, error) {
 
-	result, err := rest.Get(sutils.Fmt("https://api.jikan.moe/v3/%s/%d", strings.ToLower(m.Type), m.IdMal))
+	result, err := utils.GetFromWeb(utils.Fmt("https://api.jikan.moe/v3/%s/%d", strings.ToLower(m.Type), m.IdMal))
 
 	if err != nil {
 		return MALBasicInfo{}, err

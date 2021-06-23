@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/ItsClairton/Anny/base"
-	"github.com/ItsClairton/Anny/utils/Emotes"
+	"github.com/ItsClairton/Anny/utils/constants"
 	"github.com/ItsClairton/Anny/utils/music"
 	"github.com/ItsClairton/Anny/utils/music/provider"
 )
@@ -22,7 +22,7 @@ var PlayCommand = base.Command{
 		voiceId := ctx.GetVoice()
 		if voiceId != "" {
 
-			msg, err := ctx.Reply(Emotes.KANNAPEER, "searching")
+			msg, err := ctx.Reply(constants.KANNAPEER, "searching")
 			if err != nil {
 				return
 			}
@@ -34,11 +34,11 @@ var PlayCommand = base.Command{
 			}
 
 			if info == nil {
-				ctx.Edit(msg.ID, Emotes.MIKU_CRY, "music.notFound")
+				ctx.Edit(msg.ID, constants.MIKU_CRY, "music.notFound")
 				return
 			}
 
-			go ctx.Edit(msg.ID, Emotes.TOHRU, "music.addedQueue", info.Title, info.Author)
+			go ctx.Edit(msg.ID, constants.TOHRU, "music.addedQueue", info.Title, info.Author)
 
 			player := music.GetPlayer(ctx.Message.GuildID)
 			if player == nil {
@@ -62,7 +62,7 @@ var PlayCommand = base.Command{
 				Requester:   ctx.Author,
 			})
 		} else {
-			ctx.Reply(Emotes.MIKU_CRY, "music.notConnected")
+			ctx.Reply(constants.MIKU_CRY, "music.notConnected")
 		}
 
 	},

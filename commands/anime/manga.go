@@ -5,12 +5,11 @@ import (
 
 	"github.com/ItsClairton/Anny/base"
 	"github.com/ItsClairton/Anny/base/embed"
+	"github.com/ItsClairton/Anny/i18n"
+	"github.com/ItsClairton/Anny/logger"
 	"github.com/ItsClairton/Anny/services/anilist"
-	"github.com/ItsClairton/Anny/utils/Emotes"
-	"github.com/ItsClairton/Anny/utils/date"
-	"github.com/ItsClairton/Anny/utils/i18n"
-	"github.com/ItsClairton/Anny/utils/logger"
-	"github.com/ItsClairton/Anny/utils/sutils"
+	"github.com/ItsClairton/Anny/utils"
+	"github.com/ItsClairton/Anny/utils/constants"
 )
 
 var MangaCommand = base.Command{
@@ -26,16 +25,16 @@ var MangaCommand = base.Command{
 
 		if err != nil {
 			if err.Error() == "Not Found." {
-				ctx.Reply(Emotes.MIKU_CRY, "anime.manga.not-found")
+				ctx.Reply(constants.MIKU_CRY, "anime.manga.not-found")
 			} else {
 				ctx.ReplyWithError(err)
 			}
 			return
 		}
 
-		rawSynopsis := sutils.ToMD(manga.Synopsis)
-		chapters := sutils.Fmt("%d", manga.Chapters)
-		volumes := sutils.Fmt("%d", manga.Volumes)
+		rawSynopsis := utils.ToMD(manga.Synopsis)
+		chapters := utils.Fmt("%d", manga.Chapters)
+		volumes := utils.Fmt("%d", manga.Volumes)
 
 		if manga.Chapters < 1 {
 			chapters = "N/A"
@@ -45,34 +44,34 @@ var MangaCommand = base.Command{
 			volumes = "N/A"
 		}
 
-		launchStr := sutils.Fmt("%s", date.ToPrettyDate(ctx.Locale, &manga.StartDate))
+		launchStr := utils.Fmt("%s", ctx.ToPrettyDate(&manga.StartDate))
 
 		if manga.Status == "NOT_YET_RELEASED" {
-			launchStr = ctx.Locale.GetString("prevDate", launchStr)
+			launchStr = ctx.GetString("prevDate", launchStr)
 		}
 
 		if manga.EndDate.Year > 0 && manga.StartDate != manga.EndDate {
-			launchStr = ctx.Locale.GetString("untilDate", launchStr, date.ToPrettyDate(ctx.Locale, &manga.EndDate))
+			launchStr = ctx.GetString("untilDate", launchStr, ctx.ToPrettyDate(&manga.EndDate))
 		}
 
 		hasTrailer := len(manga.GetTrailerURL()) > 0
 
 		if hasTrailer {
-			launchStr = sutils.Fmt("[%s](%s)", launchStr, manga.GetTrailerURL())
+			launchStr = utils.Fmt("[%s](%s)", launchStr, manga.GetTrailerURL())
 		}
 
-		sourceStr := ctx.Locale.GetFromArray("anime.source", manga.GetSource())
-		statusStr := ctx.Locale.GetFromArray("anime.status", manga.GetStatus())
+		sourceStr := ctx.GetFromArray("anime.source", manga.GetSource())
+		statusStr := ctx.GetFromArray("anime.status", manga.GetStatus())
 
 		eb := embed.NewEmbed(ctx.Locale, "anime.manga.embed").
-			SetTitle(sutils.Fmt("%s | %s", Emotes.HAPPY, manga.Title.JP)).
+			SetTitle(utils.Fmt("%s | %s", constants.HAPPY, manga.Title.JP)).
 			SetDescription(rawSynopsis).
 			SetURL(manga.SiteURL).
 			SetThumbnail(manga.Cover.ExtraLarge).
 			SetImage(manga.Banner).
-			SetColor(sutils.ToHexNumber(manga.Cover.Color)).
+			SetColor(utils.ToHexNumber(manga.Cover.Color)).
 			WithField(manga.GetCreator(), true).
-			WithField(strings.Join(ctx.Locale.GetPrettyGenres(manga.Genres), ", "), true).
+			WithField(strings.Join(ctx.GetPrettyGenres(manga.Genres), ", "), true).
 			WithField(strings.Join(manga.GetArts(), "\n"), true).
 			WithField(chapters, true).
 			WithField(sourceStr, true).
@@ -80,7 +79,7 @@ var MangaCommand = base.Command{
 			WithField("N/A", true).
 			WithField(launchStr, true).
 			WithField(statusStr, true).
-			SetFooter(sutils.Is(hasTrailer, ctx.Locale.GetString("anime.trailer-footer"), "Powered By AniList & MAL"), "https://anilist.co/img/icons/favicon-32x32.png")
+			SetFooter(utils.Is(hasTrailer, ctx.GetString("anime.trailer-footer"), "Powered By AniList & MAL"), "https://anilist.co/img/icons/favicon-32x32.png")
 
 		msg, err := ctx.ReplyWithEmbed(eb)
 
@@ -89,8 +88,8 @@ var MangaCommand = base.Command{
 			return
 		}
 
-		if ctx.Locale.ID != "en_US" {
-			translatedSynopsis, err := i18n.FromGoogle("auto", strings.Split(ctx.Locale.ID, "_")[0], rawSynopsis)
+		if ctx.ID != "en_US" {
+			translatedSynopsis, err := i18n.FromGoogle("auto", strings.Split(ctx.ID, "_")[0], rawSynopsis)
 
 			if err == nil {
 				eb.SetDescription(translatedSynopsis)
@@ -102,12 +101,12 @@ var MangaCommand = base.Command{
 
 		if err == nil {
 			if mal.Score > 0 {
-				eb.SetFieldValue(6, sutils.Fmt("%.2f", mal.Score))
+				eb.SetFieldValue(6, utils.Fmt("%.2f", mal.Score))
 			}
 
 			if len(mal.Genres) > 0 {
 				totalGenres := append(manga.Genres, mal.Genres...)
-				eb.SetFieldValue(1, strings.Join(ctx.Locale.GetPrettyGenres(totalGenres), ", "))
+				eb.SetFieldValue(1, strings.Join(ctx.GetPrettyGenres(totalGenres), ", "))
 			}
 			ctx.EditWithEmbed(msg.ID, eb)
 		}

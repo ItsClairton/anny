@@ -4,8 +4,7 @@ import (
 	"errors"
 	"net/url"
 
-	"github.com/ItsClairton/Anny/utils/rest"
-	"github.com/ItsClairton/Anny/utils/sutils"
+	"github.com/ItsClairton/Anny/utils"
 	"github.com/buger/jsonparser"
 	"github.com/kkdai/youtube/v2"
 )
@@ -16,7 +15,7 @@ var client = youtube.Client{}
 
 func (p YouTubeProvider) GetInfo(content string) (*PartialInfo, error) {
 
-	result, err := rest.Get(sutils.Fmt("https://youtube-scrape.herokuapp.com/api/search?q=%s", url.QueryEscape(content)))
+	result, err := utils.GetFromWeb(utils.Fmt("https://youtube-scrape.herokuapp.com/api/search?q=%s", url.QueryEscape(content)))
 	if err != nil {
 		return nil, err
 	}
@@ -35,8 +34,8 @@ func (p YouTubeProvider) GetInfo(content string) (*PartialInfo, error) {
 		Title:    title,
 		Author:   author,
 		Duration: duration,
-		URL:      sutils.Fmt("https://youtu.be/%s", id),
-		ThumbURL: sutils.Fmt("https://img.youtube.com/vi/%s/maxresdefault.jpg", id),
+		URL:      utils.Fmt("https://youtu.be/%s", id),
+		ThumbURL: utils.Fmt("https://img.youtube.com/vi/%s/maxresdefault.jpg", id),
 		Provider: p,
 	}, nil
 

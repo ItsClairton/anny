@@ -7,9 +7,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ItsClairton/Anny/utils/logger"
-	"github.com/ItsClairton/Anny/utils/rest"
-	"github.com/ItsClairton/Anny/utils/sutils"
+	"github.com/ItsClairton/Anny/logger"
+	"github.com/ItsClairton/Anny/utils"
 )
 
 var languageMap = map[string]*Locale{}
@@ -26,7 +25,7 @@ func Load(dir string) error {
 
 		if !file.IsDir() && strings.HasSuffix(file.Name(), ".json") {
 
-			buff, err := os.ReadFile(sutils.Fmt("%s/%s", dir, file.Name()))
+			buff, err := os.ReadFile(utils.Fmt("%s/%s", dir, file.Name()))
 			if err != nil {
 				return err
 			}
@@ -41,7 +40,7 @@ func Load(dir string) error {
 			info.ID = strings.TrimSuffix(file.Name(), ".json")
 			info.Content = buff
 			languageMap[info.ID] = info
-			logger.Debug(sutils.Fmt("A Linguagem %s foi carrega com sucesso, Yeah.", info.Name))
+			logger.Debug(utils.Fmt("A Linguagem %s foi carrega com sucesso, Yeah.", info.Name))
 		}
 
 	}
@@ -77,7 +76,7 @@ func FromGoogle(from, to, source string) (string, error) {
 	var result []interface{}
 	var text string
 
-	response, err := rest.Get("https://translate.googleapis.com/translate_a/single?client=gtx&sl=" + from + "&tl=" + to + "&dt=t&q=" + url.QueryEscape(source))
+	response, err := utils.GetFromWeb("https://translate.googleapis.com/translate_a/single?client=gtx&sl=" + from + "&tl=" + to + "&dt=t&q=" + url.QueryEscape(source))
 	if err != nil {
 		return source, err
 	}
@@ -90,7 +89,7 @@ func FromGoogle(from, to, source string) (string, error) {
 	inner := result[0]
 	for _, slice := range inner.([]interface{}) {
 		for _, translated := range slice.([]interface{}) {
-			text += sutils.Fmt("%v", translated)
+			text += utils.Fmt("%v", translated)
 			break
 		}
 	}

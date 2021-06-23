@@ -6,10 +6,10 @@ import (
 	"github.com/ItsClairton/Anny/base"
 	"github.com/ItsClairton/Anny/base/embed"
 	"github.com/ItsClairton/Anny/base/response"
-	"github.com/ItsClairton/Anny/utils/Emotes"
+	"github.com/ItsClairton/Anny/utils"
 	"github.com/ItsClairton/Anny/utils/audio"
+	"github.com/ItsClairton/Anny/utils/constants"
 	"github.com/ItsClairton/Anny/utils/music/provider"
-	"github.com/ItsClairton/Anny/utils/sutils"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -84,7 +84,7 @@ func (p *Player) Play() {
 		stream, err := track.Provider.GetStream(track.PartialInfo)
 
 		if err != nil {
-			p.Ctx.Reply(Emotes.MIKU_CRY, "music.error", track.Title, track.Requester.Mention(), err.Error())
+			p.Ctx.Reply(constants.MIKU_CRY, "music.error", track.Title, track.Requester.Mention(), err.Error())
 			return
 		}
 		track.Stream = stream
@@ -97,7 +97,7 @@ func (p *Player) Play() {
 
 	p.State = PlayingState
 	eb := embed.NewEmbed(p.Ctx.Locale, "music.playingEmbed").
-		WithEmoteDescription(Emotes.YEAH, sutils.Fmt("[%s](%s)", track.Title, track.URL)).
+		WithEmoteDescription(constants.YEAH, utils.Fmt("[%s](%s)", track.Title, track.URL)).
 		WithField(track.Author, true).
 		WithField(track.Duration, true).
 		SetImage(track.ThumbURL).
@@ -114,7 +114,7 @@ func (p *Player) Play() {
 	if err != nil {
 
 		if err != io.EOF {
-			p.Ctx.Reply(Emotes.MIKU_CRY, "music.error", track.Title, track.Requester.Mention(), err.Error())
+			p.Ctx.Reply(constants.MIKU_CRY, "music.error", track.Title, track.Requester.Mention(), err.Error())
 		}
 
 		p.State = StoppedState

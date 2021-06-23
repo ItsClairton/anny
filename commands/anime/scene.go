@@ -9,9 +9,8 @@ import (
 	"github.com/ItsClairton/Anny/base"
 	"github.com/ItsClairton/Anny/base/response"
 	"github.com/ItsClairton/Anny/services/image"
-	"github.com/ItsClairton/Anny/utils/Emotes"
-	"github.com/ItsClairton/Anny/utils/rest"
-	"github.com/ItsClairton/Anny/utils/sutils"
+	"github.com/ItsClairton/Anny/utils"
+	"github.com/ItsClairton/Anny/utils/constants"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -31,21 +30,21 @@ func getURLFromMessage(msg *discordgo.Message) string {
 }
 
 func sendTraceMessage(ctx *base.CommandContext, attachment string) {
-	response := response.New(ctx.Locale).WithContentEmote(Emotes.ANIMATED_STAFF, "searching")
+	response := response.New(ctx.Locale).WithContentEmote(constants.ANIMATED_STAFF, "searching")
 	msg, _ := ctx.ReplyWithResponse(response)
 
 	result, err := image.GetFromTrace(attachment)
 	if err != "" {
-		ctx.ReplyWithError(errors.New(sutils.Fmt("trace error: %s", err)))
+		ctx.ReplyWithError(errors.New(utils.Fmt("trace error: %s", err)))
 	} else {
 		var episodeStr string
 		var titleStr string
 		var timeStr string
 
 		if len(result.Title.EN) > 0 && !strings.EqualFold(result.Title.JP, result.Title.EN) {
-			titleStr = sutils.Fmt("**%s** (**%s**)", result.Title.JP, result.Title.EN)
+			titleStr = utils.Fmt("**%s** (**%s**)", result.Title.JP, result.Title.EN)
 		} else {
-			titleStr = sutils.Fmt("**%s**", result.Title.JP)
+			titleStr = utils.Fmt("**%s**", result.Title.JP)
 		}
 
 		if result.Episode > 0 {
@@ -54,8 +53,8 @@ func sendTraceMessage(ctx *base.CommandContext, attachment string) {
 			episodeStr = ctx.Locale.GetString("anime.scene.of", titleStr)
 		}
 
-		fromTime := sutils.ToHHMMSS(result.From)
-		toTime := sutils.ToHHMMSS(result.To)
+		fromTime := utils.ToHHMMSS(result.From)
+		toTime := utils.ToHHMMSS(result.To)
 
 		if fromTime != toTime {
 			timeStr = ctx.Locale.GetString("anime.scene.betweenMinutes", fromTime, toTime)
@@ -64,19 +63,19 @@ func sendTraceMessage(ctx *base.CommandContext, attachment string) {
 		}
 
 		finalResponse := ctx.Locale.GetString("anime.scene.base", episodeStr, timeStr)
-		response.SetContentEmote(Emotes.HAPPY, sutils.Fmt("%s (%s)", finalResponse, ctx.Locale.GetString("anime.scene.generatingPreview")))
+		response.SetContentEmote(constants.HAPPY, utils.Fmt("%s (%s)", finalResponse, ctx.Locale.GetString("anime.scene.generatingPreview")))
 		ctx.EditWithResponse(msg.ID, response)
 
-		videoBody, err := rest.Get(result.Video + "&size=l")
+		videoBody, err := utils.GetFromWeb(result.Video + "&size=l")
 
 		if err != nil {
-			response.SetContentEmote(Emotes.MIKU_CRY, sutils.Fmt("%s (%s)", finalResponse, ctx.Locale.GetString("anime.scene.previewError")))
+			response.SetContentEmote(constants.MIKU_CRY, utils.Fmt("%s (%s)", finalResponse, ctx.Locale.GetString("anime.scene.previewError")))
 			ctx.EditWithResponse(msg.ID, response)
 			return
 		}
 
-		ctx.ReplyWithResponse(response.SetContentEmote(Emotes.YEAH, finalResponse).WithFile(&discordgo.File{
-			Name:        sutils.Is(result.Adult, "SPOILER_preview.mp4", "preview.mp4"),
+		ctx.ReplyWithResponse(response.SetContentEmote(constants.YEAH, finalResponse).WithFile(&discordgo.File{
+			Name:        utils.Is(result.Adult, "SPOILER_preview.mp4", "preview.mp4"),
 			ContentType: "mp4",
 			Reader:      bytes.NewReader(videoBody),
 		}))
@@ -106,7 +105,7 @@ var SceneCommand = base.Command{
 			if len(attachment) > 1 {
 				sendTraceMessage(ctx, attachment)
 			} else {
-				ctx.Reply(Emotes.MIKU_CRY, "anime.scene.usage")
+				ctx.Reply(constants.MIKU_CRY, "anime.scene.usage")
 			}
 		} else {
 			sendTraceMessage(ctx, attachment)

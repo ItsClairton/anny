@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ItsClairton/Anny/utils/logger"
-	"github.com/ItsClairton/Anny/utils/sutils"
+	"github.com/ItsClairton/Anny/logger"
+	"github.com/ItsClairton/Anny/utils"
 	"github.com/jonas747/ogg"
 )
 
@@ -66,7 +66,7 @@ func (e *EncodeSession) run() {
 		"-analyzeduration", "0",
 		"-loglevel", "0",
 		"-map", "0:a",
-		"-acodec", sutils.Is(e.isOpus, "copy", "libopus"),
+		"-acodec", utils.Is(e.isOpus, "copy", "libopus"),
 		"-f", "ogg",
 		"-ar", "48000",
 		"-ac", "2",

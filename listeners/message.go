@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/ItsClairton/Anny/base"
-	"github.com/ItsClairton/Anny/utils/i18n"
-	"github.com/ItsClairton/Anny/utils/sutils"
+	"github.com/ItsClairton/Anny/i18n"
+	"github.com/ItsClairton/Anny/utils"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -20,7 +20,7 @@ func MessageCreateListener(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	baseArray := strings.FieldsFunc(m.Content, sutils.SplitString)
+	baseArray := strings.FieldsFunc(m.Content, utils.SplitString)
 	label := strings.ToLower(strings.TrimPrefix(baseArray[0], os.Getenv("DEFAULT_PREFIX")))
 
 	cmd, exist := base.GetCommandMapper()[label]

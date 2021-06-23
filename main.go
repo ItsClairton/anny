@@ -10,9 +10,9 @@ import (
 	"github.com/ItsClairton/Anny/commands/image"
 	"github.com/ItsClairton/Anny/commands/misc"
 	"github.com/ItsClairton/Anny/commands/music"
+	"github.com/ItsClairton/Anny/i18n"
 	"github.com/ItsClairton/Anny/listeners"
-	"github.com/ItsClairton/Anny/utils/i18n"
-	"github.com/ItsClairton/Anny/utils/logger"
+	"github.com/ItsClairton/Anny/logger"
 	"github.com/joho/godotenv"
 )
 
@@ -23,7 +23,7 @@ func main() {
 		logger.ErrorAndExit("Um erro ocorreu ao carregar o arquivo .env de configurações. (%s)", err.Error())
 	}
 
-	err = i18n.Load("./i18n")
+	err = i18n.Load("./locales")
 	if err != nil {
 		logger.ErrorAndExit("Um erro ocorreu ao carregar os arquivos de tradução. (%s)", err.Error())
 	}

@@ -7,8 +7,7 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/ItsClairton/Anny/utils/rest"
-	"github.com/ItsClairton/Anny/utils/sutils"
+	"github.com/ItsClairton/Anny/utils"
 	"github.com/buger/jsonparser"
 )
 
@@ -31,7 +30,7 @@ type TraceEntry struct {
 
 func GetFromTrace(mediaUrl string) (TraceEntry, string) {
 
-	response, err := rest.Get(sutils.Fmt("https://api.trace.moe/search?url=%s&cutBorders=1&info=basic", url.QueryEscape(mediaUrl)))
+	response, err := utils.GetFromWeb(utils.Fmt("https://api.trace.moe/search?url=%s&cutBorders=1&info=basic", url.QueryEscape(mediaUrl)))
 
 	if err != nil {
 		return TraceEntry{}, err.Error()
@@ -72,7 +71,7 @@ func GetFromTrace(mediaUrl string) (TraceEntry, string) {
 }
 
 func GetFromNekos(nType string) (string, error) {
-	json, err := rest.Get(sutils.Fmt("https://nekos.life/api/v2/img/%s", nType))
+	json, err := utils.GetFromWeb(utils.Fmt("https://nekos.life/api/v2/img/%s", nType))
 
 	if err != nil {
 		return "", err
@@ -82,7 +81,7 @@ func GetFromNekos(nType string) (string, error) {
 }
 
 func GetFromNekoBot(nType string) (string, error) {
-	json, err := rest.Get(sutils.Fmt("https://nekobot.xyz/api/image?type=%s", nType))
+	json, err := utils.GetFromWeb(utils.Fmt("https://nekobot.xyz/api/image?type=%s", nType))
 
 	if err != nil {
 		return "", err
@@ -96,7 +95,7 @@ func GetRandomCat(gif bool) (string, error) {
 		return GetFromNekos("meow")
 	}
 
-	req, _ := http.NewRequest("GET", sutils.Fmt("https://api.thecatapi.com/v1/images/search?format=json%s", sutils.Is(gif, "&mime_types=gif", "")), nil)
+	req, _ := http.NewRequest("GET", utils.Fmt("https://api.thecatapi.com/v1/images/search?format=json%s", utils.Is(gif, "&mime_types=gif", "")), nil)
 	req.Header.Set("x-api-key", os.Getenv("CATAPI_KEY"))
 	res, err := client.Do(req)
 

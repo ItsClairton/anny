@@ -1,8 +1,7 @@
-package sutils
+package utils
 
 import (
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
 
@@ -21,18 +20,6 @@ func Is(cond bool, afirmative, negative string) string {
 	} else {
 		return negative
 	}
-}
-
-func ToHHMMSS(baseSeconds float64) string {
-	hours := math.Floor(baseSeconds / 3600)
-	minutes := math.Floor((baseSeconds - hours*3600) / 60)
-	seconds := baseSeconds - hours*3600 - minutes*60
-
-	if hours >= 1 {
-		return Fmt("%02d:%02d:%02d", int(hours), int(minutes), int(seconds))
-	}
-
-	return Fmt("%02v:%02v", int(minutes), int(seconds))
 }
 
 func SplitString(r rune) bool {

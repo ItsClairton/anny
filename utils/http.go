@@ -1,12 +1,12 @@
-package rest
+package utils
 
 import (
 	"io"
 	"net/http"
 )
 
-func GetString(url string) (string, error) {
-	body, err := Get(url)
+func GetFromWebString(url string) (string, error) {
+	body, err := GetFromWeb(url)
 	if err != nil {
 		return "", err
 	}
@@ -14,7 +14,7 @@ func GetString(url string) (string, error) {
 	return string(body), nil
 }
 
-func Get(url string) ([]byte, error) {
+func GetFromWeb(url string) ([]byte, error) {
 	var body []byte
 	res, err := http.Get(url)
 

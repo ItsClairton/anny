@@ -2,8 +2,8 @@ package response
 
 import (
 	"github.com/ItsClairton/Anny/base/embed"
-	"github.com/ItsClairton/Anny/utils/i18n"
-	"github.com/ItsClairton/Anny/utils/sutils"
+	"github.com/ItsClairton/Anny/i18n"
+	"github.com/ItsClairton/Anny/utils"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -22,12 +22,12 @@ func (r *Response) ClearContent() *Response {
 }
 
 func (r *Response) SetContentEmote(emote, content string) *Response {
-	r.Content = sutils.Fmt("%s | %s", emote, content)
+	r.Content = utils.Fmt("%s | %s", emote, content)
 	return r
 }
 
 func (r *Response) WithContentEmote(emote, path string, args ...interface{}) *Response {
-	r.Content = sutils.Fmt("%s | %s", emote, r.locale.GetString(path, args...))
+	r.Content = utils.Fmt("%s | %s", emote, r.locale.GetString(path, args...))
 	return r
 }
 

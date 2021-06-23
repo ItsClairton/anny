@@ -2,7 +2,7 @@ package music
 
 import (
 	"github.com/ItsClairton/Anny/base"
-	"github.com/ItsClairton/Anny/utils/Emotes"
+	"github.com/ItsClairton/Anny/utils/constants"
 	"github.com/ItsClairton/Anny/utils/music"
 )
 
@@ -14,7 +14,7 @@ var PauseCommand = base.Command{
 		player := music.GetPlayer(ctx.Message.GuildID)
 
 		if player == nil || player.State == music.StoppedState {
-			ctx.Reply(Emotes.ZERO_HMPF, "music.notPlaying")
+			ctx.Reply(constants.ZERO_HMPF, "music.notPlaying")
 			return
 		}
 
@@ -22,10 +22,10 @@ var PauseCommand = base.Command{
 
 		if isPaused {
 			player.State = music.PlayingState
-			ctx.Reply(Emotes.HAPPY, "music.unpausedSuccess")
+			ctx.Reply(constants.HAPPY, "music.unpausedSuccess")
 		} else {
 			player.State = music.PausedState
-			ctx.Reply(Emotes.HAPPY, "music.pausedSuccess")
+			ctx.Reply(constants.HAPPY, "music.pausedSuccess")
 		}
 
 		player.Current.Session.Pause()

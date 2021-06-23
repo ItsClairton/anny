@@ -1,8 +1,8 @@
 package embed
 
 import (
-	"github.com/ItsClairton/Anny/utils/i18n"
-	"github.com/ItsClairton/Anny/utils/sutils"
+	"github.com/ItsClairton/Anny/i18n"
+	"github.com/ItsClairton/Anny/utils"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -21,7 +21,7 @@ func (e *Embed) Build() *discordgo.MessageEmbed {
 }
 
 func (e *Embed) WithAuthor(iconUrl, url string, args ...interface{}) *Embed {
-	return e.SetAuthor(e.locale.GetString(sutils.Fmt("%s.author", e.key), args...), iconUrl, url)
+	return e.SetAuthor(e.locale.GetString(utils.Fmt("%s.author", e.key), args...), iconUrl, url)
 }
 
 func (e *Embed) SetAuthor(args ...string) *Embed {
@@ -43,7 +43,7 @@ func (e *Embed) SetAuthor(args ...string) *Embed {
 }
 
 func (e *Embed) WithTitle(args ...interface{}) *Embed {
-	e.SetTitle(e.locale.GetString(sutils.Fmt("%s.title", e.key), args...))
+	e.SetTitle(e.locale.GetString(utils.Fmt("%s.title", e.key), args...))
 	return e
 }
 
@@ -57,12 +57,12 @@ func (e *Embed) SetTitle(content string) *Embed {
 }
 
 func (e *Embed) WithDescription(args ...interface{}) *Embed {
-	e.SetDescription(e.locale.GetString(sutils.Fmt("%s.description", e.key), args...))
+	e.SetDescription(e.locale.GetString(utils.Fmt("%s.description", e.key), args...))
 	return e
 }
 
 func (e *Embed) WithEmoteDescription(emote string, args ...interface{}) *Embed {
-	e.SetDescription(sutils.Fmt("%s %s", emote, e.locale.GetString(sutils.Fmt("%s.description", e.key), args...)))
+	e.SetDescription(utils.Fmt("%s %s", emote, e.locale.GetString(utils.Fmt("%s.description", e.key), args...)))
 	return e
 }
 
@@ -100,7 +100,7 @@ func (e *Embed) SetImage(url string) *Embed {
 }
 
 func (e *Embed) WithField(value string, inline bool) *Embed {
-	return e.AddField(e.locale.GetString(sutils.Fmt("%s.fields.[%v]", e.key, len(e.Fields))), value, inline)
+	return e.AddField(e.locale.GetString(utils.Fmt("%s.fields.[%v]", e.key, len(e.Fields))), value, inline)
 }
 
 func (e *Embed) SetFieldValue(index int, value string) *Embed {
@@ -177,5 +177,5 @@ func (e *Embed) SetFooter(content string, imgUrl string) *Embed {
 }
 
 func (e *Embed) WithFooter(imgUrl string, values ...interface{}) *Embed {
-	return e.SetFooter(imgUrl, e.locale.GetString(sutils.Fmt("%s.footer", e.key), values...))
+	return e.SetFooter(imgUrl, e.locale.GetString(utils.Fmt("%s.footer", e.key), values...))
 }
