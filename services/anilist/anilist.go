@@ -14,7 +14,7 @@ type Query struct {
 }
 
 type Data struct {
-	Media Media `json:"Media"`
+	Media *Media `json:"Media"`
 }
 
 type Error struct {
@@ -26,18 +26,18 @@ type Result struct {
 	Errors []Error
 }
 
-func Get(query Query) (Data, error) {
+func Get(query Query) (*Data, error) {
 
 	payload, err := json.Marshal(query)
 
 	if err != nil {
-		return Data{}, err
+		return nil, err
 	}
 
 	raw, err := http.Post("https://graphql.anilist.co", "application/json", bytes.NewBuffer(payload))
 
 	if err != nil {
-		return Data{}, err
+		return nil, err
 	}
 
 	defer raw.Body.Close()
@@ -45,20 +45,20 @@ func Get(query Query) (Data, error) {
 	body, err := ioutil.ReadAll(raw.Body)
 
 	if err != nil {
-		return Data{}, err
+		return nil, err
 	}
 
 	var result Result
 	err = json.Unmarshal(body, &result)
 
 	if err != nil {
-		return Data{}, err
+		return nil, err
 	}
 
 	if len(result.Errors) != 0 {
 		err = errors.New(result.Errors[0].Message)
-		return Data{}, err
+		return nil, err
 	}
 
-	return result.Data, nil
+	return &result.Data, nil
 }

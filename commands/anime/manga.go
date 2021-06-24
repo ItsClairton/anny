@@ -44,14 +44,14 @@ var MangaCommand = base.Command{
 			volumes = "N/A"
 		}
 
-		launchStr := utils.Fmt("%s", ctx.ToPrettyDate(&manga.StartDate))
+		launchStr := utils.Fmt("%s", ctx.ToPrettyDate(manga.StartDate))
 
 		if manga.Status == "NOT_YET_RELEASED" {
 			launchStr = ctx.GetString("prevDate", launchStr)
 		}
 
 		if manga.EndDate.Year > 0 && manga.StartDate != manga.EndDate {
-			launchStr = ctx.GetString("untilDate", launchStr, ctx.ToPrettyDate(&manga.EndDate))
+			launchStr = ctx.GetString("untilDate", launchStr, ctx.ToPrettyDate(manga.EndDate))
 		}
 
 		hasTrailer := len(manga.GetTrailerURL()) > 0

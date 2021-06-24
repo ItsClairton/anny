@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"os"
 
+	"github.com/ItsClairton/Anny/services/anilist"
 	"github.com/ItsClairton/Anny/utils"
 	"github.com/buger/jsonparser"
 )
@@ -15,35 +16,30 @@ var (
 	client = &http.Client{}
 )
 
-type ALName struct {
-	JP string
-	EN string
-}
-
 type TraceEntry struct {
-	Title        ALName
+	Title        *anilist.MediaTitle
 	Adult        bool
 	Episode      int64
 	From, To     float64
 	Video, Image string
 }
 
-func GetFromTrace(mediaUrl string) (TraceEntry, string) {
+func GetFromTrace(mediaUrl string) (*TraceEntry, string) {
 
 	response, err := utils.GetFromWeb(utils.Fmt("https://api.trace.moe/search?url=%s&cutBorders=1&info=basic", url.QueryEscape(mediaUrl)))
 
 	if err != nil {
-		return TraceEntry{}, err.Error()
+		return nil, err.Error()
 	}
 
 	traceErr, err := jsonparser.GetString(response, "error")
 
 	if err != nil {
-		return TraceEntry{}, err.Error()
+		return nil, err.Error()
 	}
 
 	if len(traceErr) > 0 {
-		return TraceEntry{}, traceErr
+		return nil, traceErr
 	}
 
 	episode, _ := jsonparser.GetInt(response, "result", "[0]", "episode")
@@ -55,8 +51,8 @@ func GetFromTrace(mediaUrl string) (TraceEntry, string) {
 	image, _ := jsonparser.GetString(response, "result", "[0]", "image")
 	adult, _ := jsonparser.GetBoolean(response, "result", "[0]", "anilist", "isAdult")
 
-	return TraceEntry{
-		Title: ALName{
+	return &TraceEntry{
+		Title: &anilist.MediaTitle{
 			JP: jpName,
 			EN: enName,
 		},

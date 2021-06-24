@@ -14,31 +14,31 @@ type MediaTitle struct {
 }
 
 type Media struct {
-	Id        int        `json:"id"`
-	IdMal     int        `json:"idMal"`
-	Type      string     `json:"type"`
-	Title     MediaTitle `json:"title"`
-	Synopsis  string     `json:"description"`
-	SiteURL   string     `json:"siteUrl"`
-	Status    string     `json:"status"`
-	Format    string     `json:"format"`
-	Season    string     `json:"season"`
-	StartDate utils.Date `json:"startDate"`
-	Trailer   Trailer    `json:"trailer"`
-	EndDate   utils.Date `json:"endDate"`
-	Episodes  int        `json:"episodes"`
-	Chapters  int        `json:""`
-	Volumes   int        `json:""`
-	Genres    []string   `json:"genres"`
-	Cover     CoverImage `json:"coverImage"`
-	Banner    string     `json:"bannerImage"`
-	Source    string     `json:"source"`
+	Id        int         `json:"id"`
+	IdMal     int         `json:"idMal"`
+	Type      string      `json:"type"`
+	Title     *MediaTitle `json:"title"`
+	Synopsis  string      `json:"description"`
+	SiteURL   string      `json:"siteUrl"`
+	Status    string      `json:"status"`
+	Format    string      `json:"format"`
+	Season    string      `json:"season"`
+	StartDate *utils.Date `json:"startDate"`
+	Trailer   *Trailer    `json:"trailer"`
+	EndDate   *utils.Date `json:"endDate"`
+	Episodes  int         `json:"episodes"`
+	Chapters  int         `json:"chapters"`
+	Volumes   int         `json:"volumes"`
+	Genres    []string    `json:"genres"`
+	Cover     *CoverImage `json:"coverImage"`
+	Banner    string      `json:"bannerImage"`
+	Source    string      `json:"source"`
 	Studio    struct {
-		Node []StudioNode `json:"nodes"`
+		Node []*StudioNode `json:"nodes"`
 	} `json:"studios"`
 	Staff struct {
-		Edge []StaffEdge `json:"edges"`
-		Node []StaffNode `json:"nodes"`
+		Edge []*StaffEdge `json:"edges"`
+		Node []*StaffNode `json:"nodes"`
 	} `json:"staff"`
 }
 
@@ -108,6 +108,9 @@ func (m *Media) GetCreator() string {
 }
 
 func (m *Media) GetTrailerURL() string {
+	if m.Trailer == nil {
+		return ""
+	}
 
 	switch m.Trailer.Site {
 	case "youtube":
@@ -233,12 +236,12 @@ func (m *Media) GetStatus() int {
 	}
 }
 
-func (m *Media) GetBasicFromMAL() (MALBasicInfo, error) {
+func (m *Media) GetBasicFromMAL() (*MALBasicInfo, error) {
 
 	result, err := utils.GetFromWeb(utils.Fmt("https://api.jikan.moe/v3/%s/%d", strings.ToLower(m.Type), m.IdMal))
 
 	if err != nil {
-		return MALBasicInfo{}, err
+		return nil, err
 	}
 
 	var genres []string
@@ -260,13 +263,13 @@ func (m *Media) GetBasicFromMAL() (MALBasicInfo, error) {
 
 	score, _ := jsonparser.GetFloat(result, "score")
 
-	return MALBasicInfo{
+	return &MALBasicInfo{
 		Genres: genres,
 		Score:  score,
 	}, nil
 }
 
-func SearchMediaAsManga(title string) (Media, error) {
+func SearchMediaAsManga(title string) (*Media, error) {
 
 	result, err := Get(Query{
 		Query: `query ($search: String) {
@@ -293,13 +296,13 @@ func SearchMediaAsManga(title string) (Media, error) {
 	})
 
 	if err != nil {
-		return Media{}, err
+		return nil, err
 	}
 
 	return result.Media, nil
 }
 
-func GetMediaAsAnime(id int) (Media, error) {
+func GetMediaAsAnime(id int) (*Media, error) {
 
 	variables := struct {
 		ID int `json:"id"`
@@ -313,14 +316,14 @@ func GetMediaAsAnime(id int) (Media, error) {
 	})
 
 	if err != nil {
-		return Media{}, err
+		return nil, err
 	}
 
 	return result.Media, nil
 
 }
 
-func SearchMediaAsAnime(title string) (Media, error) {
+func SearchMediaAsAnime(title string) (*Media, error) {
 
 	variables := struct {
 		Query string `json:"search"`
@@ -334,7 +337,7 @@ func SearchMediaAsAnime(title string) (Media, error) {
 	})
 
 	if err != nil {
-		return Media{}, err
+		return nil, err
 	}
 
 	return result.Media, nil

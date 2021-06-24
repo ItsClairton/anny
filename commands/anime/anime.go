@@ -32,14 +32,14 @@ var AnimeCommand = base.Command{
 			return
 		}
 
-		launchStr := utils.Fmt("%s", ctx.ToPrettyDate(&anime.StartDate))
+		launchStr := utils.Fmt("%s", ctx.ToPrettyDate(anime.StartDate))
 
 		if anime.Status == "NOT_YET_RELEASED" {
 			launchStr = ctx.GetString("prevDate", launchStr)
 		}
 
 		if anime.EndDate.Year > 0 && anime.StartDate != anime.EndDate {
-			launchStr = ctx.GetString("untilDate", launchStr, ctx.ToPrettyDate(&anime.EndDate))
+			launchStr = ctx.GetString("untilDate", launchStr, ctx.ToPrettyDate(anime.EndDate))
 		}
 
 		hasTrailer := len(anime.GetTrailerURL()) > 0
