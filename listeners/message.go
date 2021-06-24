@@ -38,13 +38,10 @@ func MessageCreateListener(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	go cmd.Handler(&base.CommandContext{
-		Message:  m.Message,
-		Author:   m.Author,
-		Listener: m,
-		Member:   m.Member,
-		Client:   s,
-		Args:     args,
-		Locale:   i18n.GetLocale("pt_BR"),
+		Locale:        i18n.GetLocale("pt_BR"),
+		MessageCreate: m,
+		Client:        s,
+		Args:          args,
 	})
 
 }

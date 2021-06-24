@@ -14,6 +14,35 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+var SceneCommand = base.Command{
+	Name: "cena",
+	Handler: func(ctx *base.CommandContext) {
+
+		attachment := ""
+
+		if ctx.Message.MessageReference != nil {
+			ref, err := ctx.Client.ChannelMessage(ctx.Message.ChannelID, ctx.Message.MessageReference.MessageID)
+			if err == nil {
+				attachment = getURLFromMessage(ref)
+			}
+		}
+
+		if len(attachment) < 1 {
+			time.Sleep(300 * time.Millisecond)
+			refresh, _ := ctx.Client.ChannelMessage(ctx.Message.ChannelID, ctx.Message.ID) // Tem de pegar a mensagem de novo porque o Discord demora renderizar o embed as vezes.
+			attachment = getURLFromMessage(refresh)
+
+			if len(attachment) > 1 {
+				sendTraceMessage(ctx, attachment)
+			} else {
+				ctx.Reply(constants.MIKU_CRY, "anime.scene.usage")
+			}
+		} else {
+			sendTraceMessage(ctx, attachment)
+		}
+	},
+}
+
 func getURLFromMessage(msg *discordgo.Message) string {
 
 	if len(msg.Attachments) > 0 {
@@ -48,28 +77,28 @@ func sendTraceMessage(ctx *base.CommandContext, attachment string) {
 		}
 
 		if result.Episode > 0 {
-			episodeStr = ctx.Locale.GetString("anime.scene.ofEpisode", result.Episode, titleStr)
+			episodeStr = ctx.GetString("anime.scene.ofEpisode", result.Episode, titleStr)
 		} else {
-			episodeStr = ctx.Locale.GetString("anime.scene.of", titleStr)
+			episodeStr = ctx.GetString("anime.scene.of", titleStr)
 		}
 
 		fromTime := utils.ToHHMMSS(result.From)
 		toTime := utils.ToHHMMSS(result.To)
 
 		if fromTime != toTime {
-			timeStr = ctx.Locale.GetString("anime.scene.betweenMinutes", fromTime, toTime)
+			timeStr = ctx.GetString("anime.scene.betweenMinutes", fromTime, toTime)
 		} else {
-			timeStr = ctx.Locale.GetString("anime.scene.betweenMinute", fromTime)
+			timeStr = ctx.GetString("anime.scene.betweenMinute", fromTime)
 		}
 
-		finalResponse := ctx.Locale.GetString("anime.scene.base", episodeStr, timeStr)
-		response.SetContentEmote(constants.HAPPY, utils.Fmt("%s (%s)", finalResponse, ctx.Locale.GetString("anime.scene.generatingPreview")))
+		finalResponse := ctx.GetString("anime.scene.base", episodeStr, timeStr)
+		response.SetContentEmote(constants.HAPPY, utils.Fmt("%s (%s)", finalResponse, ctx.GetString("anime.scene.generatingPreview")))
 		ctx.EditWithResponse(msg.ID, response)
 
 		videoBody, err := utils.GetFromWeb(result.Video + "&size=l")
 
 		if err != nil {
-			response.SetContentEmote(constants.MIKU_CRY, utils.Fmt("%s (%s)", finalResponse, ctx.Locale.GetString("anime.scene.previewError")))
+			response.SetContentEmote(constants.MIKU_CRY, utils.Fmt("%s (%s)", finalResponse, ctx.GetString("anime.scene.previewError")))
 			ctx.EditWithResponse(msg.ID, response)
 			return
 		}
@@ -82,33 +111,4 @@ func sendTraceMessage(ctx *base.CommandContext, attachment string) {
 
 		ctx.DeleteMessage(msg)
 	}
-}
-
-var SceneCommand = base.Command{
-	Name: "cena",
-	Handler: func(ctx *base.CommandContext) {
-
-		attachment := ""
-
-		if ctx.Message.MessageReference != nil {
-			ref, err := ctx.Client.ChannelMessage(ctx.Message.ChannelID, ctx.Message.MessageReference.MessageID)
-			if err == nil {
-				attachment = getURLFromMessage(ref)
-			}
-		}
-
-		if len(attachment) < 1 {
-			time.Sleep(300 * time.Millisecond)
-			refresh, _ := ctx.Client.ChannelMessage(ctx.Message.ChannelID, ctx.Message.ID) // Tem de pegar a mensagem de novo porque o Discord demora renderizar o embed as vezes.
-			attachment = getURLFromMessage(refresh)
-
-			if len(attachment) > 1 {
-				sendTraceMessage(ctx, attachment)
-			} else {
-				ctx.Reply(constants.MIKU_CRY, "anime.scene.usage")
-			}
-		} else {
-			sendTraceMessage(ctx, attachment)
-		}
-	},
 }

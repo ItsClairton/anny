@@ -32,14 +32,14 @@ var AnimeCommand = base.Command{
 			return
 		}
 
-		launchStr := utils.Fmt("%s", ctx.Locale.ToPrettyDate(&anime.StartDate))
+		launchStr := utils.Fmt("%s", ctx.ToPrettyDate(&anime.StartDate))
 
 		if anime.Status == "NOT_YET_RELEASED" {
-			launchStr = ctx.Locale.GetString("prevDate", launchStr)
+			launchStr = ctx.GetString("prevDate", launchStr)
 		}
 
 		if anime.EndDate.Year > 0 && anime.StartDate != anime.EndDate {
-			launchStr = ctx.Locale.GetString("untilDate", launchStr, ctx.ToPrettyDate(&anime.EndDate))
+			launchStr = ctx.GetString("untilDate", launchStr, ctx.ToPrettyDate(&anime.EndDate))
 		}
 
 		hasTrailer := len(anime.GetTrailerURL()) > 0
@@ -55,10 +55,10 @@ var AnimeCommand = base.Command{
 			return
 		}
 
-		typeStr := ctx.Locale.GetFromArray("anime.type", anime.GetType())
-		sourceStr := ctx.Locale.GetFromArray("anime.source", anime.GetSource())
-		seasonStr := ctx.Locale.GetFromArray("anime.season", anime.GetSeason())
-		statusStr := ctx.Locale.GetFromArray("anime.status", anime.GetStatus())
+		typeStr := ctx.GetFromArray("anime.type", anime.GetType())
+		sourceStr := ctx.GetFromArray("anime.source", anime.GetSource())
+		seasonStr := ctx.GetFromArray("anime.season", anime.GetSeason())
+		statusStr := ctx.GetFromArray("anime.status", anime.GetStatus())
 
 		eb := embed.NewEmbed(ctx.Locale, "anime.anime.embed").
 			WithAuthor("https://cdn.discordapp.com/avatars/743538534589267990/a6c5e905673d041a88b49203d6bc74dd.png?size=2048", "", typeStr, anime.Episodes).
@@ -72,12 +72,12 @@ var AnimeCommand = base.Command{
 			WithField(strings.Join(anime.GetAnimationStudios(), "\n"), true).
 			WithField(anime.GetCreator(), true).
 			WithField(sourceStr, true).
-			WithField(strings.Join(ctx.Locale.GetPrettyGenres(anime.Genres), ", "), true).
+			WithField(strings.Join(ctx.GetPrettyGenres(anime.Genres), ", "), true).
 			WithField(seasonStr, true).
 			WithField("N/A", true).
 			WithField(launchStr, true).
 			WithField(statusStr, true).
-			SetFooter(utils.Is(hasTrailer, ctx.Locale.GetString("anime.trailer-footer"), "Powered By AniList & MAL"), "https://anilist.co/img/icons/favicon-32x32.png")
+			SetFooter(utils.Is(hasTrailer, ctx.GetString("anime.trailer-footer"), "Powered By AniList & MAL"), "https://anilist.co/img/icons/favicon-32x32.png")
 
 		msg, err := ctx.ReplyWithEmbed(eb)
 
@@ -86,9 +86,9 @@ var AnimeCommand = base.Command{
 			return
 		}
 
-		if ctx.Locale.ID != "en_US" {
+		if ctx.ID != "en_US" {
 
-			translatedSynopsis, err := i18n.FromGoogle("en", strings.Split(ctx.Locale.ID, "_")[0], rawSynopsis)
+			translatedSynopsis, err := i18n.FromGoogle("en", strings.Split(ctx.ID, "_")[0], rawSynopsis)
 
 			if err == nil {
 				eb.SetDescription(translatedSynopsis)
@@ -106,7 +106,7 @@ var AnimeCommand = base.Command{
 
 			if len(mal.Genres) > 0 {
 				totalGenres := append(anime.Genres, mal.Genres...)
-				eb.SetFieldValue(4, strings.Join(ctx.Locale.GetPrettyGenres(totalGenres), ", "))
+				eb.SetFieldValue(4, strings.Join(ctx.GetPrettyGenres(totalGenres), ", "))
 			}
 
 			ctx.EditWithEmbed(msg.ID, eb)

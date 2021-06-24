@@ -21,16 +21,13 @@ type CommandHandler func(*CommandContext)
 
 type CommandContext struct {
 	*i18n.Locale
-	Message  *discordgo.Message
-	Author   *discordgo.User
-	Member   *discordgo.Member
-	Listener *discordgo.MessageCreate
-	Client   *discordgo.Session
-	Args     []string
+	*discordgo.MessageCreate
+	Client *discordgo.Session
+	Args   []string
 }
 
 func (ctx *CommandContext) GetGuild() *discordgo.Guild {
-	g, _ := ctx.Client.State.Guild(ctx.Message.GuildID)
+	g, _ := ctx.Client.State.Guild(ctx.GuildID)
 	return g
 }
 
@@ -45,15 +42,15 @@ func (ctx *CommandContext) GetVoice() string {
 }
 
 func (ctx *CommandContext) Reply(emote, path string, args ...interface{}) (*discordgo.Message, error) {
-	return ctx.ReplyRaw(utils.Fmt("%s | %s", emote, ctx.Locale.GetString(path, args...)))
+	return ctx.ReplyRaw(utils.Fmt("%s | %s", emote, ctx.GetString(path, args...)))
 }
 
 func (ctx *CommandContext) ReplyWithoutEmote(path string, args ...interface{}) (*discordgo.Message, error) {
-	return ctx.ReplyRaw(ctx.Locale.GetString(path, args...))
+	return ctx.ReplyRaw(ctx.GetString(path, args...))
 }
 
 func (ctx *CommandContext) ReplyRaw(message string) (*discordgo.Message, error) {
-	return ctx.Client.ChannelMessageSendReply(ctx.Message.ChannelID, message, ctx.Message.Reference())
+	return ctx.Client.ChannelMessageSendReply(ctx.ChannelID, message, ctx.Reference())
 }
 
 func (ctx *CommandContext) ReplyRawWithEmote(emote, message string) (*discordgo.Message, error) {
@@ -61,13 +58,13 @@ func (ctx *CommandContext) ReplyRawWithEmote(emote, message string) (*discordgo.
 }
 
 func (ctx *CommandContext) ReplyWithResponse(response *response.Response) (*discordgo.Message, error) {
-	return ctx.Client.ChannelMessageSendComplex(ctx.Listener.ChannelID, response.WithReference(ctx.Message.Reference()).To())
+	return ctx.Client.ChannelMessageSendComplex(ctx.ChannelID, response.WithReference(ctx.Reference()).To())
 }
 
 func (ctx *CommandContext) ReplyWithEmbed(eb *embed.Embed) (*discordgo.Message, error) {
-	return ctx.Client.ChannelMessageSendComplex(ctx.Listener.ChannelID, &discordgo.MessageSend{
+	return ctx.Client.ChannelMessageSendComplex(ctx.ChannelID, &discordgo.MessageSend{
 		Embed:     eb.Build(),
-		Reference: ctx.Message.Reference(),
+		Reference: ctx.Reference(),
 	})
 }
 
@@ -80,43 +77,43 @@ func (ctx *CommandContext) ReplyWithError(err error) (*discordgo.Message, error)
 }
 
 func (ctx *CommandContext) Send(emote, path string, args ...interface{}) (*discordgo.Message, error) {
-	return ctx.SendRaw(utils.Fmt("%s | %s", ctx.Locale.GetString(path, args...)))
+	return ctx.SendRaw(utils.Fmt("%s | %s", ctx.GetString(path, args...)))
 }
 
 func (ctx *CommandContext) SendWithoutEmote(path string, args ...interface{}) (*discordgo.Message, error) {
-	return ctx.SendRaw(ctx.Locale.GetString(path, args...))
+	return ctx.SendRaw(ctx.GetString(path, args...))
 }
 
 func (ctx *CommandContext) SendRaw(content string) (*discordgo.Message, error) {
-	return ctx.Client.ChannelMessageSend(ctx.Message.ChannelID, content)
+	return ctx.Client.ChannelMessageSend(ctx.ChannelID, content)
 }
 
 func (ctx *CommandContext) SendWithEmbed(eb *embed.Embed) (*discordgo.Message, error) {
-	return ctx.Client.ChannelMessageSendEmbed(ctx.Message.ChannelID, eb.Build())
+	return ctx.Client.ChannelMessageSendEmbed(ctx.ChannelID, eb.Build())
 }
 
 func (ctx *CommandContext) SendWithResponse(response *response.Response) (*discordgo.Message, error) {
-	return ctx.Client.ChannelMessageSendComplex(ctx.Message.ChannelID, response.To())
+	return ctx.Client.ChannelMessageSendComplex(ctx.ChannelID, response.To())
 }
 
 func (ctx *CommandContext) Edit(msgId, emote, path string, args ...interface{}) (*discordgo.Message, error) {
-	return ctx.EditRaw(msgId, utils.Fmt("%s | %s", ctx.Locale.GetString(path, args...)))
+	return ctx.EditRaw(msgId, utils.Fmt("%s | %s", ctx.GetString(path, args...)))
 }
 
 func (ctx *CommandContext) EditWithoutEmote(msgId, path string, args ...interface{}) (*discordgo.Message, error) {
-	return ctx.EditRaw(msgId, ctx.Locale.GetString(path, args...))
+	return ctx.EditRaw(msgId, ctx.GetString(path, args...))
 }
 
 func (ctx *CommandContext) EditRaw(msgId string, content string) (*discordgo.Message, error) {
-	return ctx.Client.ChannelMessageEdit(ctx.Listener.ChannelID, msgId, content)
+	return ctx.Client.ChannelMessageEdit(ctx.ChannelID, msgId, content)
 }
 
 func (ctx *CommandContext) EditWithEmbed(msgId string, eb *embed.Embed) (*discordgo.Message, error) {
-	return ctx.Client.ChannelMessageEditEmbed(ctx.Listener.ChannelID, msgId, eb.Build())
+	return ctx.Client.ChannelMessageEditEmbed(ctx.ChannelID, msgId, eb.Build())
 }
 
 func (ctx *CommandContext) EditWithResponse(msgId string, response *response.Response) (*discordgo.Message, error) {
-	return ctx.Client.ChannelMessageEditComplex(response.ToEdit(ctx.Message.ChannelID, msgId))
+	return ctx.Client.ChannelMessageEditComplex(response.ToEdit(ctx.ChannelID, msgId))
 }
 
 func (ctx *CommandContext) DeleteMessage(message *discordgo.Message) {
