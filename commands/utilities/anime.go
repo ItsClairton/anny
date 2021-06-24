@@ -1,4 +1,4 @@
-package anime
+package utilities
 
 import (
 	"strings"
