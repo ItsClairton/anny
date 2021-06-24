@@ -1,4 +1,4 @@
-package misc
+package miscellaneous
 
 import (
 	"github.com/ItsClairton/Anny/base"
