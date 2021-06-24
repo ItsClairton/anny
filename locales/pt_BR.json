@@ -32,21 +32,6 @@
     "untilDate": "{0} até {1}",
     "notYetReleased": "Ainda não divulgado.",
     "searching": "Obtendo resultados...",
-    "music": {
-        "notConnected": "Você precisa estar conectado em algum canal de voz para fazer isso.",
-        "notPlaying": "Não há nada tocando no momento.",
-        "addedQueue": "A Música **{0}** de **{1}** foi adicionada na fila com sucesso.",
-        "notFound": "Não consegui achar a música, Desculpa. ;(",
-        "skipSuccess": "Música pulada com sucesso.",
-        "pausedSuccess": "Música pausada com sucesso.",
-        "unpausedSuccess": "Música despausada com sucesso.",
-        "error": "Não consegui tocar a música **{0}** pedido por {1}, dsclpa. (`{2}`)",
-        "playingEmbed": {
-            "description": "Tocando agora **{0}**",
-            "fields": ["Autor", "Duração"],
-            "footer": "Pedido por {0}"
-        }
-    },
     "anime": {
         "trailer-footer": "Clique na data de estreia para ver o Trailer",
         "type": ["TV", "Filme", "Especial", "OVA", "ONA", "Música"],
