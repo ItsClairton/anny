@@ -24,7 +24,8 @@
         "shounen ai": "Shounen Ai", "space": "Espacial",
         "super power": "Superpoderes", "vampire": "Vampiros",
         "yaoi": "Yaoi", "yuri": "Yuri",
-        "harem": "Harém", "josei": "Josei"
+        "harem": "Harém", "josei": "Josei",
+        "historical": "Histórico"
     },
     "months": ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"],
     "prettyDate": "{0} {1} de {2}",
