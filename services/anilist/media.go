@@ -114,9 +114,9 @@ func (m *Media) GetTrailerURL() string {
 
 	switch m.Trailer.Site {
 	case "youtube":
-		return utils.Fmt("https://www.youtube.com/watch?v=%s", m.Trailer.Id)
+		return "https://www.youtube.com/watch?v=" + m.Trailer.Id
 	case "dailymotion":
-		return utils.Fmt("https://www.dailymotion.com/video/", m.Trailer.Id)
+		return "https://www.dailymotion.com/video/" + m.Trailer.Id
 	default:
 		return ""
 	}
