@@ -11,4 +11,5 @@ var (
 	KANNAPEER      = "<:KannaPeer:838567821205176340>"
 	PEPEART        = "<:pepeart:857771343633580113>"
 	PEPEPOGGERS    = "<:pepepoggers:806498116332814336>"
+	PEPEFROG       = "<:pepe:857789024323371048>"
 )

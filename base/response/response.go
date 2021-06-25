@@ -13,7 +13,11 @@ type Response struct {
 }
 
 func New(locale *i18n.Locale) *Response {
-	return &Response{locale, &discordgo.MessageSend{}}
+	return &Response{locale, &discordgo.MessageSend{
+		AllowedMentions: &discordgo.MessageAllowedMentions{
+			Parse: []discordgo.AllowedMentionType{discordgo.AllowedMentionTypeUsers},
+		},
+	}}
 }
 
 func (r *Response) ClearContent() *Response {
@@ -57,9 +61,10 @@ func (r *Response) To() *discordgo.MessageSend {
 
 func (r *Response) ToEdit(ch string, id string) *discordgo.MessageEdit {
 	return &discordgo.MessageEdit{
-		Channel: ch,
-		ID:      id,
-		Content: &r.Content,
-		Embed:   r.Embed,
+		Channel:         ch,
+		ID:              id,
+		Content:         &r.Content,
+		Embed:           r.Embed,
+		AllowedMentions: r.AllowedMentions,
 	}
 }

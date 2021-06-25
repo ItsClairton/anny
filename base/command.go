@@ -56,7 +56,13 @@ func (ctx *CommandContext) ReplyWithoutEmote(path string, args ...interface{}) (
 }
 
 func (ctx *CommandContext) ReplyRaw(message string) (*discordgo.Message, error) {
-	return ctx.Client.ChannelMessageSendReply(ctx.ChannelID, message, ctx.Reference())
+	return ctx.Client.ChannelMessageSendComplex(ctx.ChannelID, &discordgo.MessageSend{
+		Content:   message,
+		Reference: ctx.Reference(),
+		AllowedMentions: &discordgo.MessageAllowedMentions{
+			Parse: []discordgo.AllowedMentionType{discordgo.AllowedMentionTypeUsers},
+		},
+	})
 }
 
 func (ctx *CommandContext) ReplyRawWithEmote(emote, message string) (*discordgo.Message, error) {
@@ -91,7 +97,12 @@ func (ctx *CommandContext) SendWithoutEmote(path string, args ...interface{}) (*
 }
 
 func (ctx *CommandContext) SendRaw(content string) (*discordgo.Message, error) {
-	return ctx.Client.ChannelMessageSend(ctx.ChannelID, content)
+	return ctx.Client.ChannelMessageSendComplex(ctx.ChannelID, &discordgo.MessageSend{
+		Content: content,
+		AllowedMentions: &discordgo.MessageAllowedMentions{
+			Parse: []discordgo.AllowedMentionType{discordgo.AllowedMentionTypeUsers},
+		},
+	})
 }
 
 func (ctx *CommandContext) SendWithEmbed(eb *embed.Embed) (*discordgo.Message, error) {
@@ -111,7 +122,14 @@ func (ctx *CommandContext) EditWithoutEmote(msgId, path string, args ...interfac
 }
 
 func (ctx *CommandContext) EditRaw(msgId string, content string) (*discordgo.Message, error) {
-	return ctx.Client.ChannelMessageEdit(ctx.ChannelID, msgId, content)
+	return ctx.Client.ChannelMessageEditComplex(&discordgo.MessageEdit{
+		ID:      msgId,
+		Channel: ctx.ChannelID,
+		Content: &content,
+		AllowedMentions: &discordgo.MessageAllowedMentions{
+			Parse: []discordgo.AllowedMentionType{discordgo.AllowedMentionTypeUsers},
+		},
+	})
 }
 
 func (ctx *CommandContext) EditWithEmbed(msgId string, eb *embed.Embed) (*discordgo.Message, error) {
