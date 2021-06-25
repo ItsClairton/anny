@@ -45,6 +45,7 @@ func main() {
 	}
 
 	logger.Info("Conexão com o Discord feita com sucesso, Yay.")
+	base.Client.UpdateGameStatus(0, os.Getenv("DISCORD_STATUS"))
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
