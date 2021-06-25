@@ -47,6 +47,18 @@ func (ctx *CommandContext) GetVoice() string {
 	return ""
 }
 
+func (ctx *CommandContext) GetArgsWithLines() []string {
+
+	args := strings.Split(ctx.Message.Content, " ")
+
+	if len(args) > 1 {
+		return args[1:]
+	} else {
+		return nil
+	}
+
+}
+
 func (ctx *CommandContext) Reply(emote, path string, args ...interface{}) (*discordgo.Message, error) {
 	return ctx.ReplyRaw(utils.Fmt("%s | %s", emote, ctx.GetString(path, args...)))
 }

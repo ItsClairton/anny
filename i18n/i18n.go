@@ -81,7 +81,7 @@ func FromGoogle(from, to, source string) (string, error) {
 	var result []interface{}
 	var text string
 
-	response, err := utils.GetFromWeb("https://translate.googleapis.com/translate_a/single?client=gtx&sl=" + from + "&tl=" + to + "&dt=t&q=" + url.QueryEscape(source))
+	response, err := utils.GetFromWeb("https://translate.googleapis.com/translate_a/single?client=gtx&sl=" + url.QueryEscape(from) + "&tl=" + url.QueryEscape(to) + "&dt=t&q=" + url.QueryEscape(source))
 	if err != nil {
 		return source, err
 	}
