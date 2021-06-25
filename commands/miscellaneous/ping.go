@@ -8,6 +8,6 @@ import (
 var PingCommand = base.Command{
 	Name: "ping",
 	Handler: func(ctx *base.CommandContext) {
-		ctx.Reply(constants.PING_PONG, "misc.ping.reply", ctx.Client.HeartbeatLatency().Milliseconds())
+		ctx.Reply(constants.PING_PONG, "miscellaneous.ping.reply", ctx.Client.HeartbeatLatency().Milliseconds())
 	},
 }
