@@ -109,6 +109,10 @@ func (ctx *CommandContext) SendWithEmbed(eb *embed.Embed) (*discordgo.Message, e
 	return ctx.Client.ChannelMessageSendEmbed(ctx.ChannelID, eb.Build())
 }
 
+func (ctx *CommandContext) SendWithEmbedTo(channelId string, eb *embed.Embed) (*discordgo.Message, error) {
+	return ctx.Client.ChannelMessageSendEmbed(channelId, eb.Build())
+}
+
 func (ctx *CommandContext) SendWithResponse(response *response.Response) (*discordgo.Message, error) {
 	return ctx.Client.ChannelMessageSendComplex(ctx.ChannelID, response.To())
 }

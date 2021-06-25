@@ -71,8 +71,16 @@
     "miscellaneous": {
         "categoryName": "Miscelâneas",
         "ping": {
-            "description": "Se o Discord-kun não tiver me matado, é para eu responder Pong ;)",
+            "description": "Se eu tiver viva vou te responder Pong ;)",
             "reply": "O meu tempo de resposta é `{0}`ms."
+        },
+        "help": {
+            "description": "Mostra essa página de ajuda",
+            "dmClosed": "Você precisa abrir a sua DM para fazer isso.",
+            "reply": "A Página de comandos foi enviada com sucesso para a sua DM.",
+            "embed": {
+                "description": "Olá **{0}**, eu sou a **Anny**, sou desenvolvida em **Go** e estou em fase Alpha, por isso podem haver muitos bugs, caso você encontre algum você pode reportar no meu [GitHub](https://github.com/ItsClairton/Anny), você também pode usar ele para sugerir novos comandos ;)"
+            }
         }
     },
     "image": {

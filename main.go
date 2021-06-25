@@ -35,8 +35,8 @@ func main() {
 	base.AddHandler(listeners.MessageCreateListener)
 
 	base.AddCategory(image.Category)
-	base.AddCategory(utilities.Category)
 	base.AddCategory(miscellaneous.Category)
+	base.AddCategory(utilities.Category)
 
 	err = base.Connect()
 

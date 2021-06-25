@@ -8,5 +8,5 @@ import (
 var Category = &base.Category{
 	ID:       "miscellaneous",
 	Emote:    constants.ZERO_HMPF,
-	Commands: []*base.Command{&PingCommand},
+	Commands: []*base.Command{&HelpCommand, &PingCommand},
 }
