@@ -8,5 +8,5 @@ import (
 var Category = &base.Category{
 	ID:       "utilities",
 	Emote:    constants.PEPEPOGGERS,
-	Commands: []*base.Command{&AnimeCommand, &MangaCommand, &SceneCommand},
+	Commands: []*base.Command{&AnimeCommand, &MangaCommand, &SceneCommand, &TranslateCommand},
 }

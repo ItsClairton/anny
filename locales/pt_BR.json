@@ -40,6 +40,7 @@
         "source": ["Original", "Mangá", "Light Novel", "Visual Novel", "Jogo", "Outros", "Novela", "Doujinshi", "Anime"],
         "season": ["Inverno", "Primavera", "Verão", "Outono"],
         "status": ["FInalizado", "Em estreia", "Ainda não estreou", "Cancelado", "Hiato"],
+        "translate": { "description": "Traduzir um texto para outra linguagem" },
         "anime": {
             "description": "Mostra informações sobre um anime direto do AniList & MyAnimeList, como nome, descrição, pontuação, etc",
             "notFound": "Não encontrei esse anime, Dsclpa.",
