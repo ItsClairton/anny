@@ -25,7 +25,7 @@ var AnimeCommand = base.Command{
 
 		if err != nil {
 			if err.Error() == "Not Found." {
-				ctx.Reply(constants.MIKU_CRY, "anime.anime.not-found")
+				ctx.Reply(constants.MIKU_CRY, "utilities.anime.notFound")
 			} else {
 				ctx.ReplyWithError(err)
 			}
@@ -55,12 +55,12 @@ var AnimeCommand = base.Command{
 			return
 		}
 
-		typeStr := ctx.GetFromArray("anime.type", anime.GetType())
-		sourceStr := ctx.GetFromArray("anime.source", anime.GetSource())
-		seasonStr := ctx.GetFromArray("anime.season", anime.GetSeason())
-		statusStr := ctx.GetFromArray("anime.status", anime.GetStatus())
+		typeStr := ctx.GetFromArray("utilities.type", anime.GetType())
+		sourceStr := ctx.GetFromArray("utilities.source", anime.GetSource())
+		seasonStr := ctx.GetFromArray("utilities.season", anime.GetSeason())
+		statusStr := ctx.GetFromArray("utilities.status", anime.GetStatus())
 
-		eb := embed.NewEmbed(ctx.Locale, "anime.anime.embed").
+		eb := embed.NewEmbed(ctx.Locale, "utilities.anime.embed").
 			WithAuthor("https://cdn.discordapp.com/avatars/743538534589267990/a6c5e905673d041a88b49203d6bc74dd.png?size=2048", "", typeStr, anime.Episodes).
 			SetTitle(utils.Fmt("%s | %s", constants.HAPPY, anime.Title.JP)).
 			SetDescription(rawSynopsis).
@@ -77,7 +77,7 @@ var AnimeCommand = base.Command{
 			WithField("N/A", true).
 			WithField(launchStr, true).
 			WithField(statusStr, true).
-			SetFooter(utils.Is(hasTrailer, ctx.GetString("anime.trailer-footer"), "Powered By AniList & MAL"), "https://anilist.co/img/icons/favicon-32x32.png")
+			SetFooter(utils.Is(hasTrailer, ctx.GetString("utilities.trailer-footer"), "Powered By AniList & MAL"), "https://anilist.co/img/icons/favicon-32x32.png")
 
 		msg, err := ctx.ReplyWithEmbed(eb)
 

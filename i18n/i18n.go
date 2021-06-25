@@ -52,14 +52,17 @@ func Load(dir string) error {
 	return nil
 }
 
+func GetDefaultLocale() *Locale {
+	return languageMap[os.Getenv("DEFAULT_LOCALE")]
+}
+
 func GetLocale(id string) *Locale {
 	locale, exist := languageMap[id]
 
 	defaultLc := os.Getenv("DEFAULT_LOCALE")
-
 	if !exist && id != defaultLc {
 		logger.Warn("Não foi possível encontrar a linguagem %s, alterando para a linguagem principal.", id)
-		locale = languageMap[defaultLc]
+		locale = GetDefaultLocale()
 	}
 
 	return locale

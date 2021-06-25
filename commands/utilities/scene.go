@@ -15,7 +15,8 @@ import (
 )
 
 var SceneCommand = base.Command{
-	Name: "cena",
+	Name:    "scene",
+	Aliases: []string{"cena"},
 	Handler: func(ctx *base.CommandContext) {
 
 		attachment := ""
@@ -35,7 +36,7 @@ var SceneCommand = base.Command{
 			if len(attachment) > 1 {
 				sendTraceMessage(ctx, attachment)
 			} else {
-				ctx.Reply(constants.MIKU_CRY, "anime.scene.usage")
+				ctx.Reply(constants.MIKU_CRY, "utilities.scene.usage")
 			}
 		} else {
 			sendTraceMessage(ctx, attachment)
@@ -77,28 +78,28 @@ func sendTraceMessage(ctx *base.CommandContext, attachment string) {
 		}
 
 		if result.Episode > 0 {
-			episodeStr = ctx.GetString("anime.scene.ofEpisode", result.Episode, titleStr)
+			episodeStr = ctx.GetString("utilities.scene.ofEpisode", result.Episode, titleStr)
 		} else {
-			episodeStr = ctx.GetString("anime.scene.of", titleStr)
+			episodeStr = ctx.GetString("utilities.scene.of", titleStr)
 		}
 
 		fromTime := utils.ToHHMMSS(result.From)
 		toTime := utils.ToHHMMSS(result.To)
 
 		if fromTime != toTime {
-			timeStr = ctx.GetString("anime.scene.betweenMinutes", fromTime, toTime)
+			timeStr = ctx.GetString("utilities.scene.betweenMinutes", fromTime, toTime)
 		} else {
-			timeStr = ctx.GetString("anime.scene.betweenMinute", fromTime)
+			timeStr = ctx.GetString("utilities.scene.betweenMinute", fromTime)
 		}
 
-		finalResponse := ctx.GetString("anime.scene.base", episodeStr, timeStr)
-		response.SetContentEmote(constants.HAPPY, utils.Fmt("%s (%s)", finalResponse, ctx.GetString("anime.scene.generatingPreview")))
+		finalResponse := ctx.GetString("utilities.scene.base", episodeStr, timeStr)
+		response.SetContentEmote(constants.HAPPY, utils.Fmt("%s (%s)", finalResponse, ctx.GetString("utilities.scene.generatingPreview")))
 		ctx.EditWithResponse(msg.ID, response)
 
 		videoBody, err := utils.GetFromWeb(result.Video + "&size=l")
 
 		if err != nil {
-			response.SetContentEmote(constants.MIKU_CRY, utils.Fmt("%s (%s)", finalResponse, ctx.GetString("anime.scene.previewError")))
+			response.SetContentEmote(constants.MIKU_CRY, utils.Fmt("%s (%s)", finalResponse, ctx.GetString("utilities.scene.previewError")))
 			ctx.EditWithResponse(msg.ID, response)
 			return
 		}

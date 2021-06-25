@@ -8,8 +8,8 @@ import (
 )
 
 var CatCommand = base.Command{
-	Name:    "gato",
-	Aliases: []string{"cat", "meow"},
+	Name:    "cat",
+	Aliases: []string{"gato", "meow"},
 	Handler: func(ctx *base.CommandContext) {
 		url, err := image.GetRandomCat(ctx.Args != nil && strings.HasPrefix(ctx.Args[0], "gif"))
 

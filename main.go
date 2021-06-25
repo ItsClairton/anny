@@ -6,9 +6,9 @@ import (
 	"syscall"
 
 	"github.com/ItsClairton/Anny/base"
-	"github.com/ItsClairton/Anny/commands/anime"
 	"github.com/ItsClairton/Anny/commands/image"
-	"github.com/ItsClairton/Anny/commands/misc"
+	"github.com/ItsClairton/Anny/commands/miscellaneous"
+	"github.com/ItsClairton/Anny/commands/utilities"
 	"github.com/ItsClairton/Anny/i18n"
 	"github.com/ItsClairton/Anny/listeners"
 	"github.com/ItsClairton/Anny/logger"
@@ -34,14 +34,9 @@ func main() {
 
 	base.AddHandler(listeners.MessageCreateListener)
 
-	base.AddCommand(&misc.PingCommand)
-
-	base.AddCommand(&image.CatCommand)
-	base.AddCommand(&image.NekoCommand)
-
-	base.AddCommand(&anime.SceneCommand)
-	base.AddCommand(&anime.AnimeCommand)
-	base.AddCommand(&anime.MangaCommand)
+	base.AddCategory(image.Category)
+	base.AddCategory(utilities.Category)
+	base.AddCategory(miscellaneous.Category)
 
 	err = base.Connect()
 

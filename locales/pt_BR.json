@@ -33,29 +33,30 @@
     "untilDate": "{0} até {1}",
     "notYetReleased": "Ainda não divulgado.",
     "searching": "Obtendo resultados...",
-    "anime": {
+    "utilities": {
+        "categoryName": "Utilitários",
         "trailer-footer": "Clique na data de estreia para ver o Trailer",
         "type": ["TV", "Filme", "Especial", "OVA", "ONA", "Música"],
         "source": ["Original", "Mangá", "Light Novel", "Visual Novel", "Jogo", "Outros", "Novela", "Doujinshi", "Anime"],
         "season": ["Inverno", "Primavera", "Verão", "Outono"],
         "status": ["FInalizado", "Em estreia", "Ainda não estreou", "Cancelado", "Hiato"],
         "anime": {
-            "description": "Mostra informações básicas sobre um Anime.",
-            "not-found": "Não encontrei esse anime, Dsclpa.",
+            "description": "Mostra informações sobre um anime direto do AniList & MyAnimeList, como nome, descrição, pontuação, etc",
+            "notFound": "Não encontrei esse anime, Dsclpa.",
             "embed": {
                 "author": "Tipo: {0} - Episódios: {1}",
                 "fields": ["Direção", "Estudio", "Criador", "Fonte", "Gênero", "Temporada", "Pontuação", "Data de Estreia", "Status"]
             }
         },
         "manga": {
-            "description": "Mostra informações básicas sobre um Mangá.",
-            "not-found": "Não encontrei esse mangá, Dsclpa.",
+            "description": "Mostra informações sobre um mangá direto do AniList & MyAnimeList, como nome, descrição, pontuação, etc",
+            "notFound": "Não encontrei esse mangá, Dsclpa.",
             "embed": {
                 "fields": ["História", "Gênero", "Ilustração", "Capitulos", "Fonte", "Volumes", "Pontuação", "Data de Estreia", "Status"]
             }
         },
         "scene": {
-            "description": "Saber de qual episódio, qual minutagem e em qual anime aparece uma cena especifica",
+            "description": "Tenta descobrir de qual anime, em qual episódio e exatamente em qual minutagem do episódio aparece uma cena especifica parecida com uma imagem ou GIF que você envia",
             "base": "Talvez seja uma cena {0} que aparece {1}",
             "ofEpisode": "do episódio **{0}** de {1}",
             "of": "de {0}",
@@ -66,10 +67,16 @@
             "usage": "Você precisa mandar um link, ou anexar uma imagem, um GIF, ou um vídeo. (Lembrando que GIF e Vídeo só é analsiado o primeiro frame), você também pode mencionar uma mensagem que contenha algo disso."
         }
     },
-    "misc": {
+    "miscellaneous": {
+        "categoryName": "Miscelâneas",
         "ping": {
             "description": "Se o Discord-kun não tiver me matado, é para eu responder Pong ;)",
             "reply": "O meu tempo de resposta é `{0}`ms."
         }
+    },
+    "image": {
+        "categoryName": "Imagem",
+        "neko": { "description": "Manda uma imagem aleatória de uma neko" },
+        "cat": { "description": "Manda uma imagem aleatória de um gatinho" }
     }
 }

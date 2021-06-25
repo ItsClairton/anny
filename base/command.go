@@ -11,10 +11,16 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+type Category struct {
+	ID, Emote string
+	Commands  []*Command
+}
+
 type Command struct {
-	Name    string
-	Aliases []string
-	Handler CommandHandler
+	Name     string
+	Category *Category
+	Aliases  []string
+	Handler  CommandHandler
 }
 
 type CommandHandler func(*CommandContext)
