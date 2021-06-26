@@ -1,7 +1,7 @@
 <h1 align="center">Anny - Simple bot for Discord</h1>
 <p align="center">
-<a href="./issues"><img src="https://img.shields.io/github/issues/ItsClairton/Anny?style=flat-square"></a>
-<img src="https://img.shields.io/github/license/ItsClairton/Anny?style=flat-square">
+<a href="https://github.com/ItsClairton/Anny/issues"><img src="https://img.shields.io/github/issues/ItsClairton/Anny?style=flat-square"></a>
+<a href="./LICENSE"><img src="https://img.shields.io/github/license/ItsClairton/Anny?style=flat-square"></a>
 </p>
 
 ## ⭐ Features
