@@ -24,11 +24,12 @@ var AnimeCommand = base.Command{
 		anime, err := anilist.SearchMediaAsAnime(strings.Join(ctx.Args, " "))
 
 		if err != nil {
-			if err.Error() == "Not Found." {
-				ctx.Reply(constants.MIKU_CRY, "utilities.anime.notFound")
-			} else {
-				ctx.ReplyWithError(err)
-			}
+			ctx.ReplyWithError(err)
+			return
+		}
+
+		if anime == nil {
+			ctx.Reply(constants.MIKU_CRY, "utilities.anime.notFound")
 			return
 		}
 

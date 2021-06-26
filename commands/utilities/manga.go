@@ -24,11 +24,12 @@ var MangaCommand = base.Command{
 		manga, err := anilist.SearchMediaAsManga(strings.Join(ctx.Args, " "))
 
 		if err != nil {
-			if err.Error() == "Not Found." {
-				ctx.Reply(constants.MIKU_CRY, "utilities.manga.notFound")
-			} else {
-				ctx.ReplyWithError(err)
-			}
+			ctx.ReplyWithError(err)
+			return
+		}
+
+		if manga == nil {
+			ctx.Reply(constants.MIKU_CRY, "utilities.manga.notFound")
 			return
 		}
 

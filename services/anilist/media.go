@@ -299,6 +299,10 @@ func SearchMediaAsManga(title string) (*Media, error) {
 		return nil, err
 	}
 
+	if result == nil {
+		return nil, nil
+	}
+
 	return result.Media, nil
 }
 
@@ -317,6 +321,10 @@ func GetMediaAsAnime(id int) (*Media, error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	if result == nil {
+		return nil, nil
 	}
 
 	return result.Media, nil
@@ -338,6 +346,10 @@ func SearchMediaAsAnime(title string) (*Media, error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	if result == nil {
+		return nil, nil
 	}
 
 	return result.Media, nil

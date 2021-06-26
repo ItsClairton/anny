@@ -56,6 +56,10 @@ func Get(query Query) (*Data, error) {
 	}
 
 	if len(result.Errors) != 0 {
+		if result.Errors[0].Message == "Not Found." {
+			return nil, nil
+		}
+
 		err = errors.New(result.Errors[0].Message)
 		return nil, err
 	}
