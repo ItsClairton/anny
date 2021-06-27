@@ -25,21 +25,18 @@ var TranslateCommand = base.Command{
 			ctx.ReplyWithError(err)
 		} else {
 			if len(result) > 2000 {
+				index := strings.LastIndex(result[:2000], "\n") // Prefer lines
 
-				spaceIndex := strings.LastIndex(result[:2000], " ")
-				var firstPart string
-				var secondPart string
-
-				if spaceIndex > -1 {
-					firstPart = result[:spaceIndex]
-					secondPart = result[spaceIndex:]
-				} else {
-					firstPart = result[:2000]
-					secondPart = result[2000:]
+				if index == -1 {
+					index = strings.LastIndex(result[:2000], " ")
 				}
 
-				ctx.ReplyRawWithEmote(constants.PEPEFROG, firstPart)
-				ctx.SendRaw(secondPart)
+				if index == -1 {
+					index = 2000
+				}
+
+				ctx.ReplyRawWithEmote(constants.PEPEFROG, result[:index])
+				ctx.SendRaw(result[index:])
 			} else {
 				ctx.ReplyRawWithEmote(constants.PEPEFROG, result)
 			}
