@@ -24,9 +24,9 @@ var TranslateCommand = base.Command{
 		if err != nil {
 			ctx.ReplyWithError(err)
 		} else {
-			if len(result) > 1024 {
+			if len(result) > 2000 {
 
-				spaceIndex := strings.LastIndex(result[:1024], " ")
+				spaceIndex := strings.LastIndex(result[:2000], " ")
 				var firstPart string
 				var secondPart string
 
@@ -34,8 +34,8 @@ var TranslateCommand = base.Command{
 					firstPart = result[:spaceIndex]
 					secondPart = result[spaceIndex:]
 				} else {
-					firstPart = result[:1024]
-					secondPart = result[1024:]
+					firstPart = result[:2000]
+					secondPart = result[2000:]
 				}
 
 				ctx.ReplyRawWithEmote(constants.PEPEFROG, firstPart)
