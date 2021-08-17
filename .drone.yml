@@ -17,4 +17,4 @@ steps:
     webhook_id:
       from_secret: WEBHOOK_ID
     webhook_token:
-      from_secret: SECRET_ID
+      from_secret: WEBHOOK_SECRET
