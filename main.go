@@ -16,7 +16,6 @@ import (
 )
 
 func main() {
-	ytjhfghdfghdfghdfgdfgfd
 	err := godotenv.Load()
 	if err != nil {
 		logger.ErrorAndExit("Um erro ocorreu ao carregar o arquivo .env de configurações. (%s)", err.Error())
