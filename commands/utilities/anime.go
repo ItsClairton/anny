@@ -63,7 +63,7 @@ var AnimeCommand = base.Command{
 
 		eb := embed.NewEmbed(ctx.Locale, "utilities.anime.embed").
 			WithAuthor("https://cdn.discordapp.com/avatars/743538534589267990/a6c5e905673d041a88b49203d6bc74dd.png?size=2048", "", typeStr, anime.Episodes).
-			SetTitle(utils.Fmt("%s | %s", constants.HAPPY, anime.Title.JP)).
+			SetTitle(utils.Fmt("%s %s", constants.HAPPY, anime.Title.JP)).
 			SetDescription(rawSynopsis).
 			SetURL(anime.SiteURL).
 			SetThumbnail(anime.Cover.ExtraLarge).
@@ -78,7 +78,7 @@ var AnimeCommand = base.Command{
 			WithField("N/A", true).
 			WithField(launchStr, true).
 			WithField(statusStr, true).
-			SetFooter(utils.Is(hasTrailer, ctx.GetString("utilities.trailer-footer"), "Powered By AniList & MAL"), "https://anilist.co/img/icons/favicon-32x32.png")
+			SetFooter(utils.Is(hasTrailer, ctx.GetString("utilities.trailerFooter"), "Powered By AniList & MAL"), "https://anilist.co/img/icons/favicon-32x32.png")
 
 		msg, err := ctx.ReplyWithEmbed(eb)
 

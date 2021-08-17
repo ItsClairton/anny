@@ -65,7 +65,7 @@ var MangaCommand = base.Command{
 		statusStr := ctx.GetFromArray("utilities.status", manga.GetStatus())
 
 		eb := embed.NewEmbed(ctx.Locale, "utilities.manga.embed").
-			SetTitle(utils.Fmt("%s | %s", constants.HAPPY, manga.Title.JP)).
+			SetTitle(utils.Fmt("%s %s", constants.HAPPY, manga.Title.JP)).
 			SetDescription(rawSynopsis).
 			SetURL(manga.SiteURL).
 			SetThumbnail(manga.Cover.ExtraLarge).
@@ -80,7 +80,7 @@ var MangaCommand = base.Command{
 			WithField("N/A", true).
 			WithField(launchStr, true).
 			WithField(statusStr, true).
-			SetFooter(utils.Is(hasTrailer, ctx.GetString("utilities.trailer-footer"), "Powered By AniList & MAL"), "https://anilist.co/img/icons/favicon-32x32.png")
+			SetFooter(utils.Is(hasTrailer, ctx.GetString("utilities.trailerFooter"), "Powered By AniList & MAL"), "https://anilist.co/img/icons/favicon-32x32.png")
 
 		msg, err := ctx.ReplyWithEmbed(eb)
 
