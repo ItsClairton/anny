@@ -2,6 +2,7 @@
 <p align="center">
 <a href="https://github.com/ItsClairton/Anny/issues"><img src="https://img.shields.io/github/issues/ItsClairton/Anny?style=flat-square"></a>
 <a href="./LICENSE"><img src="https://img.shields.io/github/license/ItsClairton/Anny?style=flat-square"></a>
+<a href="https://ci.clairton.wtf/ItsClairton/Anny"><img src="https://ci.clairton.wtf/api/badges/ItsClairton/Anny/status.svg"></a>
 </p>
 
 ## ⭐ Features
