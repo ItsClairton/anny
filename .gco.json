@@ -1,8 +1,6 @@
 {
   "Version": "0.0.2-dev",
   "PrefixPack": "text",
-  "AskFilesToCommit": false,
-  "PreCommit": null,
-  "PostCommit": null,
+  "AskFilesToCommit": true,
   "AskCISkip": false
 }
