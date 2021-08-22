@@ -1,6 +1,7 @@
 package image
 
 import (
+	"errors"
 	"io"
 	"math/rand"
 	"net/http"
@@ -24,22 +25,22 @@ type TraceEntry struct {
 	Video, Image string
 }
 
-func GetFromTrace(mediaUrl string) (*TraceEntry, string) {
+func GetFromTrace(mediaUrl string) (*TraceEntry, error) {
 
-	response, err := utils.GetFromWeb(utils.Fmt("https://api.trace.moe/search?url=%s&cutBorders=1&info=basic", url.QueryEscape(mediaUrl)))
+	response, err := utils.GetFromWeb(utils.Fmt("https://api.trace.moe/search?cutBorders&anilistInfo&url=%s", url.QueryEscape(mediaUrl)))
 
 	if err != nil {
-		return nil, err.Error()
+		return nil, err
 	}
 
 	traceErr, err := jsonparser.GetString(response, "error")
 
 	if err != nil {
-		return nil, err.Error()
+		return nil, err
 	}
 
-	if len(traceErr) > 0 {
-		return nil, traceErr
+	if traceErr != "" {
+		return nil, errors.New(utils.Fmt("trace.moe error: %s", traceErr))
 	}
 
 	episode, _ := jsonparser.GetInt(response, "result", "[0]", "episode")
@@ -62,7 +63,7 @@ func GetFromTrace(mediaUrl string) (*TraceEntry, string) {
 		To:      to,
 		Video:   video,
 		Image:   image,
-	}, ""
+	}, nil
 
 }
 

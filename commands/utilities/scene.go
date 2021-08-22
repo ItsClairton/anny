@@ -2,7 +2,6 @@ package utilities
 
 import (
 	"bytes"
-	"errors"
 	"strings"
 	"time"
 
@@ -45,8 +44,8 @@ var SceneCommand = base.Command{
 			msg, _ := ctx.ReplyWithResponse(response)
 
 			result, err := image.GetFromTrace(attachment)
-			if err != "" {
-				ctx.ReplyWithError(errors.New(utils.Fmt("trace error: %s", err)))
+			if err != nil {
+				ctx.ReplyWithError(err)
 			} else {
 				var episodeStr string
 				var titleStr string
