@@ -21,7 +21,7 @@ func (lc *Locale) ToPrettyMonth(month int) string {
 	return lc.GetString(utils.Fmt("months.[%d]", month-1))[0:3]
 }
 
-func (lc *Locale) ToPrettyDate(date *utils.Date) string {
+func (lc *Locale) ToPrettyDate(date utils.Date) string {
 
 	if date.Year == 0 {
 		return lc.GetString("notYetReleased")

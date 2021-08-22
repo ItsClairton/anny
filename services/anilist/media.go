@@ -23,9 +23,9 @@ type Media struct {
 	Status    string      `json:"status"`
 	Format    string      `json:"format"`
 	Season    string      `json:"season"`
-	StartDate *utils.Date `json:"startDate"`
+	StartDate utils.Date  `json:"startDate"`
 	Trailer   *Trailer    `json:"trailer"`
-	EndDate   *utils.Date `json:"endDate"`
+	EndDate   utils.Date  `json:"endDate"`
 	Episodes  int         `json:"episodes"`
 	Chapters  int         `json:"chapters"`
 	Volumes   int         `json:"volumes"`
