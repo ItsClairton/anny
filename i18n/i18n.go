@@ -40,7 +40,7 @@ func Load(dir string) error {
 			info.ID = strings.TrimSuffix(file.Name(), ".json")
 			info.Content = buff
 			languageMap[info.ID] = info
-			logger.Debug(utils.Fmt("A Linguagem %s foi carrega com sucesso, Yeah.", info.Name))
+			logger.Debug(utils.Fmt("A Linguagem %s foi carregada com sucesso, Yeah.", info.Name))
 		}
 
 	}
