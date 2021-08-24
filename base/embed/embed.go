@@ -1,8 +1,8 @@
 package embed
 
 import (
-	"github.com/ItsClairton/Anny/i18n"
 	"github.com/ItsClairton/Anny/utils"
+	"github.com/ItsClairton/Anny/utils/i18n"
 	"github.com/bwmarrin/discordgo"
 )
 

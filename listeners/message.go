@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"github.com/ItsClairton/Anny/base"
-	"github.com/ItsClairton/Anny/i18n"
 	"github.com/ItsClairton/Anny/utils"
+	"github.com/ItsClairton/Anny/utils/i18n"
 	"github.com/bwmarrin/discordgo"
 )
 
