@@ -5,11 +5,11 @@ import (
 
 	"github.com/ItsClairton/Anny/base"
 	"github.com/ItsClairton/Anny/base/embed"
-	"github.com/ItsClairton/Anny/logger"
 	"github.com/ItsClairton/Anny/services/anilist"
 	"github.com/ItsClairton/Anny/utils"
 	"github.com/ItsClairton/Anny/utils/constants"
 	"github.com/ItsClairton/Anny/utils/i18n"
+	"github.com/ItsClairton/Anny/utils/logger"
 )
 
 var AnimeCommand = base.Command{

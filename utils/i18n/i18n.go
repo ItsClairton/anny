@@ -7,8 +7,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ItsClairton/Anny/logger"
 	"github.com/ItsClairton/Anny/utils"
+	"github.com/ItsClairton/Anny/utils/logger"
 )
 
 var languageMap = map[string]*Locale{}

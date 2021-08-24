@@ -9,9 +9,9 @@ import (
 	"github.com/ItsClairton/Anny/commands/image"
 	"github.com/ItsClairton/Anny/commands/miscellaneous"
 	"github.com/ItsClairton/Anny/commands/utilities"
-	"github.com/ItsClairton/Anny/i18n"
 	"github.com/ItsClairton/Anny/listeners"
-	"github.com/ItsClairton/Anny/logger"
+	"github.com/ItsClairton/Anny/utils/i18n"
+	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/joho/godotenv"
 )
 

@@ -4,8 +4,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ItsClairton/Anny/logger"
 	"github.com/ItsClairton/Anny/utils"
+	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/buger/jsonparser"
 )
 
