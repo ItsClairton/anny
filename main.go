@@ -44,12 +44,12 @@ func main() {
 		logger.ErrorAndExit("Um erro ocorreu ao tentar se conectar ao Discord. (%s)", err.Error())
 	}
 
-	logger.Info("Conexão com o Discord feita com sucesso, Yay.")
+	logger.Info("Conexão com o Discord feita com sucesso.")
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
 
 	base.Disconnect()
-	logger.Info("Processo finalizado com sucesso, Yay.")
+	logger.Info("Good Bye.")
 }

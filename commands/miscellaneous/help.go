@@ -37,7 +37,7 @@ var HelpCommand = base.Command{
 		_, err = ctx.SendWithEmbedTo(ch.ID, eb)
 
 		if err != nil {
-			ctx.Reply(constants.MIKU_CRY, "miscellaneous.help.dmClosed")
+			ctx.ReplyWithEmbed(eb)
 		} else {
 			ctx.Reply(constants.PEPEFROG, "miscellaneous.help.reply")
 		}
