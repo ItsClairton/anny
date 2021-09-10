@@ -5,6 +5,8 @@ import (
 	"log"
 	"os"
 	"time"
+
+	"github.com/TwinProduction/go-color"
 )
 
 var (
@@ -17,22 +19,22 @@ func getPretty(color string, tag string, content string) string {
 }
 
 func Info(s string, args ...interface{}) {
-	stdout.Println(getPretty("\u001B[32m", "INFO", fmt.Sprintf(s, args...)))
+	stdout.Println(getPretty(color.Green, "INFO", fmt.Sprintf(s, args...)))
 }
 
 func Debug(s string, args ...interface{}) {
-	stdout.Println(getPretty("\u001B[35m", "DEBUG", fmt.Sprintf(s, args...)))
+	stdout.Println(getPretty(color.Cyan, "DEBUG", fmt.Sprintf(s, args...)))
 }
 
 func Error(s string, args ...interface{}) {
-	stderr.Println(getPretty("\u001B[31m", "ERROR", fmt.Sprintf(s, args...)))
+	stderr.Println(getPretty(color.Red, "ERROR", fmt.Sprintf(s, args...)))
 }
 
 func ErrorAndExit(s string, args ...interface{}) {
-	stderr.Println(getPretty("\u001B[31m", "ERROR", fmt.Sprintf(s, args...)))
+	stderr.Println(getPretty(color.Red, "ERROR", fmt.Sprintf(s, args...)))
 	os.Exit(0)
 }
 
 func Warn(s string, args ...interface{}) {
-	stdout.Println(getPretty("\u001B[33m", "WARN", fmt.Sprintf(s, args...)))
+	stdout.Println(getPretty(color.Yellow, "WARN", fmt.Sprintf(s, args...)))
 }
