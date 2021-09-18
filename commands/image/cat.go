@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/ItsClairton/Anny/base"
-	"github.com/ItsClairton/Anny/services/image"
+	"github.com/ItsClairton/Anny/providers/image"
 )
 
 var CatCommand = base.Command{
