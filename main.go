@@ -6,6 +6,8 @@ import (
 	"syscall"
 
 	"github.com/ItsClairton/Anny/base/discord"
+	"github.com/ItsClairton/Anny/commands/misc"
+	"github.com/ItsClairton/Anny/events"
 	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/joho/godotenv"
 )
@@ -17,6 +19,7 @@ func main() {
 	}
 
 	discord.Init(os.Getenv("DISCORD_TOKEN"))
+	discord.Session.AddHandler(events.InteractionsEvent)
 
 	err = discord.Connect()
 	if err != nil {
@@ -24,6 +27,8 @@ func main() {
 	}
 
 	logger.Info("Conexão com o Discord feita com Sucesso.")
+
+	discord.AddCategory(misc.Category)
 
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
