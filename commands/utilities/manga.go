@@ -5,7 +5,7 @@ import (
 
 	"github.com/ItsClairton/Anny/base"
 	"github.com/ItsClairton/Anny/base/embed"
-	"github.com/ItsClairton/Anny/services/anilist"
+	"github.com/ItsClairton/Anny/providers/anilist"
 	"github.com/ItsClairton/Anny/utils"
 	"github.com/ItsClairton/Anny/utils/constants"
 	"github.com/ItsClairton/Anny/utils/i18n"

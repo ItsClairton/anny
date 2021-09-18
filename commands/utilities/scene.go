@@ -7,7 +7,7 @@ import (
 
 	"github.com/ItsClairton/Anny/base"
 	"github.com/ItsClairton/Anny/base/response"
-	"github.com/ItsClairton/Anny/services/image"
+	"github.com/ItsClairton/Anny/providers/image"
 	"github.com/ItsClairton/Anny/utils"
 	"github.com/ItsClairton/Anny/utils/constants"
 	"github.com/bwmarrin/discordgo"
