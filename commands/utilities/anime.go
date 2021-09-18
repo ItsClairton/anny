@@ -62,7 +62,7 @@ var AnimeCommand = base.Command{
 		statusStr := ctx.GetFromArray("utilities.status", anime.GetStatus())
 
 		eb := embed.NewEmbed(ctx.Locale, "utilities.anime.embed").
-			WithAuthor("https://cdn.discordapp.com/avatars/743538534589267990/a6c5e905673d041a88b49203d6bc74dd.png?size=2048", "", typeStr, anime.Episodes).
+			WithAuthor(ctx.Client.State.User.AvatarURL("2048"), "", typeStr, anime.Episodes).
 			SetTitle(utils.Fmt("%s %s", constants.HAPPY, anime.Title.JP)).
 			SetDescription(rawSynopsis).
 			SetURL(anime.SiteURL).
