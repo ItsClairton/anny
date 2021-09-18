@@ -25,13 +25,15 @@ type CommandContext struct {
 	Session *discordgo.Session
 }
 
-func (ctx *CommandContext) ReplyWithEmote(emote, message string, args ...interface{}) {
+func (ctx *CommandContext) ReplyWithEmote(emote, message string, args ...interface{}) error {
+	return ctx.SendRAW(utils.Fmt("%s | %s", emote, utils.Fmt(message, args...)))
+}
 
-	Session.InteractionRespond(ctx.Interaction, &discordgo.InteractionResponse{
+func (ctx *CommandContext) SendRAW(message string) error {
+	return Session.InteractionRespond(ctx.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: utils.Fmt("%s | %s", emote, utils.Fmt(message, args...)),
+			Content: message,
 		},
 	})
-
 }

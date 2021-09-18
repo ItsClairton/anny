@@ -8,5 +8,5 @@ import (
 var Category = &discord.Category{
 	Name:     "Miscelâneas",
 	Emote:    emojis.PEPE_ART,
-	Commands: []*discord.Command{&PingCommand},
+	Commands: []*discord.Command{&PingCommand, &CatCommand},
 }
