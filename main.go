@@ -20,6 +20,7 @@ func main() {
 
 	discord.Init(os.Getenv("DISCORD_TOKEN"))
 	discord.Session.AddHandler(events.InteractionsEvent)
+	discord.Session.AddHandler(events.ReadyEvent)
 
 	err = discord.Connect()
 	if err != nil {
