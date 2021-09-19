@@ -6,6 +6,7 @@ import (
 	"syscall"
 
 	"github.com/ItsClairton/Anny/base/discord"
+	"github.com/ItsClairton/Anny/commands/image"
 	"github.com/ItsClairton/Anny/commands/misc"
 	"github.com/ItsClairton/Anny/events"
 	"github.com/ItsClairton/Anny/utils/logger"
@@ -30,6 +31,7 @@ func main() {
 	logger.Info("Conexão com o Discord feita com Sucesso.")
 
 	discord.AddCategory(misc.Category)
+	discord.AddCategory(image.Category)
 
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
