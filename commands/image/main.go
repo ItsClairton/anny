@@ -1,4 +1,4 @@
-package misc
+package image
 
 import (
 	"github.com/ItsClairton/Anny/base/discord"
@@ -6,7 +6,7 @@ import (
 )
 
 var Category = &discord.Category{
-	Name:     "Miscelâneas",
-	Emote:    emojis.PepeArt,
-	Commands: []*discord.Command{&PingCommand},
+	Name:     "Imagens",
+	Emote:    emojis.KannaPeer,
+	Commands: []*discord.Command{&CatCommand},
 }

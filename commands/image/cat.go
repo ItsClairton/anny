@@ -1,4 +1,4 @@
-package misc
+package image
 
 import (
 	"math/rand"
