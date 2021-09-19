@@ -1,7 +1,6 @@
 package providers
 
 import (
-	"math/rand"
 	"os"
 
 	"github.com/ItsClairton/Anny/utils"
@@ -16,14 +15,10 @@ func GetRandomCat(gif bool) (string, error) {
 		return getFromTheCat(true)
 	}
 
-	provider := rand.Intn(2-1) + 1
-	switch provider {
-	case 1:
+	if utils.RandomBool() {
 		return getFromNekosLife("meow")
-	case 2:
+	} else {
 		return getFromTheCat(false)
-	default:
-		return "", nil
 	}
 }
 
