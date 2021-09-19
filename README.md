@@ -7,7 +7,8 @@
 
 ## ⭐ Features
 - Slash Commands Support
-- Miscellaneous (`/ping`, `/cat`)
+- Miscellaneous (`/ping`)
+- Image (`/cat`)
 
 ## 🚀 Selfhosting
 - Create a .env file and copy the content of the .env.example file into it.
