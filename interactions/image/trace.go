@@ -45,7 +45,7 @@ var TraceContext = discord.Interaction{
 				utils.Fmt("`%s`", utils.ToDisplayTime(result.From)),
 				utils.Fmt("`%s`/`%s`", utils.ToDisplayTime(result.From), utils.ToDisplayTime(result.To)))))
 
-		video, err := utils.GetFromWeb(result.Video)
+		video, err := utils.GetFromWeb(result.Video + "&size=l")
 
 		if err == nil {
 			response.WithContent("").WithFile(&discordgo.File{
