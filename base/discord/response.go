@@ -57,8 +57,9 @@ func (r *Response) ToInteracctionData() *discordgo.InteractionResponseData {
 
 func (r *Response) ToWebhookParams() *discordgo.WebhookParams {
 	data := &discordgo.WebhookParams{
-		Content: r.Content,
-		// Files:   r.Files,
+		Content:         r.Content,
+		Files:           r.Files,
+		AllowedMentions: r.AllowedMentions,
 	}
 
 	if r.Embed != nil {
