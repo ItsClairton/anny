@@ -6,9 +6,9 @@ import (
 	"syscall"
 
 	"github.com/ItsClairton/Anny/base/discord"
-	"github.com/ItsClairton/Anny/commands/image"
-	"github.com/ItsClairton/Anny/commands/misc"
 	"github.com/ItsClairton/Anny/events"
+	"github.com/ItsClairton/Anny/interactions/image"
+	"github.com/ItsClairton/Anny/interactions/misc"
 	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/joho/godotenv"
 )
@@ -33,6 +33,7 @@ func main() {
 	discord.AddCategory(misc.Category)
 	discord.AddCategory(image.Category)
 
+	discord.RegisterInDiscord()
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-s

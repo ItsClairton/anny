@@ -5,10 +5,10 @@ import (
 	"github.com/ItsClairton/Anny/utils/emojis"
 )
 
-var PingCommand = discord.Command{
+var PingCommand = discord.Interaction{
 	Name:        "ping",
 	Description: "Pong!",
-	Handler: func(ctx *discord.CommandContext) {
+	Handler: func(ctx *discord.InteractionContext) {
 		ctx.ReplyWithEmote(emojis.PingPong, "Pong, %dms.", ctx.Session.HeartbeatLatency().Milliseconds())
 	},
 }

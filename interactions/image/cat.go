@@ -6,7 +6,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-var CatCommand = discord.Command{
+var CatCommand = discord.Interaction{
 	Name:        "cat",
 	Description: "Imagem aleatória de um Gatinho",
 	Options: []*discordgo.ApplicationCommandOption{{
@@ -15,7 +15,7 @@ var CatCommand = discord.Command{
 		Type:        discordgo.ApplicationCommandOptionBoolean,
 		Required:    false,
 	}},
-	Handler: func(ctx *discord.CommandContext) {
+	Handler: func(ctx *discord.InteractionContext) {
 		gif := len(ctx.ApplicationCommandData().Options) > 0 && ctx.ApplicationCommandData().Options[0].BoolValue()
 		info, err := providers.GetRandomCat(gif)
 

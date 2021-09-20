@@ -6,9 +6,9 @@ import (
 )
 
 func InteractionsEvent(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	cmd, exist := discord.GetCommands()[i.ApplicationCommandData().Name]
+	cmd, exist := discord.GetInteractions()[i.ApplicationCommandData().Name]
 	if exist {
-		go cmd.Handler(&discord.CommandContext{
+		go cmd.Handler(&discord.InteractionContext{
 			InteractionCreate: i,
 			Session:           s,
 		})

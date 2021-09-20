@@ -1,14 +1,16 @@
 package discord
 
 import (
+	"reflect"
+
 	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/bwmarrin/discordgo"
 )
 
 var (
-	Session    *discordgo.Session
-	commands   = map[string]*Command{}
-	categories = []*Category{}
+	Session      *discordgo.Session
+	interactions = map[string]*Interaction{}
+	categories   = []*Category{}
 )
 
 func Init(token string) {
@@ -26,38 +28,61 @@ func Disconnect() {
 }
 
 func AddCategory(category *Category) {
-	for _, cmd := range category.Commands {
-		err := addCommand(cmd, category)
-
-		if err != nil {
-			logger.Error("[%s] Um erro ocorreu ao registrar o comando %s no Discord. (%s)", category.Name, cmd.Name, err.Error())
-		}
+	for _, i := range category.Interactions {
+		addInteraction(i, category)
 	}
 
 	categories = append(categories, category)
 }
 
-func addCommand(cmd *Command, category *Category) error {
-	cmd.Category = category
-
-	data := &discordgo.ApplicationCommand{
-		Name:        cmd.Name,
-		Description: cmd.Description,
-		Type:        cmd.Type,
-	}
-	if cmd.Options != nil {
-		data.Options = cmd.Options
-	}
-
-	_, err := Session.ApplicationCommandCreate(Session.State.User.ID, "", data)
-
-	if err == nil {
-		commands[cmd.Name] = cmd
-	}
-
-	return err
+func addInteraction(i *Interaction, category *Category) {
+	i.Category = category
+	interactions[i.Name] = i
 }
 
-func GetCommands() map[string]*Command {
-	return commands
+func GetInteractions() map[string]*Interaction {
+	return interactions
+}
+
+func RegisterInDiscord() error {
+	previous, err := Session.ApplicationCommands(Session.State.User.ID, "")
+	if err != nil {
+		return err
+	}
+
+	registered := map[string]*discordgo.ApplicationCommand{}
+	for _, prev := range previous { // Procurar os comandos já registrados no Discord e verificar se precisa enviar algum tipo de atualização para os mesmos.
+		i, exist := interactions[prev.Name]
+
+		if !exist {
+			err := Session.ApplicationCommandDelete(Session.State.User.ID, "", prev.ID)
+			if err != nil {
+				logger.Warn("Não foi possível remover a interação %s do Discord. (%s)", prev.Name, err.Error())
+			}
+		} else {
+			if !reflect.DeepEqual(i.Options, prev.Options) {
+				_, err = Session.ApplicationCommandEdit(Session.State.User.ID, "", prev.ApplicationID, i.ToRAW())
+				if err != nil {
+					logger.Warn("Não foi possível enviar a atualização da interação %s para o Discord. (%s)", i.Name, err.Error())
+				} else {
+					registered[i.Name] = i.ToRAW()
+				}
+			} else {
+				registered[i.Name] = i.ToRAW()
+			}
+		}
+	}
+
+	for _, i := range interactions { // Registrar novos comandos no Discord
+		_, exist := registered[i.Name]
+
+		if !exist {
+			_, err := Session.ApplicationCommandCreate(Session.State.User.ID, "", i.ToRAW())
+			if err != nil {
+				logger.Warn("Não foi possível criar a interação %s no Discord. (%s)", i.Name, err.Error())
+			}
+		}
+	}
+
+	return nil
 }
