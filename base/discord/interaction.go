@@ -2,6 +2,7 @@ package discord
 
 import (
 	"github.com/ItsClairton/Anny/utils"
+	"github.com/ItsClairton/Anny/utils/emojis"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -38,6 +39,24 @@ func (i Interaction) ToRAW() *discordgo.ApplicationCommand {
 
 func (ctx *InteractionContext) ReplyWithEmote(emote, message string, args ...interface{}) error {
 	return ctx.SendRAW(utils.Fmt("%s | %s", emote, utils.Fmt(message, args...)))
+}
+
+func (ctx *InteractionContext) ReplyEphemeralWithEmote(emote, message string, args ...interface{}) error {
+	return ctx.SendEphemeralRAW(utils.Fmt("%s | %s", emote, utils.Fmt(message, args...)))
+}
+
+func (ctx *InteractionContext) SendError(err error) {
+	ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Um erro ocorreu ao executar esse comando, Desculpa (`%v`).", err)
+}
+
+func (ctx *InteractionContext) SendEphemeralRAW(message string) error {
+	return Session.InteractionRespond(ctx.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: message,
+			Flags:   1 << 6,
+		},
+	})
 }
 
 func (ctx *InteractionContext) SendRAW(message string) error {

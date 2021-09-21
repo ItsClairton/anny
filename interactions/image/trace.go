@@ -8,7 +8,6 @@ import (
 	"github.com/ItsClairton/Anny/providers"
 	"github.com/ItsClairton/Anny/utils"
 	"github.com/ItsClairton/Anny/utils/emojis"
-	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -20,13 +19,12 @@ var TraceContext = discord.Interaction{
 		attachment := getAttachment(message)
 
 		if attachment == "" {
-			ctx.ReplyWithEmote(emojis.MikuCry, "Não achei nenhuma imagem, GIF ou vídeo nessa mensagem.")
+			ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Não achei nenhuma imagem, GIF ou vídeo nessa mensagem.")
 			return
 		}
 		response := discord.NewResponse().WithContentEmoji(emojis.AnimatedStaff, "Procurando...")
 		err := ctx.SendResponse(response)
 		if err != nil {
-			logger.Warn("%s", err.Error())
 			return
 		}
 

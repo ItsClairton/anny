@@ -22,7 +22,7 @@ var CatCommand = discord.Interaction{
 		if err == nil {
 			ctx.SendRAW(info)
 		} else {
-			ctx.SendRAW("DEU ERRU " + err.Error())
+			ctx.SendError(err)
 		}
 
 	},
