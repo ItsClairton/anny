@@ -116,3 +116,7 @@ func (e *Embed) SetFooter(content, imgUrl string) *Embed {
 	}
 	return e
 }
+
+func (e *Embed) Build() *discordgo.MessageEmbed {
+	return e.MessageEmbed
+}

@@ -7,10 +7,10 @@ import (
 
 	"github.com/ItsClairton/Anny/base/discord"
 	"github.com/ItsClairton/Anny/events"
-	"github.com/ItsClairton/Anny/interactions/image"
-	"github.com/ItsClairton/Anny/interactions/misc"
 	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/joho/godotenv"
+
+	_ "github.com/ItsClairton/Anny/interactions"
 )
 
 func main() {
@@ -27,13 +27,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	err = discord.RegisterInDiscord()
+	if err != nil {
+		panic(err)
+	}
 
 	logger.Info("Conexão com o Discord feita com Sucesso.")
-
-	discord.AddCategory(misc.Category)
-	discord.AddCategory(image.Category)
-
-	discord.RegisterInDiscord()
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-s

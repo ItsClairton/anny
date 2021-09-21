@@ -36,25 +36,36 @@ var TraceContext = discord.Interaction{
 			return
 		}
 
-		ctx.EditResponse(response.WithContentEmoji(emojis.KannaPeer, "É uma cena%s de %s (%s).",
+		response.WithContentEmoji(emojis.KannaPeer, "É uma cena (%s)%s de %s.",
+			utils.Is(utils.ToDisplayTime(result.From) == utils.ToDisplayTime(result.To),
+				utils.Fmt("`%s`", utils.ToDisplayTime(result.From)),
+				utils.Fmt("`%s`/`%s`", utils.ToDisplayTime(result.From), utils.ToDisplayTime(result.To))),
 			utils.Is(result.Episode > 0, utils.Fmt(" do episódio **%d**", result.Episode), ""),
 			utils.Is(len(result.Title.English) > 0 && !strings.EqualFold(result.Title.Japanese, result.Title.English),
 				utils.Fmt("**%s** (**%s**)", result.Title.Japanese, result.Title.English),
-				utils.Fmt("**%s**", result.Title.Japanese)),
-			utils.Is(utils.ToDisplayTime(result.From) == utils.ToDisplayTime(result.To),
-				utils.Fmt("`%s`", utils.ToDisplayTime(result.From)),
-				utils.Fmt("`%s`/`%s`", utils.ToDisplayTime(result.From), utils.ToDisplayTime(result.To)))))
+				utils.Fmt("**%s**", result.Title.Japanese)))
 
-		video, err := utils.GetFromWeb(result.Video + "&size=l")
+		response.WithButton(discord.Button{
+			Label: "Gerar Preview",
+			Once:  true,
+			Emoji: "🎥",
+			Style: discordgo.SecondaryButton,
+			OnClick: func(ic *discord.InteractionContext) {
+				ctx.EditResponse(response.ClearComponents())
 
-		if err == nil {
-			response.WithContent("").WithFile(&discordgo.File{
-				Name:        utils.Is(result.Adult, "SPOILER_preview.mp4", "preview.mp4"),
-				ContentType: "video/mp4",
-				Reader:      bytes.NewReader(video),
-			})
-			ctx.SendFollowUp(response)
-		}
+				video, err := utils.GetFromWeb(result.Video + "&size=l")
+				if err == nil {
+					ctx.SendFollowUp(response.WithContent(ic.Member.Mention()).
+						WithFile(&discordgo.File{
+							Name:        utils.Is(result.Adult, "SPOILER_preview.mp4", "preview.mp4"),
+							ContentType: "video/mp4",
+							Reader:      bytes.NewReader(video),
+						}))
+				}
+			},
+		})
+
+		ctx.EditResponse(response)
 	},
 }
 

@@ -51,19 +51,19 @@ func RegisterInDiscord() error {
 	}
 
 	registered := map[string]*discordgo.ApplicationCommand{}
-	for _, prev := range previous { // Procurar os comandos já registrados no Discord e verificar se precisa enviar algum tipo de atualização para os mesmos.
+	for _, prev := range previous { // Verificar se precisa atualizar ou remover alguma interação no Discord.
 		i, exist := interactions[prev.Name]
 
 		if !exist {
 			err := Session.ApplicationCommandDelete(Session.State.User.ID, "", prev.ID)
 			if err != nil {
-				logger.Warn("Não foi possível remover a interação %s do Discord. (%s)", prev.Name, err.Error())
+				logger.Warn("Não foi possível remover a interação \"%s\" do Discord. (%s)", prev.Name, err.Error())
 			}
 		} else {
-			if !reflect.DeepEqual(i.Options, prev.Options) {
+			if !reflect.DeepEqual(i.Options, prev.Options) || prev.Description != i.Description {
 				_, err = Session.ApplicationCommandEdit(Session.State.User.ID, "", prev.ApplicationID, i.ToRAW())
 				if err != nil {
-					logger.Warn("Não foi possível enviar a atualização da interação %s para o Discord. (%s)", i.Name, err.Error())
+					logger.Warn("Não foi possível atualizar a interação \"%s\" no Discord. (%s)", i.Name, err.Error())
 				} else {
 					registered[i.Name] = i.ToRAW()
 				}
@@ -73,13 +73,13 @@ func RegisterInDiscord() error {
 		}
 	}
 
-	for _, i := range interactions { // Registrar novos comandos no Discord
+	for _, i := range interactions { // Registrar novas interações no Discord caso não existam.
 		_, exist := registered[i.Name]
 
 		if !exist {
 			_, err := Session.ApplicationCommandCreate(Session.State.User.ID, "", i.ToRAW())
 			if err != nil {
-				logger.Warn("Não foi possível criar a interação %s no Discord. (%s)", i.Name, err.Error())
+				logger.Warn("Não foi possível criar a interação \"%s\" no Discord. (%s)", i.Name, err.Error())
 			}
 		}
 	}

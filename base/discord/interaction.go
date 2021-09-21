@@ -52,12 +52,12 @@ func (ctx *InteractionContext) SendRAW(message string) error {
 func (ctx *InteractionContext) SendResponse(response *Response) error {
 	return Session.InteractionRespond(ctx.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: response.ToInteracctionData(),
+		Data: response.Build(),
 	})
 }
 
 func (ctx *InteractionContext) EditResponse(response *Response) (*discordgo.Message, error) {
-	return Session.InteractionResponseEdit(ctx.Session.State.User.ID, ctx.Interaction, response.ToWebhookEdit())
+	return Session.InteractionResponseEdit(ctx.Session.State.User.ID, ctx.Interaction, response.BuildAsWebhookEdit())
 }
 
 func (ctx *InteractionContext) DeleteResponse() error {
@@ -65,11 +65,11 @@ func (ctx *InteractionContext) DeleteResponse() error {
 }
 
 func (ctx *InteractionContext) SendFollowUp(response *Response) (*discordgo.Message, error) {
-	return Session.FollowupMessageCreate(ctx.Session.State.User.ID, ctx.Interaction, true, response.ToWebhookParams())
+	return Session.FollowupMessageCreate(ctx.Session.State.User.ID, ctx.Interaction, true, response.BuildAsWebhookParams())
 }
 
 func (ctx *InteractionContext) EditFollowUp(id string, response *Response) (*discordgo.Message, error) {
-	return Session.FollowupMessageEdit(ctx.Session.State.User.ID, ctx.Interaction, id, response.ToWebhookEdit())
+	return Session.FollowupMessageEdit(ctx.Session.State.User.ID, ctx.Interaction, id, response.BuildAsWebhookEdit())
 }
 
 func (ctx *InteractionContext) DeleteFollowUp(id string) error {
