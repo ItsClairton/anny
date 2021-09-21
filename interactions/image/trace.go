@@ -55,7 +55,7 @@ var TraceContext = discord.Interaction{
 
 				video, err := utils.GetFromWeb(result.Video + "&size=l")
 				if err == nil {
-					ctx.SendFollowUp(response.WithContent(ic.Member.Mention()).
+					ic.SendResponse(response.WithContent(ic.Member.Mention()).
 						WithFile(&discordgo.File{
 							Name:        utils.Is(result.Adult, "SPOILER_preview.mp4", "preview.mp4"),
 							ContentType: "video/mp4",
