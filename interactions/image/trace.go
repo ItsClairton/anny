@@ -34,7 +34,7 @@ var TraceContext = discord.Interaction{
 			return
 		}
 
-		response.WithContentEmoji(emojis.KannaPeer, "É uma cena (%s)%s de %s.",
+		content := utils.Fmt("Talvez seja uma cena (%s)%s de %s.",
 			utils.Is(utils.ToDisplayTime(result.From) == utils.ToDisplayTime(result.To),
 				utils.Fmt("`%s`", utils.ToDisplayTime(result.From)),
 				utils.Fmt("`%s`/`%s`", utils.ToDisplayTime(result.From), utils.ToDisplayTime(result.To))),
@@ -42,28 +42,20 @@ var TraceContext = discord.Interaction{
 			utils.Is(len(result.Title.English) > 0 && !strings.EqualFold(result.Title.Japanese, result.Title.English),
 				utils.Fmt("**%s** (**%s**)", result.Title.Japanese, result.Title.English),
 				utils.Fmt("**%s**", result.Title.Japanese)))
+		ctx.EditResponse(response.WithContentEmoji(emojis.KannaPeer, "%s (Gerando Preview)", content))
 
-		response.WithButton(discord.Button{
-			Label: "Gerar Preview",
-			Once:  true,
-			Emoji: "🎥",
-			Style: discordgo.SecondaryButton,
-			OnClick: func(ic *discord.InteractionContext) {
-				ctx.EditResponse(response.ClearComponents())
-
-				video, err := utils.GetFromWeb(result.Video + "&size=l")
-				if err == nil {
-					ic.SendResponse(response.WithContent(ic.Member.Mention()).
-						WithFile(&discordgo.File{
-							Name:        utils.Is(result.Adult, "SPOILER_preview.mp4", "preview.mp4"),
-							ContentType: "video/mp4",
-							Reader:      bytes.NewReader(video),
-						}))
-				}
-			},
-		})
-
-		ctx.EditResponse(response)
+		video, err := utils.GetFromWeb(result.Video + "&size=l")
+		if err != nil {
+			ctx.EditResponse(response.WithContentEmoji(emojis.KannaPeer, "%s (Não foi possível gerar o Preview)", content))
+		} else {
+			ctx.EditResponse(response.
+				WithContentEmoji(emojis.KannaPeer, content).
+				WithFile(&discordgo.File{
+					Name:        utils.Is(result.Adult, "SPOILER_preview.mp4", "preview.mp4"),
+					ContentType: "video/mp4",
+					Reader:      bytes.NewReader(video),
+				}))
+		}
 	},
 }
 

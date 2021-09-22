@@ -81,6 +81,7 @@ func (r *Response) BuildAsWebhookEdit() *discordgo.WebhookEdit {
 		Content:    r.Content,
 		Components: r.Components,
 		Embeds:     r.Embeds,
+		Files:      r.Files,
 	}
 }
 
