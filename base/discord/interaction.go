@@ -21,7 +21,8 @@ type Interaction struct {
 
 type InteractionContext struct {
 	*discordgo.InteractionCreate
-	Session *discordgo.Session
+	Session  *discordgo.Session
+	deffered bool
 }
 
 type InteractionHandler func(*InteractionContext)
@@ -41,12 +42,22 @@ func (ctx *InteractionContext) ReplyWithEmote(emote, message string, args ...int
 	return ctx.SendRAW(utils.Fmt("%s | %s", emote, utils.Fmt(message, args...)))
 }
 
+func (ctx *InteractionContext) EditWithEmote(emote, message string, args ...interface{}) (*discordgo.Message, error) {
+	return Session.InteractionResponseEdit(Session.State.User.ID, ctx.Interaction, &discordgo.WebhookEdit{
+		Content: utils.Fmt("%s | %s", emote, utils.Fmt(message, args...)),
+	})
+}
+
 func (ctx *InteractionContext) ReplyEphemeralWithEmote(emote, message string, args ...interface{}) error {
 	return ctx.SendEphemeralRAW(utils.Fmt("%s | %s", emote, utils.Fmt(message, args...)))
 }
 
 func (ctx *InteractionContext) SendError(err error) {
-	ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Um erro ocorreu ao executar esse comando, Desculpa (`%v`).", err)
+	if !ctx.deffered {
+		ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Um erro ocorreu ao executar esse comando, Desculpa (`%v`).", err)
+	} else {
+		ctx.EditWithEmote(emojis.MikuCry, "Um erro ocorreu ao executar esse comando, Desculpa (`%v`).", err)
+	}
 }
 
 func (ctx *InteractionContext) SendEphemeralRAW(message string) error {
@@ -83,6 +94,13 @@ func (ctx *InteractionContext) DeleteResponse() error {
 	return Session.InteractionResponseDelete(ctx.Session.State.User.ID, ctx.Interaction)
 }
 
+func (ctx *InteractionContext) SendDeffered() error {
+	ctx.deffered = true
+	return Session.InteractionRespond(ctx.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+	})
+}
+
 func (ctx *InteractionContext) SendFollowUp(response *Response) (*discordgo.Message, error) {
 	return Session.FollowupMessageCreate(ctx.Session.State.User.ID, ctx.Interaction, true, response.BuildAsWebhookParams())
 }
@@ -93,4 +111,27 @@ func (ctx *InteractionContext) EditFollowUp(id string, response *Response) (*dis
 
 func (ctx *InteractionContext) DeleteFollowUp(id string) error {
 	return Session.FollowupMessageDelete(ctx.Session.State.User.ID, ctx.Interaction, id)
+}
+
+func (ctx *InteractionContext) GetGuild() *discordgo.Guild {
+	guild, err := ctx.Session.State.Guild(ctx.GuildID)
+
+	if err != nil {
+		return nil
+	}
+	return guild
+}
+
+func (ctx *InteractionContext) GetVoiceChannel() string {
+	guild := ctx.GetGuild()
+	if guild == nil {
+		return ""
+	}
+
+	for _, vs := range guild.VoiceStates {
+		if vs.UserID == ctx.Member.User.ID {
+			return vs.ChannelID
+		}
+	}
+	return ""
 }
