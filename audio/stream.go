@@ -91,7 +91,7 @@ func (s *StreamingSession) readNext() error {
 		return err
 	}
 
-	timeOut := time.After(5 * time.Second)
+	timeOut := time.After(1 * time.Minute)
 	select {
 	case <-timeOut:
 		return errors.New("voice connection is closed")
