@@ -1,6 +1,8 @@
 package audio
 
 import (
+	"errors"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/kkdai/youtube/v2"
 )
@@ -13,14 +15,19 @@ func GetTrack(id string, req *discordgo.User) (*Track, error) {
 		return nil, err
 	}
 
-	stream, err := client.GetStreamURL(video, video.Formats.FindByItag(251))
+	format := video.Formats.FindByItag(251)
+	if format == nil {
+		return nil, errors.New("opus audio format not found")
+	}
+
+	stream, err := client.GetStreamURL(video, format)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Track{
 		ID:           video.ID,
-		Name:         video.Title,
+		Title:        video.Title,
 		Author:       video.Author,
 		Requester:    req,
 		StreamingUrl: stream,

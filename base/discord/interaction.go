@@ -22,7 +22,7 @@ type Interaction struct {
 type InteractionContext struct {
 	*discordgo.InteractionCreate
 	Session  *discordgo.Session
-	deffered bool
+	Deffered bool
 }
 
 type InteractionHandler func(*InteractionContext)
@@ -38,14 +38,26 @@ func (i Interaction) ToRAW() *discordgo.ApplicationCommand {
 	return raw
 }
 
-func (ctx *InteractionContext) ReplyWithEmote(emote, message string, args ...interface{}) error {
-	return ctx.SendRAW(utils.Fmt("%s | %s", emote, utils.Fmt(message, args...)))
+func (ctx *InteractionContext) SendDeffered(ephemeral bool) error {
+	response := &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+	}
+
+	if ephemeral {
+		response.Data = &discordgo.InteractionResponseData{
+			Flags: 1 << 6,
+		}
+	}
+	err := ctx.Session.InteractionRespond(ctx.Interaction, response)
+	if err == nil {
+		ctx.Deffered = true
+	}
+
+	return err
 }
 
-func (ctx *InteractionContext) EditWithEmote(emote, message string, args ...interface{}) (*discordgo.Message, error) {
-	return Session.InteractionResponseEdit(Session.State.User.ID, ctx.Interaction, &discordgo.WebhookEdit{
-		Content: utils.Fmt("%s | %s", emote, utils.Fmt(message, args...)),
-	})
+func (ctx *InteractionContext) ReplyWithEmote(emote, message string, args ...interface{}) error {
+	return ctx.SendRAW(utils.Fmt("%s | %s", emote, utils.Fmt(message, args...)))
 }
 
 func (ctx *InteractionContext) ReplyEphemeralWithEmote(emote, message string, args ...interface{}) error {
@@ -53,10 +65,10 @@ func (ctx *InteractionContext) ReplyEphemeralWithEmote(emote, message string, ar
 }
 
 func (ctx *InteractionContext) SendError(err error) {
-	if !ctx.deffered {
-		ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Um erro ocorreu ao executar esse comando, Desculpa (`%v`).", err)
+	if ctx.Deffered {
+		ctx.EditWithEmote(emojis.MikuCry, "Um erro ocorreu ao executar esse comando. (`%v`)", err)
 	} else {
-		ctx.EditWithEmote(emojis.MikuCry, "Um erro ocorreu ao executar esse comando, Desculpa (`%v`).", err)
+		ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Um erro ocorreu ao executar esse comando. (`%v`)", err)
 	}
 }
 
@@ -86,19 +98,18 @@ func (ctx *InteractionContext) SendResponse(response *Response) error {
 	})
 }
 
+func (ctx *InteractionContext) EditWithEmote(emote, message string, args ...interface{}) (*discordgo.Message, error) {
+	return Session.InteractionResponseEdit(Session.State.User.ID, ctx.Interaction, &discordgo.WebhookEdit{
+		Content: utils.Fmt("%s | %s", emote, utils.Fmt(message, args...)),
+	})
+}
+
 func (ctx *InteractionContext) EditResponse(response *Response) (*discordgo.Message, error) {
 	return Session.InteractionResponseEdit(ctx.Session.State.User.ID, ctx.Interaction, response.BuildAsWebhookEdit())
 }
 
 func (ctx *InteractionContext) DeleteResponse() error {
 	return Session.InteractionResponseDelete(ctx.Session.State.User.ID, ctx.Interaction)
-}
-
-func (ctx *InteractionContext) SendDeffered() error {
-	ctx.deffered = true
-	return Session.InteractionRespond(ctx.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
-	})
 }
 
 func (ctx *InteractionContext) SendFollowUp(response *Response) (*discordgo.Message, error) {

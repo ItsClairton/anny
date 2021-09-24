@@ -7,7 +7,7 @@ type Embed struct {
 }
 
 func NewEmbed() *Embed {
-	return &Embed{}
+	return &Embed{&discordgo.MessageEmbed{}}
 }
 
 func (e *Embed) SetAuthor(args ...string) *Embed {
