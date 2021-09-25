@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
 	"time"
 
@@ -94,14 +95,7 @@ func (ps *ProcessingSession) start() {
 	defer close(ps.data)
 	ps.readStdout(stdout)
 
-	err = process.Wait()
-	if err != nil {
-		if err.Error() != "signal: killed" {
-			ps.Lock()
-			ps.err = err
-			ps.Unlock()
-		}
-	}
+	process.Wait()
 }
 
 func (ps *ProcessingSession) Stop() error {
@@ -183,9 +177,13 @@ func (ps *ProcessingSession) readStderr(std io.ReadCloser, wg *sync.WaitGroup) {
 
 		switch r {
 		case '\n':
-			ps.Lock()
-			ps.err = errors.New(buffer.String())
-			ps.Unlock()
+			str := strings.TrimSpace(strings.ReplaceAll(buffer.String(), ps.source, "source"))
+			if str != "source: I/O error" {
+				ps.Lock()
+				println(str)
+				ps.err = errors.New(str)
+				ps.Unlock()
+			}
 			buffer.Reset()
 		default:
 			buffer.WriteRune(r)

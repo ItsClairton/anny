@@ -32,15 +32,30 @@ var PlayCommand = discord.Interaction{
 
 		content := ctx.ApplicationCommandData().Options[0].StringValue()
 		if regex.MatchString(content) {
+			embed := discord.NewEmbed().
+				SetDescription(utils.Fmt("%s Tentando se conectar ao canal...", emojis.AnimatedStaff)).
+				SetColor(0xF8C300)
+
+			response := discord.NewResponse().WithEmbed(embed.Build())
+			ctx.EditResponse(response)
+
 			player, err := audio.GetOrCreatePlayer(ctx.Session, ctx.GuildID, ctx.ChannelID, voiceId)
 			if err != nil {
-				ctx.SendError(err)
+				embed.SetColor(0xF93A2F).SetDescription(utils.Fmt("%s Um erro ocorreu ao tentar se conectar ao canal: `%s`", emojis.MikuCry, err.Error()))
+				ctx.EditResponse(response)
 				return
 			}
+
+			embed.SetDescription(utils.Fmt("%s Tentando decodificar á música...", emojis.AnimatedStaff))
+			ctx.EditResponse(response)
 			player.Lock()
-			track, err := audio.GetTrack(content, ctx.User)
+
+			track, err := audio.GetTrack(content, ctx.Member.User)
 			if err != nil {
-				ctx.SendError(err)
+				embed.SetColor(0xF93A2F).
+					SetDescription(utils.Fmt("Um erro ocorreu ao decodificar essa música: `%s`", emojis.MikuCry, err.Error()))
+				ctx.EditResponse(response)
+
 				player.Unlock()
 				audio.RemovePlayer(player, false)
 				return
@@ -48,11 +63,14 @@ var PlayCommand = discord.Interaction{
 
 			player.Unlock()
 			player.AddQueue(track)
-			if player.GetState() != audio.StoppedState {
-				ctx.EditWithEmote(emojis.PepeArt, "A música **%s** de **%s** foi adicionada com sucesso na posição **%d** da fila.", track.Title, track.Author, len(player.GetQueue()))
-			} else {
-				ctx.EditWithEmote(emojis.PepeArt, "Tocando agora a música **%s** de **%s**.", track.Title, track.Author)
-			}
+
+			embed.SetColor(0x00D166).
+				SetDescription(utils.Fmt("A música [%s](%s) foi adicionada com sucesso na fila", track.Title, track.URL)).
+				SetImage(track.ThumbnailUrl).
+				AddField("Autor", track.Author, true).
+				AddField("Duração", utils.ToDisplayTime(track.Duration.Seconds()), true)
+
+			ctx.EditResponse(response)
 		} else {
 			result, err := searchtube.Search(content, 5)
 			if err != nil {
@@ -71,6 +89,7 @@ var PlayCommand = discord.Interaction{
 
 			response := discord.NewResponse()
 			var resultText string
+
 			for i := range result {
 				entry := result[i]
 				resultText += utils.Fmt("%s %s de **%s**\n", emojis.GetNumberAsEmoji(i+1), entry.Title, entry.Uploader)
@@ -80,42 +99,55 @@ var PlayCommand = discord.Interaction{
 					Emoji: emojis.GetNumberAsEmoji(i + 1),
 					Style: discordgo.SecondaryButton,
 					OnClick: func(btx *discord.InteractionContext) {
-						ctx.EditResponse(response.ClearComponents())
-						handleResult(btx, voiceId, entry)
+						handleResult(ctx, voiceId, entry)
 					},
 				})
 			}
 
-			embed := discord.NewEmbed().
+			ctx.EditResponse(response.WithEmbed(discord.NewEmbed().
 				SetColor(0x00D166).
-				SetDescription(resultText)
-
-			ctx.EditResponse(response.WithEmbed(embed.Build()))
+				SetDescription(resultText).Build()))
 		}
 	},
 }
 
 func handleResult(ctx *discord.InteractionContext, voiceId string, entry *searchtube.SearchResult) {
+	embed := discord.NewEmbed().
+		SetDescription(utils.Fmt("%s Tentando se conectar ao canal...", emojis.AnimatedStaff)).
+		SetColor(0xF8C300)
+
+	response := discord.NewResponse().ClearComponents().WithEmbed(embed.Build())
+	ctx.EditResponse(response)
+
 	player, err := audio.GetOrCreatePlayer(ctx.Session, ctx.GuildID, ctx.ChannelID, voiceId)
 	if err != nil {
-		ctx.SendError(err)
+		embed.SetColor(0xF93A2F).SetDescription(utils.Fmt("Um erro ocorreu ao tentar se conectar ao canal: `%s`", err.Error()))
+		ctx.EditResponse(response)
 		return
 	}
 
-	ctx.ReplyWithEmote(emojis.AnimatedStaff, "Tentando decodificar do YouTube **%s** de **%s**...", entry.Title, entry.Uploader)
+	thumbnailUrl := utils.Fmt("https://img.youtube.com/vi/%s/maxresdefault.jpg", entry.ID)
+	embed.SetDescription(utils.Fmt("%s Decodificando: [%s](%s)", emojis.AnimatedStaff, entry.Title, entry.URL)).
+		SetImage(thumbnailUrl).
+		AddField("Autor", entry.Uploader, true).
+		AddField("Duração", entry.RawDuration, true)
+	ctx.EditResponse(response)
+
 	player.Lock()
-	track, err := audio.GetTrack(entry.ID, ctx.User)
+	track, err := audio.GetTrack(entry.ID, ctx.Member.User)
 	if err != nil {
-		ctx.EditWithEmote(emojis.MikuCry, "Um erro ocorreu ao decodificar essa música. (`%s`)", err.Error())
+		embed.SetColor(0xF93A2F).
+			SetDescription(utils.Fmt("Um erro ocorreu ao decodificar essa música: `%s`", emojis.MikuCry, err.Error()))
+		ctx.EditResponse(response)
+
 		player.Unlock()
 		audio.RemovePlayer(player, false)
 		return
 	}
+
 	player.Unlock()
 	player.AddQueue(track)
-	if player.GetState() != audio.StoppedState {
-		ctx.EditWithEmote(emojis.PepeArt, "A música **%s** de **%s** foi adicionada com sucesso na posição **%d** da fila.", track.Title, track.Author, len(player.GetQueue()))
-	} else {
-		ctx.EditWithEmote(emojis.PepeArt, "Tocando agora a música **%s** de **%s**.", track.Title, track.Author)
-	}
+	embed.SetColor(0x00D166).
+		SetDescription(utils.Fmt("A música [%s](%s) foi adicionada com sucesso na fila", entry.Title, entry.URL))
+	ctx.EditResponse(response)
 }

@@ -74,6 +74,7 @@ func (s *StreamingSession) stream() {
 			if s.callback != nil {
 				s.callback <- err
 			}
+			s.source.StopClean()
 			s.Unlock()
 			break
 		}

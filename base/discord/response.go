@@ -52,9 +52,30 @@ func (r *Response) ClearComponents() *Response {
 	return r
 }
 
+func (r *Response) ClearEmbeds() *Response {
+	r.Embeds = []*discordgo.MessageEmbed{}
+	return r
+}
+
 func (r *Response) AsEphemeral() *Response {
 	r.Flags = 1 << 6
 	return r
+}
+
+func (r *Response) SendTo(channelId string) (*discordgo.Message, error) {
+	var embed *discordgo.MessageEmbed
+	if len(r.Embeds) > 0 {
+		embed = r.Embeds[0]
+	}
+	r.buildBaseComponent()
+
+	return Session.ChannelMessageSendComplex(channelId, &discordgo.MessageSend{
+		Content:         r.Content,
+		Files:           r.Files,
+		AllowedMentions: r.AllowedMentions,
+		Components:      r.Components,
+		Embed:           embed,
+	})
 }
 
 func (r *Response) Build() *discordgo.InteractionResponseData {
