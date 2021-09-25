@@ -6,8 +6,9 @@
 </p>
 
 ## ⭐ Features
-- Slash Commands Support
-- Miscellaneous (`/ping`)
+- Context Menu, Slash Commands & Buttons Support
+- Music (`/tocar`, `/pular`, `/pause`, `/unpause`)
+- Miscellaneous (`/ping`, `Que anime é esse?`)
 - Image (`/cat`)
 
 ## 🚀 Selfhosting
