@@ -55,7 +55,7 @@ func (ps *ProcessingSession) start() {
 	arguments := []string{
 		"-reconnect", "1", "-reconnect_at_eof", "1",
 		"-reconnect_streamed", "1", "-reconnect_delay_max", "2",
-		"-i", ps.source, "-loglevel", "error",
+		"-i", ps.source, "-loglevel", "fatal",
 		"-map", "0:a", "-acodec", utils.Is(ps.isOpus, "copy", "libopus"),
 		"-f", "ogg", "-ar", "48000",
 		"-ac", "2", "-b:a", "96000",
