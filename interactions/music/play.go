@@ -53,7 +53,7 @@ var PlayCommand = discord.Interaction{
 			track, err := audio.GetTrack(content, ctx.Member.User)
 			if err != nil {
 				embed.SetColor(0xF93A2F).
-					SetDescription(utils.Fmt("Um erro ocorreu ao decodificar essa música: `%s`", emojis.MikuCry, err.Error()))
+					SetDescription(utils.Fmt("%s Um erro ocorreu ao decodificar essa música: `%s`", emojis.MikuCry, err.Error()))
 				ctx.EditResponse(response)
 
 				player.Unlock()
@@ -121,7 +121,7 @@ func handleResult(ctx *discord.InteractionContext, voiceId string, entry *search
 
 	player, err := audio.GetOrCreatePlayer(ctx.Session, ctx.GuildID, ctx.ChannelID, voiceId)
 	if err != nil {
-		embed.SetColor(0xF93A2F).SetDescription(utils.Fmt("Um erro ocorreu ao tentar se conectar ao canal: `%s`", err.Error()))
+		embed.SetColor(0xF93A2F).SetDescription(utils.Fmt("%s Um erro ocorreu ao tentar se conectar ao canal: `%s`", emojis.MikuCry, err.Error()))
 		ctx.EditResponse(response)
 		return
 	}
@@ -137,7 +137,7 @@ func handleResult(ctx *discord.InteractionContext, voiceId string, entry *search
 	track, err := audio.GetTrack(entry.ID, ctx.Member.User)
 	if err != nil {
 		embed.SetColor(0xF93A2F).
-			SetDescription(utils.Fmt("Um erro ocorreu ao decodificar essa música: `%s`", emojis.MikuCry, err.Error()))
+			SetDescription(utils.Fmt("%s Um erro ocorreu ao decodificar essa música: `%s`", emojis.MikuCry, err.Error()))
 		ctx.EditResponse(response)
 
 		player.Unlock()
