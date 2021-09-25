@@ -28,7 +28,7 @@ var PlayCommand = discord.Interaction{
 			ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Você não está conectado em nenhum canal de voz.")
 			return
 		}
-		ctx.SendDeffered(true)
+		ctx.SendDeffered(false)
 
 		content := ctx.ApplicationCommandData().Options[0].StringValue()
 		if regex.MatchString(content) {
@@ -83,7 +83,7 @@ var PlayCommand = discord.Interaction{
 				return
 			}
 			if len(result) == 1 {
-				handleResult(ctx, voiceId, result[0])
+				handleResult(ctx, voiceId, result[0], ctx.Member.User)
 				return
 			}
 
@@ -99,7 +99,7 @@ var PlayCommand = discord.Interaction{
 					Emoji: emojis.GetNumberAsEmoji(i + 1),
 					Style: discordgo.SecondaryButton,
 					OnClick: func(btx *discord.InteractionContext) {
-						handleResult(ctx, voiceId, entry)
+						handleResult(ctx, voiceId, entry, btx.Member.User)
 					},
 				})
 			}
@@ -111,7 +111,7 @@ var PlayCommand = discord.Interaction{
 	},
 }
 
-func handleResult(ctx *discord.InteractionContext, voiceId string, entry *searchtube.SearchResult) {
+func handleResult(ctx *discord.InteractionContext, voiceId string, entry *searchtube.SearchResult, user *discordgo.User) {
 	embed := discord.NewEmbed().
 		SetDescription(utils.Fmt("%s Tentando se conectar ao canal...", emojis.AnimatedStaff)).
 		SetColor(0xF8C300)
@@ -134,7 +134,7 @@ func handleResult(ctx *discord.InteractionContext, voiceId string, entry *search
 	ctx.EditResponse(response)
 
 	player.Lock()
-	track, err := audio.GetTrack(entry.ID, ctx.Member.User)
+	track, err := audio.GetTrack(entry.ID, user)
 	if err != nil {
 		embed.SetColor(0xF93A2F).
 			SetDescription(utils.Fmt("%s Um erro ocorreu ao decodificar essa música: `%s`", emojis.MikuCry, err.Error()))

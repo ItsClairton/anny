@@ -102,12 +102,12 @@ func (s *StreamingSession) readNext() error {
 	return nil
 }
 
-func (s *StreamingSession) PlaybackPosition() int {
+func (s *StreamingSession) PlaybackPosition() time.Duration {
 	s.Lock()
-	time := s.framesSent * int(s.source.FrameDuration())
+	duration := time.Duration(s.framesSent) * s.source.FrameDuration()
 	s.Unlock()
 
-	return time
+	return duration
 }
 
 func (s *StreamingSession) Pause(paused bool) {

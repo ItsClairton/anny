@@ -176,6 +176,14 @@ func (p *Player) GetQueue() []*Track {
 	return queue
 }
 
+func (p *Player) GetCurrent() *CurrentTrack {
+	p.Lock()
+	current := p.current
+	p.Unlock()
+
+	return current
+}
+
 func (p *Player) GetState() int {
 	p.Lock()
 	state := p.state
