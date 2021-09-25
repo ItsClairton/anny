@@ -2,7 +2,6 @@ package audio
 
 import (
 	"errors"
-	"io"
 	"sync"
 	"time"
 
@@ -26,7 +25,6 @@ type StreamingSession struct {
 	framesSent int
 
 	callback chan error
-	err      error
 }
 
 func NewStream(source *ProcessingSession, vc *discordgo.VoiceConnection, callback chan error) *StreamingSession {
@@ -69,9 +67,8 @@ func (s *StreamingSession) stream() {
 		if err != nil {
 			s.Lock()
 			s.finished = true
-
-			if err != io.EOF {
-				s.err = err
+			if s.source.err != nil {
+				err = s.source.err
 			}
 
 			if s.callback != nil {
@@ -127,13 +124,12 @@ func (s *StreamingSession) Pause(paused bool) {
 	s.Unlock()
 }
 
-func (s *StreamingSession) Finished() (bool, error) {
+func (s *StreamingSession) Finished() bool {
 	s.Lock()
-	err := s.err
 	state := s.finished
 	s.Unlock()
 
-	return state, err
+	return state
 }
 
 func (s *StreamingSession) Paused() bool {

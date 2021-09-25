@@ -23,7 +23,7 @@ type Player struct {
 	queue      []*Track
 	current    *CurrentTrack
 
-	guild string
+	guildId, textId, voiceId string
 }
 
 type Track struct {
@@ -38,7 +38,7 @@ type CurrentTrack struct {
 	Session *StreamingSession
 }
 
-func GetOrCreatePlayer(s *discordgo.Session, guildId, voiceId string) (*Player, error) {
+func GetOrCreatePlayer(s *discordgo.Session, guildId, textId, voiceId string) (*Player, error) {
 	if GetPlayer(guildId) != nil {
 		return GetPlayer(guildId), nil
 	}
@@ -55,21 +55,23 @@ func GetOrCreatePlayer(s *discordgo.Session, guildId, voiceId string) (*Player, 
 		}
 	}
 
-	player := NewPlayer(guildId, conn)
+	player := NewPlayer(guildId, textId, voiceId, conn)
 	AddPlayer(player)
 	return player, nil
 }
 
-func NewPlayer(guild string, conn *discordgo.VoiceConnection) *Player {
+func NewPlayer(guildId, textId, voiceId string, conn *discordgo.VoiceConnection) *Player {
 	return &Player{
 		state:      StoppedState,
 		connection: conn,
-		guild:      guild,
+		guildId:    guildId,
+		textId:     textId,
+		voiceId:    voiceId,
 	}
 }
 
 func AddPlayer(player *Player) *Player {
-	players[player.guild] = player
+	players[player.guildId] = player
 	return player
 }
 
@@ -81,7 +83,7 @@ func RemovePlayer(player *Player, force bool) {
 	}
 
 	player.connection.Disconnect()
-	players[player.guild] = nil
+	players[player.guildId] = nil
 	player.Unlock()
 }
 

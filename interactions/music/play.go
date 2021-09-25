@@ -32,7 +32,7 @@ var PlayCommand = discord.Interaction{
 
 		content := ctx.ApplicationCommandData().Options[0].StringValue()
 		if regex.MatchString(content) {
-			player, err := audio.GetOrCreatePlayer(ctx.Session, ctx.GuildID, voiceId)
+			player, err := audio.GetOrCreatePlayer(ctx.Session, ctx.GuildID, ctx.ChannelID, voiceId)
 			if err != nil {
 				ctx.SendError(err)
 				return
@@ -96,7 +96,7 @@ var PlayCommand = discord.Interaction{
 }
 
 func handleResult(ctx *discord.InteractionContext, voiceId string, entry *searchtube.SearchResult) {
-	player, err := audio.GetOrCreatePlayer(ctx.Session, ctx.GuildID, voiceId)
+	player, err := audio.GetOrCreatePlayer(ctx.Session, ctx.GuildID, ctx.ChannelID, voiceId)
 	if err != nil {
 		ctx.SendError(err)
 		return
