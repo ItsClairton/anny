@@ -11,7 +11,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-var regex = regexp.MustCompile(`(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([\w\-_]+)\&?`)
+var videoRegex = regexp.MustCompile(`(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([\w\-_]+)\&?`)
+var playlistRegex = regexp.MustCompile(`^https?:\/\/(www.youtube.com|youtube.com)\/playlist(.*)$`)
 
 var PlayCommand = discord.Interaction{
 	Name:        "tocar",
@@ -30,13 +31,49 @@ var PlayCommand = discord.Interaction{
 		}
 		ctx.SendDeffered(false)
 
+		embed := discord.NewEmbed().
+			SetDescription(utils.Fmt("%s Tentando se conectar ao canal...", emojis.AnimatedStaff)).
+			SetColor(0xF8C300)
+		response := discord.NewResponse().WithEmbed(embed.Build())
 		content := ctx.ApplicationCommandData().Options[0].StringValue()
-		if regex.MatchString(content) {
-			embed := discord.NewEmbed().
-				SetDescription(utils.Fmt("%s Tentando se conectar ao canal...", emojis.AnimatedStaff)).
-				SetColor(0xF8C300)
 
-			response := discord.NewResponse().WithEmbed(embed.Build())
+		if playlistRegex.MatchString(content) {
+			ctx.EditResponse(response)
+
+			player, err := audio.GetOrCreatePlayer(ctx.Session, ctx.GuildID, ctx.ChannelID, voiceId)
+			if err != nil {
+				embed.SetColor(0xF93A2F).
+					SetDescription(utils.Fmt("%s Um erro ocorreu ao tentar se conectar ao canal: `%s`", emojis.MikuCry, err.Error()))
+				ctx.EditResponse(response)
+				audio.RemovePlayer(player, false)
+				return
+			}
+
+			embed.SetDescription(utils.Fmt("%s Obtendo informações detalhadas sobre a Playlist...", emojis.AnimatedStaff))
+			ctx.EditResponse(response)
+
+			tracks, time, err := audio.GetPlaylist(content, ctx.Member.User)
+			if err != nil {
+				embed.SetColor(0xF93A2F).
+					SetDescription(utils.Fmt("%s Um erro ocorreu ao carregar essa Playlist: `%s`", emojis.MikuCry, err.Error()))
+				ctx.EditResponse(response)
+				audio.RemovePlayer(player, false)
+				return
+			}
+			player.AddPlaylist(tracks)
+			embed.
+				SetDescription(utils.Fmt("A Playlist [%s](%s) foi adicionada na fila", tracks[0].Playlist.Title, utils.Fmt("https://www.youtube.com/playlist?list=%s", tracks[0].Playlist.ID))).
+				SetColor(0x00D166).
+				AddField("Autor", tracks[0].Playlist.Author, true).
+				AddField("Itens", utils.Fmt("%d", len(tracks)), true).
+				AddField("Duração", time.String(), true).
+				SetImage(tracks[0].ThumbnailUrl)
+
+			ctx.EditResponse(response)
+			return
+		}
+
+		if videoRegex.MatchString(content) {
 			ctx.EditResponse(response)
 
 			player, err := audio.GetOrCreatePlayer(ctx.Session, ctx.GuildID, ctx.ChannelID, voiceId)
@@ -62,7 +99,7 @@ var PlayCommand = discord.Interaction{
 			}
 
 			player.Unlock()
-			player.AddQueue(track)
+			player.AddTrack(track)
 
 			embed.SetColor(0x00D166).
 				SetDescription(utils.Fmt("A música [%s](%s) foi adicionada com sucesso na fila", track.Title, track.URL)).
@@ -71,43 +108,44 @@ var PlayCommand = discord.Interaction{
 				AddField("Duração", utils.ToDisplayTime(track.Duration.Seconds()), true)
 
 			ctx.EditResponse(response)
-		} else {
-			result, err := searchtube.Search(content, 5)
-			if err != nil {
-				ctx.SendError(err)
-				return
-			}
-
-			if len(result) <= 0 {
-				ctx.EditWithEmote(emojis.MikuCry, "Não foi possível encontrar essa música.")
-				return
-			}
-			if len(result) == 1 {
-				handleResult(ctx, voiceId, result[0], ctx.Member.User)
-				return
-			}
-
-			response := discord.NewResponse()
-			var resultText string
-
-			for i := range result {
-				entry := result[i]
-				resultText += utils.Fmt("%s %s de **%s**\n", emojis.GetNumberAsEmoji(i+1), entry.Title, entry.Uploader)
-				response.WithButton(discord.Button{
-					Label: utils.Is(entry.Live, "LIVE", entry.RawDuration),
-					Once:  true,
-					Emoji: emojis.GetNumberAsEmoji(i + 1),
-					Style: discordgo.SecondaryButton,
-					OnClick: func(btx *discord.InteractionContext) {
-						handleResult(ctx, voiceId, entry, btx.Member.User)
-					},
-				})
-			}
-
-			ctx.EditResponse(response.WithEmbed(discord.NewEmbed().
-				SetColor(0x00D166).
-				SetDescription(resultText).Build()))
+			return
 		}
+
+		result, err := searchtube.Search(content, 5)
+		if err != nil {
+			ctx.SendError(err)
+			return
+		}
+
+		if len(result) <= 0 {
+			ctx.EditWithEmote(emojis.MikuCry, "Não foi possível encontrar essa música.")
+			return
+		}
+		if len(result) == 1 {
+			handleResult(ctx, voiceId, result[0], ctx.Member.User)
+			return
+		}
+
+		var resultText string
+
+		for i := range result {
+			entry := result[i]
+			resultText += utils.Fmt("%s %s de **%s**\n", emojis.GetNumberAsEmoji(i+1), entry.Title, entry.Uploader)
+			response.WithButton(discord.Button{
+				Label: utils.Is(entry.Live, "LIVE", entry.RawDuration),
+				Once:  true,
+				Emoji: emojis.GetNumberAsEmoji(i + 1),
+				Style: discordgo.SecondaryButton,
+				OnClick: func(btx *discord.InteractionContext) {
+					handleResult(ctx, voiceId, entry, btx.Member.User)
+				},
+			})
+		}
+
+		ctx.EditResponse(response.ClearEmbeds().WithEmbed(discord.NewEmbed().
+			SetColor(0x00D166).
+			SetDescription(resultText).Build()))
+
 	},
 }
 
@@ -146,7 +184,7 @@ func handleResult(ctx *discord.InteractionContext, voiceId string, entry *search
 	}
 
 	player.Unlock()
-	player.AddQueue(track)
+	player.AddTrack(track)
 	embed.SetColor(0x00D166).
 		SetDescription(utils.Fmt("A música [%s](%s) foi adicionada com sucesso na fila", entry.Title, entry.URL))
 	ctx.EditResponse(response)

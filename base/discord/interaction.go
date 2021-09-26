@@ -66,9 +66,9 @@ func (ctx *InteractionContext) ReplyEphemeralWithEmote(emote, message string, ar
 
 func (ctx *InteractionContext) SendError(err error) {
 	if ctx.Deffered {
-		ctx.EditWithEmote(emojis.MikuCry, "Um erro ocorreu ao executar esse comando. (`%v`)", err)
+		ctx.EditWithEmote(emojis.MikuCry, "Um erro ocorreu ao executar esse comando: `%s`", err.Error())
 	} else {
-		ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Um erro ocorreu ao executar esse comando. (`%v`)", err)
+		ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Um erro ocorreu ao executar esse comando: `%s`", err.Error())
 	}
 }
 

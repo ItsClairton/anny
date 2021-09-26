@@ -30,12 +30,18 @@ type Player struct {
 }
 
 type Track struct {
-	URL, Title, Author string
-	Requester          *discordgo.User
-	Duration           time.Duration
-	IsOpus             bool
+	URL, ID       string
+	Title, Author string
+	Requester     *discordgo.User
+	Duration      time.Duration
+	IsOpus        bool
+	Playlist      *Playlist
 
 	StreamingUrl, ThumbnailUrl string
+}
+
+type Playlist struct {
+	ID, Title, Author string
 }
 
 type CurrentTrack struct {
@@ -98,7 +104,9 @@ func GetPlayer(id string) *Player {
 
 func (p *Player) Skip() {
 	p.Lock()
+	p.current.Session.Pause(true)
 	p.current.Session.source.StopClean()
+	p.current.Session.Pause(false)
 	p.Unlock()
 }
 
@@ -132,6 +140,20 @@ func (p *Player) Play() {
 	p.current = &CurrentTrack{p.queue[0], nil}
 	p.queue = p.queue[1:]
 
+	if p.current.StreamingUrl == "" {
+		streamingUrl, isOpus, err := GetStream(p.current.ID)
+		if err != nil {
+			discord.NewResponse().
+				WithContentEmoji(emojis.MikuCry, "Um erro ocorreu ao tocar a música **%s**: `%s`", p.current.Title, err.Error()).
+				SendTo(p.textId)
+			p.Unlock()
+			RemovePlayer(p, false)
+			return
+		}
+		p.current.StreamingUrl = streamingUrl
+		p.current.IsOpus = isOpus
+	}
+
 	done := make(chan error)
 	p.current.Session = NewStream(NewProcessingSession(p.current.StreamingUrl, p.current.IsOpus), p.connection, done)
 	p.state = PlayingState
@@ -161,9 +183,16 @@ func (p *Player) Play() {
 	}
 }
 
-func (p *Player) AddQueue(track *Track) {
+func (p *Player) AddTrack(track *Track) {
 	p.Lock()
 	p.queue = append(p.queue, track)
+	p.Unlock()
+	go p.Play()
+}
+
+func (p *Player) AddPlaylist(tracks []*Track) {
+	p.Lock()
+	p.queue = append(p.queue, tracks...)
 	p.Unlock()
 	go p.Play()
 }
