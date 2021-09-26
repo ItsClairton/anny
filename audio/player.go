@@ -104,9 +104,7 @@ func GetPlayer(id string) *Player {
 
 func (p *Player) Skip() {
 	p.Lock()
-	p.current.Session.Pause(true)
 	p.current.Session.source.StopClean()
-	p.current.Session.Pause(false)
 	p.Unlock()
 }
 
@@ -141,6 +139,7 @@ func (p *Player) Play() {
 	p.queue = p.queue[1:]
 
 	if p.current.StreamingUrl == "" {
+		println("NOT LOADED")
 		streamingUrl, isOpus, err := GetStream(p.current.ID)
 		if err != nil {
 			discord.NewResponse().
@@ -168,6 +167,18 @@ func (p *Player) Play() {
 			AddField("Duração", utils.ToDisplayTime(p.current.Duration.Seconds()), true).
 			SetFooter(utils.Fmt("Pedido por %s", p.current.Requester.Username), p.current.Requester.AvatarURL("")).
 			Build()).SendTo(p.textId)
+
+	go func(p *Player) {
+		p.Lock()
+		if len(p.queue) > 0 && p.queue[0].StreamingUrl == "" {
+			streamingUrl, isOpus, err := GetStream(p.queue[0].ID)
+			if err == nil {
+				p.queue[0].StreamingUrl = streamingUrl
+				p.queue[0].IsOpus = isOpus
+			}
+		}
+		p.Unlock()
+	}(p)
 
 	err := <-done
 	if err != nil {
