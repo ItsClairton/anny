@@ -7,7 +7,7 @@
 
 ## ⭐ Features
 - Context Menu, Slash Commands & Buttons Support
-- Music (`/tocar`, `/pular`, `/pause`, `/unpause`)
+- Music (`/tocar`, `/tocando`, `/pular`, `/pausar`, `/despausar`, `/embaralhar`)
 - Miscellaneous (`/ping`, `Que anime é esse?`)
 - Image (`/cat`)
 
