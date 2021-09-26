@@ -2,6 +2,7 @@ package audio
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/ItsClairton/Anny/utils"
@@ -18,8 +19,14 @@ func GetStream(id string) (string, bool, error) {
 	}
 
 	format := video.Formats.FindByItag(251)
+	isOpus := true
 	if format == nil {
-		return "", false, errors.New("opus audio format not found")
+		format = &video.Formats.WithAudioChannels()[0]
+
+		if format == nil {
+			return "", false, errors.New("audio format not found")
+		}
+		isOpus = strings.Contains(format.MimeType, "opus")
 	}
 
 	streamUrl, err := client.GetStreamURL(video, format)
@@ -27,7 +34,7 @@ func GetStream(id string) (string, bool, error) {
 		return "", false, err
 	}
 
-	return streamUrl, true, nil
+	return streamUrl, isOpus, nil
 }
 
 func GetTrack(id string, req *discordgo.User) (*Track, error) {
@@ -37,8 +44,15 @@ func GetTrack(id string, req *discordgo.User) (*Track, error) {
 	}
 
 	format := video.Formats.FindByItag(251)
+	isOpus := false
+
 	if format == nil {
-		return nil, errors.New("opus audio format not found")
+		format = &video.Formats.WithAudioChannels()[0]
+
+		if format == nil {
+			return nil, errors.New("opus audio format not found")
+		}
+		isOpus = strings.Contains(format.MimeType, "opus")
 	}
 
 	stream, err := client.GetStreamURL(video, format)
@@ -54,7 +68,7 @@ func GetTrack(id string, req *discordgo.User) (*Track, error) {
 		Author:       video.Author,
 		Requester:    req,
 		Duration:     video.Duration,
-		IsOpus:       true,
+		IsOpus:       isOpus,
 		StreamingUrl: stream,
 	}, nil
 }

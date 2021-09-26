@@ -6,9 +6,9 @@ import (
 	"github.com/ItsClairton/Anny/utils/emojis"
 )
 
-var UnpauseCommand = discord.Interaction{
-	Name:        "despausar",
-	Description: "Despausar a música atual",
+var ShuffleCommand = discord.Interaction{
+	Name:        "embaralhar",
+	Description: "Embaralhar as músicas da fila",
 	Handler: func(ctx *discord.InteractionContext) {
 		voiceId := ctx.GetVoiceChannel()
 		if voiceId == "" {
@@ -20,11 +20,14 @@ var UnpauseCommand = discord.Interaction{
 			ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Não há nada tocando no momento.")
 			return
 		}
-		if player.GetState() == audio.PlayingState {
-			ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "A música já está despausada.")
+		queue := player.GetQueue()
+
+		if len(queue) < 2 {
+			ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Não há nada para embaralhar na fila.")
 			return
 		}
-		player.Unpause()
-		ctx.ReplyWithEmote(emojis.PepeArt, "A música foi despausada com sucesso.")
+
+		player.Shuffle()
+		ctx.ReplyWithEmote(emojis.ZeroYeah, "As músicas foram embaralhadas com sucesso.")
 	},
 }

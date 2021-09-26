@@ -111,7 +111,6 @@ func (ps *ProcessingSession) Stop() error {
 
 func (ps *ProcessingSession) StopClean() {
 	ps.Stop()
-
 	for range ps.data {
 	}
 }

@@ -2,6 +2,7 @@ package audio
 
 import (
 	"io"
+	"math/rand"
 	"sync"
 	"time"
 
@@ -214,6 +215,16 @@ func (p *Player) GetQueue() []*Track {
 	p.Unlock()
 
 	return queue
+}
+
+func (p *Player) Shuffle() {
+	p.Lock()
+	rand.Shuffle(len(p.queue), func(old, new int) {
+		p.queue[old], p.queue[new] = p.queue[new], p.queue[old]
+		p.queue[new].StreamingUrl = ""
+		p.queue[old].StreamingUrl = ""
+	})
+	p.Unlock()
 }
 
 func (p *Player) GetCurrent() *CurrentTrack {

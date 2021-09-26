@@ -7,7 +7,7 @@ import (
 )
 
 var PauseCommand = discord.Interaction{
-	Name:        "pause",
+	Name:        "pausar",
 	Description: "Pausar a música atual",
 	Handler: func(ctx *discord.InteractionContext) {
 		voiceId := ctx.GetVoiceChannel()
