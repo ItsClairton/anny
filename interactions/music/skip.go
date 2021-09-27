@@ -21,7 +21,7 @@ var SkipCommand = discord.Interaction{
 			return
 		}
 
-		go player.Skip()
+		player.Skip()
 		ctx.ReplyWithEmote(emojis.PepeArt, "Música pulada com sucesso.")
 	},
 }

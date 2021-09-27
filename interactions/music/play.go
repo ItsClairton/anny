@@ -164,7 +164,7 @@ func handleResult(ctx *discord.InteractionContext, voiceId string, entry *search
 		return
 	}
 
-	thumbnailUrl := utils.Fmt("https://img.youtube.com/vi/%s/maxresdefault.jpg", entry.ID)
+	thumbnailUrl := utils.Fmt("https://img.youtube.com/vi/%s/mqdefault.jpg", entry.ID)
 	embed.SetDescription(utils.Fmt("%s Decodificando: [%s](%s)", emojis.AnimatedStaff, entry.Title, entry.URL)).
 		SetImage(thumbnailUrl).
 		AddField("Autor", entry.Uploader, true).
@@ -186,6 +186,7 @@ func handleResult(ctx *discord.InteractionContext, voiceId string, entry *search
 	player.Unlock()
 	player.AddTrack(track)
 	embed.SetColor(0x00D166).
+		SetImage(track.ThumbnailUrl).
 		SetDescription(utils.Fmt("A música [%s](%s) foi adicionada com sucesso na fila", entry.Title, entry.URL))
 	ctx.EditResponse(response)
 }

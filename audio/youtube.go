@@ -12,31 +12,6 @@ import (
 
 var client = youtube.Client{}
 
-func GetStream(id string) (string, bool, error) {
-	video, err := client.GetVideo(id)
-	if err != nil {
-		return "", false, err
-	}
-
-	format := video.Formats.FindByItag(251)
-	isOpus := true
-	if format == nil {
-		format = &video.Formats.WithAudioChannels()[0]
-
-		if format == nil {
-			return "", false, errors.New("audio format not found")
-		}
-		isOpus = strings.Contains(format.MimeType, "opus")
-	}
-
-	streamUrl, err := client.GetStreamURL(video, format)
-	if err != nil {
-		return "", false, err
-	}
-
-	return streamUrl, isOpus, nil
-}
-
 func GetTrack(id string, req *discordgo.User) (*Track, error) {
 	video, err := client.GetVideo(id)
 	if err != nil {
@@ -64,7 +39,7 @@ func GetTrack(id string, req *discordgo.User) (*Track, error) {
 		Title:        video.Title,
 		ID:           video.ID,
 		URL:          utils.Fmt("https://youtu.be/%s", video.ID),
-		ThumbnailUrl: utils.Fmt("https://img.youtube.com/vi/%s/maxresdefault.jpg", video.ID),
+		ThumbnailUrl: video.Thumbnails[len(video.Thumbnails)-1].URL,
 		Author:       video.Author,
 		Requester:    req,
 		Duration:     video.Duration,
@@ -79,7 +54,6 @@ func GetPlaylist(id string, req *discordgo.User) ([]*Track, time.Duration, error
 		return nil, 0, err
 	}
 
-	println(len(playlist.Videos))
 	tracks := []*Track{}
 	var duration time.Duration
 
@@ -89,7 +63,7 @@ func GetPlaylist(id string, req *discordgo.User) ([]*Track, time.Duration, error
 			Title:        video.Title,
 			ID:           video.ID,
 			URL:          utils.Fmt("https://youtu.be/%s", video.ID),
-			ThumbnailUrl: utils.Fmt("https://img.youtube.com/vi/%s/maxresdefault.jpg", video.ID),
+			ThumbnailUrl: utils.Fmt("https://img.youtube.com/vi/%s/mqdefault.jpg", video.ID),
 			Author:       video.Author,
 			Duration:     video.Duration,
 			Requester:    req,

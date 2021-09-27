@@ -140,8 +140,7 @@ func (p *Player) Play() {
 	p.queue = p.queue[1:]
 
 	if p.current.StreamingUrl == "" {
-		println("NOT LOADED")
-		streamingUrl, isOpus, err := GetStream(p.current.ID)
+		track, err := GetTrack(p.current.ID, p.current.Requester)
 		if err != nil {
 			discord.NewResponse().
 				WithContentEmoji(emojis.MikuCry, "Um erro ocorreu ao tocar a música **%s**: `%s`", p.current.Title, err.Error()).
@@ -150,8 +149,7 @@ func (p *Player) Play() {
 			RemovePlayer(p, false)
 			return
 		}
-		p.current.StreamingUrl = streamingUrl
-		p.current.IsOpus = isOpus
+		p.current.Track = track
 	}
 
 	done := make(chan error)
@@ -172,10 +170,9 @@ func (p *Player) Play() {
 	go func(p *Player) {
 		p.Lock()
 		if len(p.queue) > 0 && p.queue[0].StreamingUrl == "" {
-			streamingUrl, isOpus, err := GetStream(p.queue[0].ID)
+			track, err := GetTrack(p.queue[0].ID, p.queue[0].Requester)
 			if err == nil {
-				p.queue[0].StreamingUrl = streamingUrl
-				p.queue[0].IsOpus = isOpus
+				p.queue[0] = track
 			}
 		}
 		p.Unlock()
