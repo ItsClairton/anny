@@ -11,11 +11,6 @@ var NowplayingCommand = discord.Interaction{
 	Name:        "tocando",
 	Description: "Saber que música está tocando.",
 	Handler: func(ctx *discord.InteractionContext) {
-		voiceId := ctx.GetVoiceChannel()
-		if voiceId == "" {
-			ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Você não está conectado em nenhum canal de voz.")
-			return
-		}
 		player := audio.GetPlayer(ctx.GuildID)
 		if player == nil || player.GetState() == audio.StoppedState {
 			ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Não há nada tocando no momento.")
