@@ -61,7 +61,7 @@ func RegisterInDiscord() error {
 			}
 		} else {
 			if !reflect.DeepEqual(i.Options, prev.Options) || prev.Description != i.Description {
-				_, err = Session.ApplicationCommandEdit(Session.State.User.ID, "", prev.ApplicationID, i.ToRAW())
+				_, err = Session.ApplicationCommandEdit(Session.State.User.ID, "", prev.ID, i.ToRAW())
 				if err != nil {
 					logger.Warn("Não foi possível atualizar a interação \"%s\" no Discord. (%s)", i.Name, err.Error())
 				} else {
