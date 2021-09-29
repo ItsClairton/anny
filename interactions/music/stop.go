@@ -6,9 +6,9 @@ import (
 	"github.com/ItsClairton/Anny/utils/emojis"
 )
 
-var PauseCommand = discord.Interaction{
-	Name:        "pausar",
-	Description: "Pausar a música atual",
+var StopCommand = discord.Interaction{
+	Name:        "parar",
+	Description: "Parar a música atual, e limpar a fila",
 	Handler: func(ctx *discord.InteractionContext) {
 		if ctx.GetVoiceChannel() == "" {
 			ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Você não está conectado em nenhum canal de voz.")
@@ -20,11 +20,8 @@ var PauseCommand = discord.Interaction{
 			ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Não há nada tocando no momento.")
 			return
 		}
-		if player.GetState() == audio.PausedState {
-			ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "A música já está pausada.")
-			return
-		}
-		player.Pause()
-		ctx.ReplyWithEmote(emojis.PepeArt, "A música foi pausada com sucesso.")
+
+		audio.RemovePlayer(player, true)
+		ctx.ReplyWithEmote(emojis.ZeroYeah, "Música parada com sucesso, e fila limpa.")
 	},
 }

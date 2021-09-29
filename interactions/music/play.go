@@ -16,7 +16,7 @@ var playlistRegex = regexp.MustCompile(`^https?:\/\/(www.youtube.com|youtube.com
 
 var PlayCommand = discord.Interaction{
 	Name:        "tocar",
-	Description: "Toca algum vídeo do YouTube em um canal de voz",
+	Description: "Tocar uma música, ou PlayList do YouTube",
 	Options: []*discordgo.ApplicationCommandOption{{
 		Name:        "vídeo",
 		Description: "Titulo ou link de um vídeo do YouTube",

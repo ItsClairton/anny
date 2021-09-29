@@ -10,11 +10,11 @@ var ShuffleCommand = discord.Interaction{
 	Name:        "embaralhar",
 	Description: "Embaralhar as músicas da fila",
 	Handler: func(ctx *discord.InteractionContext) {
-		voiceId := ctx.GetVoiceChannel()
-		if voiceId == "" {
+		if ctx.GetVoiceChannel() == "" {
 			ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Você não está conectado em nenhum canal de voz.")
 			return
 		}
+
 		player := audio.GetPlayer(ctx.GuildID)
 		if player == nil || player.GetState() == audio.StoppedState {
 			ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Não há nada tocando no momento.")

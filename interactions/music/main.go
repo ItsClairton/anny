@@ -8,5 +8,5 @@ import (
 var Category = &discord.Category{
 	Name:         "Música",
 	Emote:        emojis.PingPong,
-	Interactions: []*discord.Interaction{&PlayCommand, &SkipCommand, &PauseCommand, &UnpauseCommand, &NowplayingCommand, &ShuffleCommand},
+	Interactions: []*discord.Interaction{&PlayCommand, &SkipCommand, &PauseCommand, &UnpauseCommand, &NowplayingCommand, &ShuffleCommand, &StopCommand},
 }
