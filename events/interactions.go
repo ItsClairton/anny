@@ -6,36 +6,30 @@ import (
 )
 
 func InteractionsEvent(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	if i.Type == discordgo.InteractionApplicationCommand {
+	switch i.Type {
+	case discordgo.InteractionApplicationCommand: // Slash Commands, Context Menu's
 		cmd, exist := discord.GetInteractions()[i.ApplicationCommandData().Name]
 		if exist {
-			go cmd.Handler(&discord.InteractionContext{
-				InteractionCreate: i,
-				Session:           s,
-			})
+			if cmd.Delayed {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{Type: 5})
+				go cmd.Handler(&discord.InteractionContext{Session: s, AlreadySended: true, InteractionCreate: i})
+			} else {
+				go cmd.Handler(&discord.InteractionContext{Session: s, ResponseType: 4, InteractionCreate: i})
+			}
 		}
-		return
-	}
 
-	if i.Type == discordgo.InteractionMessageComponent {
+	case discordgo.InteractionMessageComponent: // Components
 		button := discord.GetButton(i.MessageComponentData().CustomID)
 		if button != nil {
-			go button.OnClick(&discord.InteractionContext{
-				InteractionCreate: i,
-				Session:           s,
-			})
-
+			if button.Delayed {
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{Type: 6})
+				go button.OnClick(&discord.InteractionContext{Session: s, AlreadySended: true, InteractionCreate: i})
+			} else {
+				go button.OnClick(&discord.InteractionContext{Session: s, ResponseType: 4, InteractionCreate: i})
+			}
 			if button.Once {
 				discord.UnregisterButton(button.ID)
 			}
-		} else {
-			discord.Session.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: "Desculpe, essa interação já expirou.",
-					Flags:   1 << 6,
-				},
-			})
 		}
 	}
 }

@@ -21,7 +21,7 @@ var (
 )
 
 type Player struct {
-	sync.Mutex
+	*sync.Mutex
 	state      int
 	connection *discordgo.VoiceConnection
 	queue      []*Track
@@ -50,28 +50,6 @@ type CurrentTrack struct {
 	Session *StreamingSession
 }
 
-func GetOrCreatePlayer(s *discordgo.Session, guildId, textId, voiceId string) (*Player, error) {
-	if GetPlayer(guildId) != nil {
-		return GetPlayer(guildId), nil
-	}
-
-	conn, err := s.ChannelVoiceJoin(guildId, voiceId, false, true)
-	if err != nil {
-		conn, err := s.ChannelVoiceJoin(guildId, voiceId, false, true)
-
-		if err != nil {
-			if conn != nil {
-				conn.Disconnect()
-			}
-			return nil, err
-		}
-	}
-
-	player := NewPlayer(guildId, textId, voiceId, conn)
-	AddPlayer(player)
-	return player, nil
-}
-
 func NewPlayer(guildId, textId, voiceId string, conn *discordgo.VoiceConnection) *Player {
 	return &Player{
 		state:      StoppedState,
@@ -82,6 +60,10 @@ func NewPlayer(guildId, textId, voiceId string, conn *discordgo.VoiceConnection)
 	}
 }
 
+func GetPlayer(id string) *Player {
+	return players[id]
+}
+
 func AddPlayer(player *Player) *Player {
 	players[player.guildId] = player
 	return player
@@ -89,6 +71,7 @@ func AddPlayer(player *Player) *Player {
 
 func RemovePlayer(player *Player, force bool) {
 	player.Lock()
+	defer player.Unlock()
 	if !force && (player.state != StoppedState || len(player.queue) > 0) {
 		player.Unlock()
 		return
@@ -96,31 +79,66 @@ func RemovePlayer(player *Player, force bool) {
 
 	player.connection.Disconnect()
 	players[player.guildId] = nil
-	player.Unlock()
 }
 
-func GetPlayer(id string) *Player {
-	return players[id]
+func (p *Player) AddTrack(tracks ...*Track) {
+	p.Lock()
+	defer p.Unlock()
+
+	p.queue = append(p.queue, tracks...)
+	go p.Play()
+}
+
+func (p *Player) GetQueue() []*Track {
+	p.Lock()
+	defer p.Unlock()
+
+	return p.queue
+}
+
+func (p *Player) Shuffle() {
+	p.Lock()
+	defer p.Unlock()
+
+	rand.Shuffle(len(p.queue), func(old, new int) {
+		p.queue[old], p.queue[new] = p.queue[new], p.queue[old]
+		p.queue[new].StreamingUrl = ""
+		p.queue[old].StreamingUrl = ""
+	})
+}
+
+func (p *Player) GetCurrent() *CurrentTrack {
+	p.Lock()
+	defer p.Unlock()
+
+	return p.current
+}
+
+func (p *Player) GetState() int {
+	p.Lock()
+	defer p.Unlock()
+
+	return p.state
 }
 
 func (p *Player) Skip() {
 	p.Lock()
+	defer p.Unlock()
 	p.current.Session.source.StopClean()
-	p.Unlock()
 }
 
 func (p *Player) Pause() {
 	p.Lock()
+	defer p.Unlock()
 	p.current.Session.Pause(true)
 	p.state = PausedState
-	p.Unlock()
 }
 
 func (p *Player) Unpause() {
 	p.Lock()
+	defer p.Unlock()
 	p.current.Session.Pause(false)
 	p.state = PlayingState
-	p.Unlock()
 }
 
 func (p *Player) Play() {
@@ -190,52 +208,4 @@ func (p *Player) Play() {
 		p.Unlock()
 		p.Play()
 	}
-}
-
-func (p *Player) AddTrack(track *Track) {
-	p.Lock()
-	p.queue = append(p.queue, track)
-	p.Unlock()
-	go p.Play()
-}
-
-func (p *Player) AddPlaylist(tracks []*Track) {
-	p.Lock()
-	p.queue = append(p.queue, tracks...)
-	p.Unlock()
-	go p.Play()
-}
-
-func (p *Player) GetQueue() []*Track {
-	p.Lock()
-	queue := p.queue
-	p.Unlock()
-
-	return queue
-}
-
-func (p *Player) Shuffle() {
-	p.Lock()
-	rand.Shuffle(len(p.queue), func(old, new int) {
-		p.queue[old], p.queue[new] = p.queue[new], p.queue[old]
-		p.queue[new].StreamingUrl = ""
-		p.queue[old].StreamingUrl = ""
-	})
-	p.Unlock()
-}
-
-func (p *Player) GetCurrent() *CurrentTrack {
-	p.Lock()
-	current := p.current
-	p.Unlock()
-
-	return current
-}
-
-func (p *Player) GetState() int {
-	p.Lock()
-	state := p.state
-	p.Unlock()
-
-	return state
 }

@@ -12,19 +12,19 @@ var UnpauseCommand = discord.Interaction{
 	Handler: func(ctx *discord.InteractionContext) {
 		voiceId := ctx.GetVoiceChannel()
 		if voiceId == "" {
-			ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Você não está conectado em nenhum canal de voz.")
+			ctx.SendEphemeral(emojis.MikuCry, "Você não está conectado em nenhum canal de voz.")
 			return
 		}
 		player := audio.GetPlayer(ctx.GuildID)
 		if player == nil || player.GetState() == audio.StoppedState {
-			ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Não há nada tocando no momento.")
+			ctx.SendEphemeral(emojis.MikuCry, "Não há nada tocando no momento.")
 			return
 		}
 		if player.GetState() == audio.PlayingState {
-			ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "A música já está despausada.")
+			ctx.SendEphemeral(emojis.MikuCry, "A música já está despausada.")
 			return
 		}
 		player.Unpause()
-		ctx.ReplyWithEmote(emojis.PepeArt, "A música foi despausada com sucesso.")
+		ctx.Send(emojis.PepeArt, "A música foi despausada com sucesso.")
 	},
 }

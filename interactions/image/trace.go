@@ -12,28 +12,24 @@ import (
 )
 
 var TraceContext = discord.Interaction{
-	Name: "Que anime é esse?",
-	Type: discordgo.MessageApplicationCommand,
+	Name:    "Que anime é esse?",
+	Type:    discordgo.MessageApplicationCommand,
+	Delayed: true,
 	Handler: func(ctx *discord.InteractionContext) {
 		message := ctx.ApplicationCommandData().Resolved.Messages[ctx.ApplicationCommandData().TargetID]
 		attachment := getAttachment(message)
 
 		if attachment == "" {
-			ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Não achei nenhuma imagem, GIF ou vídeo nessa mensagem.")
+			ctx.Send(emojis.MikuCry, "Não achei nenhuma imagem, GIF ou vídeo nessa mensagem.")
 			return
 		}
-		response := discord.NewResponse().WithContentEmoji(emojis.AnimatedStaff, "Procurando...")
-		err := ctx.SendResponse(response)
-		if err != nil {
-			return
-		}
-
 		result, err := providers.SearchAnimeByScene(attachment)
 		if err != nil {
-			ctx.EditResponse(response.WithContentEmoji(emojis.MikuCry, "Um erro ocorreu ao executar esse comando. (`%s`)", err.Error()))
+			ctx.SendError(err)
 			return
 		}
 
+		response := discord.NewResponse()
 		content := utils.Fmt("Talvez seja uma cena (%s)%s de %s.",
 			utils.Is(utils.ToDisplayTime(result.From) == utils.ToDisplayTime(result.To),
 				utils.Fmt("`%s`", utils.ToDisplayTime(result.From)),
@@ -42,13 +38,13 @@ var TraceContext = discord.Interaction{
 			utils.Is(len(result.Title.English) > 0 && !strings.EqualFold(result.Title.Japanese, result.Title.English),
 				utils.Fmt("**%s** (**%s**)", result.Title.Japanese, result.Title.English),
 				utils.Fmt("**%s**", result.Title.Japanese)))
-		ctx.EditResponse(response.WithContentEmoji(emojis.KannaPeer, "%s (Gerando Preview)", content))
+		ctx.SendResponse(response.WithContentEmoji(emojis.KannaPeer, "%s (Gerando Preview)", content))
 
 		video, err := utils.GetFromWeb(result.Video + "&size=l")
 		if err != nil {
-			ctx.EditResponse(response.WithContentEmoji(emojis.KannaPeer, "%s (Não foi possível gerar o Preview)", content))
+			ctx.SendResponse(response.WithContentEmoji(emojis.KannaPeer, "%s (Não foi possível gerar o Preview)", content))
 		} else {
-			ctx.EditResponse(response.
+			ctx.SendResponse(response.
 				WithContentEmoji(emojis.KannaPeer, content).
 				WithFile(&discordgo.File{
 					Name:        utils.Is(result.Adult, "SPOILER_preview.mp4", "preview.mp4"),

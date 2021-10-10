@@ -9,6 +9,6 @@ var PingCommand = discord.Interaction{
 	Name:        "ping",
 	Description: "Pong!",
 	Handler: func(ctx *discord.InteractionContext) {
-		ctx.ReplyWithEmote(emojis.PingPong, "Pong, %dms.", ctx.Session.HeartbeatLatency().Milliseconds())
+		ctx.Send(emojis.PingPong, "Pong, %dms.", ctx.Session.HeartbeatLatency().Milliseconds())
 	},
 }

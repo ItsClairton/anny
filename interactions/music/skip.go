@@ -11,17 +11,17 @@ var SkipCommand = discord.Interaction{
 	Description: "Pular a música atual",
 	Handler: func(ctx *discord.InteractionContext) {
 		if ctx.GetVoiceChannel() == "" {
-			ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Você não está conectado em nenhum canal de voz.")
+			ctx.SendEphemeral(emojis.MikuCry, "Você não está conectado em nenhum canal de voz.")
 			return
 		}
 
 		player := audio.GetPlayer(ctx.GuildID)
 		if player == nil || player.GetState() == audio.StoppedState {
-			ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Não há nada tocando no momento.")
+			ctx.SendEphemeral(emojis.MikuCry, "Não há nada tocando no momento.")
 			return
 		}
 		player.Skip()
 
-		ctx.ReplyWithEmote(emojis.PepeArt, "Música pulada com sucesso.")
+		ctx.Send(emojis.PepeArt, "Música pulada com sucesso.")
 	},
 }

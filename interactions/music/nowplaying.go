@@ -13,21 +13,18 @@ var NowplayingCommand = discord.Interaction{
 	Handler: func(ctx *discord.InteractionContext) {
 		player := audio.GetPlayer(ctx.GuildID)
 		if player == nil || player.GetState() == audio.StoppedState {
-			ctx.ReplyEphemeralWithEmote(emojis.MikuCry, "Não há nada tocando no momento.")
+			ctx.SendEphemeral(emojis.MikuCry, "Não há nada tocando no momento.")
 			return
 		}
 
 		current := player.GetCurrent()
-
-		embed := discord.NewEmbed().
+		ctx.SendEmbed(discord.NewEmbed().
 			SetColor(0x0099E1).
 			SetDescription(utils.Fmt("[%s](%s)", current.Title, current.URL)).
 			SetThumbnail(current.ThumbnailUrl).
 			AddField("Autor", player.GetCurrent().Author, true).
 			AddField("Duração", utils.Fmt("%s/%s",
 				utils.ToDisplayTime(current.Session.PlaybackPosition().Seconds()),
-				utils.ToDisplayTime(current.Duration.Seconds())), true)
-
-		ctx.SendResponse(discord.NewResponse().WithEmbed(embed.Build()))
+				utils.ToDisplayTime(current.Duration.Seconds())), true).Build())
 	},
 }

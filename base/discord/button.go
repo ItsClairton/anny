@@ -12,6 +12,7 @@ var buttons = map[string]*Button{}
 type Button struct {
 	Label, URL, ID string
 	Once           bool
+	Delayed        bool
 	Style          discordgo.ButtonStyle
 	Emoji          string
 	OnClick        InteractionHandler

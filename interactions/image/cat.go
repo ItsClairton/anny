@@ -24,6 +24,5 @@ var CatCommand = discord.Interaction{
 		} else {
 			ctx.SendError(err)
 		}
-
 	},
 }
