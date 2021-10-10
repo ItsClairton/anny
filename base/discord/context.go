@@ -96,7 +96,10 @@ func (ctx *InteractionContext) SendRAW(text string) (*discordgo.Message, error) 
 }
 
 func (ctx *InteractionContext) SendError(err error) {
-	ctx.SendRAW(utils.Fmt("%s | Um erro ocorreu ao executar essa ação: `%s`.", emojis.MikuCry, err.Error()))
+	ctx.SendEmbed(NewEmbed().
+		SetColor(0xF93A2F).
+		SetDescription(utils.Fmt("%s Um erro ocorreu ao executar essa ação: `%s`", emojis.MikuCry, err.Error())).
+		Build())
 }
 
 func (ctx *InteractionContext) SendEphemeral(emoji, text string, args ...interface{}) (*discordgo.Message, error) {

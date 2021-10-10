@@ -8,6 +8,10 @@ var (
 	ZeroYeah      = "<:yeah:838568353139916850>"
 	MikuCry       = "<:mikuCry:830091923129237554>"
 	AnimatedStaff = "<a:1180staff:836709984909525032>"
+
+	Twitch     = "<:twitch:896600475833606154>"
+	Youtube    = "<:youtube:896600900909559868>"
+	Soundcloud = "<:soundcloud:896612681992253452>"
 )
 
 func GetNumberAsEmoji(num int) string {

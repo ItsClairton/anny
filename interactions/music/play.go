@@ -1,11 +1,17 @@
 package music
 
 import (
+	"regexp"
+
 	"github.com/ItsClairton/Anny/audio"
 	"github.com/ItsClairton/Anny/base/discord"
+	"github.com/ItsClairton/Anny/providers"
+	"github.com/ItsClairton/Anny/utils"
 	"github.com/ItsClairton/Anny/utils/emojis"
 	"github.com/bwmarrin/discordgo"
 )
+
+var regex = regexp.MustCompile(`https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)`)
 
 var PlayCommand = discord.Interaction{
 	Name:        "tocar",
@@ -18,6 +24,7 @@ var PlayCommand = discord.Interaction{
 		Type:        discordgo.ApplicationCommandOptionString,
 	}},
 	Handler: func(ctx *discord.InteractionContext) {
+		argument := ctx.ApplicationCommandData().Options[0].StringValue()
 		voiceID := ctx.GetVoiceChannel()
 		if voiceID == "" {
 			ctx.Send(emojis.MikuCry, "Você precisa estar conectado a um canal de voz para utilizar esse comando.")
@@ -26,19 +33,46 @@ var PlayCommand = discord.Interaction{
 
 		player := audio.GetPlayer(ctx.GuildID)
 		if player == nil {
-			connection := ctx.Session.VoiceConnections[ctx.GuildID]
-
-			if connection == nil {
-				connection, err := ctx.Session.ChannelVoiceJoin(ctx.GuildID, voiceID, false, true)
-				if err != nil {
+			connection, err := ctx.Session.ChannelVoiceJoin(ctx.GuildID, voiceID, false, true)
+			if err != nil {
+				if _, ok := ctx.Session.VoiceConnections[ctx.GuildID]; ok {
+					connection = ctx.Session.VoiceConnections[ctx.GuildID]
+				} else {
 					ctx.SendError(err)
 					return
 				}
-				player = audio.NewPlayer(ctx.GuildID, ctx.ChannelID, connection.ChannelID, connection)
-			} else {
-				player = audio.NewPlayer(ctx.GuildID, ctx.ChannelID, connection.ChannelID, connection)
 			}
+			player = audio.NewPlayer(ctx.GuildID, ctx.ChannelID, connection.ChannelID, connection)
+			audio.AddPlayer(player)
+		}
+		player.Lock()
+
+		if !regex.MatchString(argument) {
+			argument = "ytsearch:" + argument
 		}
 
+		info, err := providers.FindSong(argument)
+		if err != nil {
+			ctx.SendError(err)
+			player.Unlock()
+			audio.RemovePlayer(player, false)
+			return
+		}
+
+		player.Unlock()
+		player.AddTrack(&audio.Track{
+			Song:      info,
+			Requester: ctx.Member.User,
+		})
+
+		embed := discord.NewEmbed().SetColor(0x00D166).
+			SetDescription(utils.Fmt("%s O conteúdo [%s](%s) foi adicionado com sucesso na fila", emojis.ZeroYeah, info.Title, info.PageURL)).
+			SetImage(info.ThumbnailURL).
+			AddField("Autor", info.Uploader, true).
+			AddField("Duração", info.Duration, true).
+			AddField("Provedor", info.DisplayProvider(), true).
+			Build()
+
+		ctx.SendEmbed(embed)
 	},
 }

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/ItsClairton/Anny/utils"
-	"github.com/TwinProduction/go-color"
+	"github.com/TwiN/go-color"
 )
 
 var (
