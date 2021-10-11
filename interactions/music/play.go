@@ -2,6 +2,7 @@ package music
 
 import (
 	"regexp"
+	"time"
 
 	"github.com/ItsClairton/Anny/audio"
 	"github.com/ItsClairton/Anny/base/discord"
@@ -33,17 +34,21 @@ var PlayCommand = discord.Interaction{
 
 		player := audio.GetPlayer(ctx.GuildID)
 		if player == nil {
-			connection, err := ctx.Session.ChannelVoiceJoin(ctx.GuildID, voiceID, false, true)
-			if err != nil {
-				if _, ok := ctx.Session.VoiceConnections[ctx.GuildID]; ok {
-					connection = ctx.Session.VoiceConnections[ctx.GuildID]
-				} else {
-					ctx.SendError(err)
-					return
-				}
-			}
-			player = audio.NewPlayer(ctx.GuildID, ctx.ChannelID, connection.ChannelID, connection)
+			player = audio.NewPlayer(ctx.GuildID, ctx.ChannelID, "", nil)
 			audio.AddPlayer(player)
+			go func() {
+				connection, err := ctx.Session.ChannelVoiceJoin(ctx.GuildID, voiceID, false, true)
+				if err != nil {
+					if _, ok := ctx.Session.VoiceConnections[ctx.GuildID]; ok {
+						connection = ctx.Session.VoiceConnections[ctx.GuildID]
+					} else {
+						audio.RemovePlayer(player, true)
+						ctx.SendError(err)
+						return
+					}
+				}
+				player.UpdateVoice(connection.ChannelID, connection)
+			}()
 		}
 		player.Lock()
 
@@ -63,6 +68,7 @@ var PlayCommand = discord.Interaction{
 		player.AddTrack(&audio.Track{
 			Song:      info,
 			Requester: ctx.Member.User,
+			Time:      time.Now(),
 		})
 
 		embed := discord.NewEmbed().SetColor(0x00D166).

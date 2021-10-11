@@ -70,6 +70,11 @@ func (e *Embed) SetThumbnail(url string) *Embed {
 	return e
 }
 
+func (e *Embed) SetTimestamp(time string) *Embed {
+	e.Timestamp = time
+	return e
+}
+
 func (e *Embed) SetField(index int, name, value string, inline bool) *Embed {
 	if index > len(e.Fields) {
 		return e

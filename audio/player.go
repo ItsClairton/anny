@@ -4,6 +4,7 @@ import (
 	"io"
 	"math/rand"
 	"sync"
+	"time"
 
 	"github.com/ItsClairton/Anny/base/discord"
 	"github.com/ItsClairton/Anny/providers"
@@ -33,6 +34,7 @@ type Player struct {
 type Track struct {
 	*providers.Song
 	Requester *discordgo.User
+	Time      time.Time
 }
 
 type CurrentTrack struct {
@@ -63,13 +65,19 @@ func AddPlayer(player *Player) *Player {
 func RemovePlayer(player *Player, force bool) {
 	player.Lock()
 	defer player.Unlock()
-	if !force && (player.state != StoppedState || len(player.queue) > 0) {
-		player.Unlock()
-		return
-	}
 
-	player.connection.Disconnect()
-	players[player.guildId] = nil
+	if force || (player.state == StoppedState || len(player.queue) == 0) {
+		player.connection.Disconnect()
+		players[player.guildId] = nil
+	}
+}
+
+func (p *Player) UpdateVoice(voiceID string, connection *discordgo.VoiceConnection) {
+	p.Lock()
+	defer p.Unlock()
+
+	p.connection, p.voiceId = connection, voiceID
+	go p.Play()
 }
 
 func (p *Player) AddTrack(tracks ...*Track) {
@@ -133,7 +141,7 @@ func (p *Player) Unpause() {
 func (p *Player) Play() {
 	p.Lock()
 
-	if p.state != StoppedState {
+	if p.state != StoppedState || p.connection == nil {
 		p.Unlock()
 		return
 	}
@@ -161,6 +169,7 @@ func (p *Player) Play() {
 			AddField("Duração", current.Duration, true).
 			AddField("Provedor", current.DisplayProvider(), true).
 			SetFooter(utils.Fmt("Pedido por %s", current.Requester.Username), current.Requester.AvatarURL("")).
+			SetTimestamp(current.Time.Format(time.RFC3339)).
 			Build()).SendTo(p.textId)
 
 	err := <-done

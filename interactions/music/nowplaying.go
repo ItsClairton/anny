@@ -1,6 +1,8 @@
 package music
 
 import (
+	"time"
+
 	"github.com/ItsClairton/Anny/audio"
 	"github.com/ItsClairton/Anny/base/discord"
 	"github.com/ItsClairton/Anny/utils"
@@ -27,6 +29,8 @@ var NowplayingCommand = discord.Interaction{
 				utils.ToDisplayTime(current.Session.PlaybackPosition().Seconds()),
 				current.Duration), true).
 			AddField("Provedor", current.DisplayProvider(), true).
+			SetFooter(utils.Fmt("Pedido por %s", ctx.Member.User.Username), ctx.Member.User.AvatarURL("")).
+			SetTimestamp(current.Time.Format(time.RFC3339)).
 			Build())
 	},
 }

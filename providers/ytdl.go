@@ -21,6 +21,8 @@ func (s *Song) DisplayProvider() string {
 	switch s.Provider {
 	case "TwitchStream":
 		return utils.Fmt("%s Twitch", emojis.Twitch)
+	case "TwitchVod":
+		return utils.Fmt("%s Twitch", emojis.Twitch)
 	case "Youtube":
 		return utils.Fmt("%s YouTube", emojis.Youtube)
 	case "Soundcloud":
