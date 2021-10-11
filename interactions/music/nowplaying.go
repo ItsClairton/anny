@@ -27,7 +27,7 @@ var NowplayingCommand = discord.Interaction{
 			AddField("Autor", current.Uploader, true).
 			AddField("Duração", utils.Fmt("%s/%s",
 				utils.ToDisplayTime(current.Session.PlaybackPosition().Seconds()),
-				current.Duration), true).
+				current.Duration()), true).
 			AddField("Provedor", current.DisplayProvider(), true).
 			SetFooter(utils.Fmt("Pedido por %s", ctx.Member.User.Username), ctx.Member.User.AvatarURL("")).
 			SetTimestamp(current.Time.Format(time.RFC3339)).

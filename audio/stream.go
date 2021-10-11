@@ -2,6 +2,7 @@ package audio
 
 import (
 	"errors"
+	"io"
 	"sync"
 	"time"
 
@@ -17,17 +18,18 @@ type OpusReader interface {
 
 type StreamingSession struct {
 	sync.Mutex
-	source     *ProcessingSession
+	source     *EncodingSession
 	connection *discordgo.VoiceConnection
-	running    bool
-	paused     bool
-	finished   bool
-	framesSent int
 
-	callback chan error
+	running  bool
+	paused   bool
+	finished bool
+
+	framesSent int
+	callback   chan error
 }
 
-func NewStream(source *ProcessingSession, vc *discordgo.VoiceConnection, callback chan error) *StreamingSession {
+func NewStream(source *EncodingSession, vc *discordgo.VoiceConnection, callback chan error) *StreamingSession {
 	session := &StreamingSession{
 		source:     source,
 		connection: vc,
@@ -36,6 +38,14 @@ func NewStream(source *ProcessingSession, vc *discordgo.VoiceConnection, callbac
 	go session.stream()
 
 	return session
+}
+
+func StreamFromPath(path string, connection *discordgo.VoiceConnection, callback chan error) *StreamingSession {
+	return NewStream(NewEncodingFromPath(path), connection, callback)
+}
+
+func StreamFromReader(reader io.Reader, connection *discordgo.VoiceConnection, callback chan error) *StreamingSession {
+	return NewStream(NewEncodingFromReader(reader), connection, callback)
 }
 
 func (s *StreamingSession) stream() {
@@ -89,10 +99,10 @@ func (s *StreamingSession) readNext() error {
 		return err
 	}
 
-	timeOut := time.After(1 * time.Minute)
+	timeOut := time.After(45 * time.Second)
 	select {
 	case <-timeOut:
-		return errors.New("voice connection is closed")
+		return errors.New("voice connection timeout")
 	case s.connection.OpusSend <- opus:
 	}
 	s.Lock()
@@ -141,7 +151,7 @@ func (s *StreamingSession) Paused() bool {
 	return state
 }
 
-func (s *StreamingSession) Source() *ProcessingSession {
+func (s *StreamingSession) Source() *EncodingSession {
 	s.Lock()
 	source := s.source
 	s.Unlock()

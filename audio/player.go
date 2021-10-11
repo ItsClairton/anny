@@ -156,21 +156,22 @@ func (p *Player) Play() {
 	current := p.current
 
 	done := make(chan error)
-	p.current.Session = NewStream(NewProcessingSession(current.DirectURL, current.IsOpus), p.connection, done)
-	p.state = PlayingState
+	current.Session, p.state = StreamFromPath(current.DirectURL, p.connection, done), PlayingState
 	p.Unlock()
 
-	discord.NewResponse().
-		WithEmbed(discord.NewEmbed().
-			SetDescription(utils.Fmt("%s Tocando agora [%s](%s)", emojis.ZeroYeah, current.Title, current.PageURL)).
-			SetThumbnail(current.ThumbnailURL).
-			SetColor(0xA652BB).
-			AddField("Autor", current.Uploader, true).
-			AddField("Duração", current.Duration, true).
-			AddField("Provedor", current.DisplayProvider(), true).
-			SetFooter(utils.Fmt("Pedido por %s", current.Requester.Username), current.Requester.AvatarURL("")).
-			SetTimestamp(current.Time.Format(time.RFC3339)).
-			Build()).SendTo(p.textId)
+	go func() {
+		discord.NewResponse().
+			WithEmbed(discord.NewEmbed().
+				SetDescription(utils.Fmt("%s Tocando agora [%s](%s)", emojis.ZeroYeah, current.Title, current.PageURL)).
+				SetThumbnail(current.ThumbnailURL).
+				SetColor(0xA652BB).
+				AddField("Autor", current.Uploader, true).
+				AddField("Duração", current.Duration(), true).
+				AddField("Provedor", current.DisplayProvider(), true).
+				SetFooter(utils.Fmt("Pedido por %s", current.Requester.Username), current.Requester.AvatarURL("")).
+				SetTimestamp(current.Time.Format(time.RFC3339)).
+				Build()).SendTo(p.textId)
+	}()
 
 	err := <-done
 	if err != nil {

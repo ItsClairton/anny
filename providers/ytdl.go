@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"os/exec"
+	"strconv"
 
 	"github.com/ItsClairton/Anny/utils"
 	"github.com/ItsClairton/Anny/utils/emojis"
@@ -13,7 +14,7 @@ import (
 type Song struct {
 	Provider, Title, Uploader        string
 	ThumbnailURL, DirectURL, PageURL string
-	Duration                         string
+	RawDuration                      string
 	IsLive, IsOpus                   bool
 }
 
@@ -30,6 +31,28 @@ func (s *Song) DisplayProvider() string {
 	default:
 		return s.Provider
 	}
+}
+
+func (s *Song) Duration() string {
+	if s.IsLive {
+		return "--:--"
+	}
+	if s.RawDuration != "--:--" {
+		return s.RawDuration
+	}
+	cmd := exec.Command("ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", s.DirectURL)
+
+	buffer, err := cmd.Output()
+	if err != nil {
+		return "--:--"
+	}
+
+	duration, _ := jsonparser.GetString(buffer, "format", "duration")
+	if floatDuration, err := strconv.ParseFloat(duration, 32); err == nil {
+		s.RawDuration = utils.ToDisplayTime(floatDuration)
+	}
+
+	return s.RawDuration
 }
 
 func FindSong(argument string) (*Song, error) {
@@ -59,6 +82,8 @@ func FindSong(argument string) (*Song, error) {
 	duration := "--:--"
 	if rawDuration > 0 {
 		duration = utils.ToDisplayTime(float64(rawDuration))
+	} else {
+
 	}
 
 	return &Song{
@@ -66,7 +91,7 @@ func FindSong(argument string) (*Song, error) {
 		Title:        title,
 		Uploader:     uploader,
 		IsLive:       isLive,
-		Duration:     duration,
+		RawDuration:  duration,
 		ThumbnailURL: thumbnailURL,
 		DirectURL:    directURL,
 		PageURL:      pageURL,

@@ -75,7 +75,7 @@ var PlayCommand = discord.Interaction{
 			SetDescription(utils.Fmt("%s O conteúdo [%s](%s) foi adicionado com sucesso na fila", emojis.ZeroYeah, info.Title, info.PageURL)).
 			SetImage(info.ThumbnailURL).
 			AddField("Autor", info.Uploader, true).
-			AddField("Duração", info.Duration, true).
+			AddField("Duração", info.Duration(), true).
 			AddField("Provedor", info.DisplayProvider(), true).
 			Build()
 
