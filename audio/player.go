@@ -66,8 +66,10 @@ func RemovePlayer(player *Player, force bool) {
 	player.Lock()
 	defer player.Unlock()
 
-	if force || (player.state == StoppedState || len(player.queue) == 0) {
-		player.connection.Disconnect()
+	if force || (player.state == StoppedState && len(player.queue) == 0) {
+		if player.connection != nil {
+			player.connection.Disconnect()
+		}
 		players[player.guildId] = nil
 	}
 }

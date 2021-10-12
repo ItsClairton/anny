@@ -88,7 +88,6 @@ func (s *StreamingSession) stream() {
 			s.Unlock()
 			break
 		}
-
 	}
 
 }
@@ -99,7 +98,7 @@ func (s *StreamingSession) readNext() error {
 		return err
 	}
 
-	timeOut := time.After(45 * time.Second)
+	timeOut := time.After(40 * time.Second)
 	select {
 	case <-timeOut:
 		return errors.New("voice connection timeout")
@@ -114,16 +113,16 @@ func (s *StreamingSession) readNext() error {
 
 func (s *StreamingSession) PlaybackPosition() time.Duration {
 	s.Lock()
-	duration := time.Duration(s.framesSent) * s.source.FrameDuration()
-	s.Unlock()
+	defer s.Unlock()
 
-	return duration
+	return time.Duration(s.framesSent) * s.source.FrameDuration()
 }
 
 func (s *StreamingSession) Pause(paused bool) {
 	s.Lock()
+	defer s.Unlock()
+
 	if s.finished {
-		s.Unlock()
 		return
 	}
 
@@ -131,30 +130,25 @@ func (s *StreamingSession) Pause(paused bool) {
 	if !paused {
 		go s.stream()
 	}
-
-	s.Unlock()
 }
 
 func (s *StreamingSession) Finished() bool {
 	s.Lock()
-	state := s.finished
-	s.Unlock()
+	defer s.Unlock()
 
-	return state
+	return s.finished
 }
 
 func (s *StreamingSession) Paused() bool {
 	s.Lock()
-	state := s.paused
-	s.Unlock()
+	defer s.Unlock()
 
-	return state
+	return s.paused
 }
 
 func (s *StreamingSession) Source() *EncodingSession {
 	s.Lock()
-	source := s.source
-	s.Unlock()
+	defer s.Unlock()
 
-	return source
+	return s.source
 }

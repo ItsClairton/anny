@@ -66,8 +66,6 @@ func (s *EncodingSession) start() {
 		arguments = append([]string{
 			"-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "2"}, arguments...)
 	}
-	println(source)
-
 	cmd := exec.Command("ffmpeg", arguments...)
 	if s.reader != nil {
 		cmd.Stdin = s.reader
