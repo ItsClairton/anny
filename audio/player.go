@@ -28,7 +28,7 @@ type Player struct {
 	queue      []*Track
 	current    *CurrentTrack
 
-	guildId, textId, voiceId string
+	guildID, textID, voiceID string
 }
 
 type Track struct {
@@ -42,14 +42,14 @@ type CurrentTrack struct {
 	Session *StreamingSession
 }
 
-func NewPlayer(guildId, textId, voiceId string, conn *discordgo.VoiceConnection) *Player {
+func NewPlayer(guildID, textID, voiceID string, conn *discordgo.VoiceConnection) *Player {
 	return &Player{
 		Mutex:      &sync.Mutex{},
 		state:      StoppedState,
 		connection: conn,
-		guildId:    guildId,
-		textId:     textId,
-		voiceId:    voiceId,
+		guildID:    guildID,
+		textID:     textID,
+		voiceID:    voiceID,
 	}
 }
 
@@ -58,7 +58,7 @@ func GetPlayer(id string) *Player {
 }
 
 func AddPlayer(player *Player) *Player {
-	players[player.guildId] = player
+	players[player.guildID] = player
 	return player
 }
 
@@ -70,7 +70,7 @@ func RemovePlayer(player *Player, force bool) {
 		if player.connection != nil {
 			player.connection.Disconnect()
 		}
-		players[player.guildId] = nil
+		players[player.guildID] = nil
 	}
 }
 
@@ -78,7 +78,7 @@ func (p *Player) UpdateVoice(voiceID string, connection *discordgo.VoiceConnecti
 	p.Lock()
 	defer p.Unlock()
 
-	p.connection, p.voiceId = connection, voiceID
+	p.connection, p.voiceID = connection, voiceID
 	go p.Play()
 }
 
@@ -171,20 +171,19 @@ func (p *Player) Play() {
 				AddField("Duração", current.Duration(), true).
 				AddField("Provedor", current.DisplayProvider(), true).
 				SetFooter(utils.Fmt("Pedido por %s", current.Requester.Username), current.Requester.AvatarURL("")).
-				SetTimestamp(current.Time.Format(time.RFC3339)).
-				Build()).SendTo(p.textId)
+				SetTimestamp(current.Time.Format(time.RFC3339))).Send(p.textID)
 	}()
 
 	err := <-done
 	if err != nil {
 		p.Lock()
+		defer p.Unlock()
 		if err != io.EOF {
 			discord.NewResponse().
-				WithContentEmoji(emojis.MikuCry, "Um erro ocorreu ao tocar a música **%s**: `%s`", current.Title, err.Error()).
-				SendTo(p.textId)
+				WithContent(emojis.MikuCry, "Um erro ocorreu ao tocar a música **%s**: `%s`", current.Title, err.Error()).
+				Send(p.textID)
 		}
 		p.state = StoppedState
-		p.Unlock()
-		p.Play()
+		go p.Play()
 	}
 }

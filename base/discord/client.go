@@ -35,11 +35,6 @@ func AddCategory(category *Category) {
 	categories = append(categories, category)
 }
 
-func addInteraction(i *Interaction, category *Category) {
-	i.Category = category
-	interactions[i.Name] = i
-}
-
 func GetInteractions() map[string]*Interaction {
 	return interactions
 }
@@ -83,6 +78,10 @@ func RegisterInDiscord() error {
 			}
 		}
 	}
-
 	return nil
+}
+
+func addInteraction(i *Interaction, category *Category) {
+	i.Category = category
+	interactions[i.Name] = i
 }

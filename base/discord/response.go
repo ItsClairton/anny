@@ -17,19 +17,13 @@ func NewResponse() *Response {
 	}}
 }
 
-func (r *Response) WithContent(content string, args ...interface{}) *Response {
-	r.Content = utils.Fmt(content, args...)
+func (r *Response) WithRawContent(content string) *Response {
+	r.Content = content
 	return r
 }
 
-func (r *Response) WithEmoji(emoji string) *Response {
-	r.Content = utils.Fmt("%s | %s", emoji, r.Content)
-	return r
-}
-
-func (r *Response) WithContentEmoji(emoji, content string, args ...interface{}) *Response {
-	r.Content = utils.Fmt("%s | %s", emoji, utils.Fmt(content, args...))
-	return r
+func (r *Response) WithContent(emoji, content string, args ...interface{}) *Response {
+	return r.WithRawContent(utils.Fmt("%s | %s", emoji, utils.Fmt(content, args...)))
 }
 
 func (r *Response) WithFile(file *discordgo.File) *Response {
@@ -37,9 +31,13 @@ func (r *Response) WithFile(file *discordgo.File) *Response {
 	return r
 }
 
-func (r *Response) WithEmbed(embed *discordgo.MessageEmbed) *Response {
-	r.Embeds = append(r.Embeds, embed)
+func (r *Response) WithRawEmbed(eb *discordgo.MessageEmbed) *Response {
+	r.Embeds = append(r.Embeds, eb)
 	return r
+}
+
+func (r *Response) WithEmbed(embed *Embed) *Response {
+	return r.WithRawEmbed(embed.Build())
 }
 
 func (r *Response) WithButton(button Button) *Response {
@@ -62,19 +60,14 @@ func (r *Response) AsEphemeral() *Response {
 	return r
 }
 
-func (r *Response) SendTo(channelId string) (*discordgo.Message, error) {
-	var embed *discordgo.MessageEmbed
-	if len(r.Embeds) > 0 {
-		embed = r.Embeds[0]
-	}
+func (r *Response) Send(channelId string) (*discordgo.Message, error) {
 	r.buildBaseComponent()
-
 	return Session.ChannelMessageSendComplex(channelId, &discordgo.MessageSend{
 		Content:         r.Content,
 		Files:           r.Files,
 		AllowedMentions: r.AllowedMentions,
 		Components:      r.Components,
-		Embed:           embed,
+		Embeds:          r.Embeds,
 	})
 }
 

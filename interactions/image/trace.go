@@ -38,14 +38,14 @@ var TraceContext = discord.Interaction{
 			utils.Is(len(result.Title.English) > 0 && !strings.EqualFold(result.Title.Japanese, result.Title.English),
 				utils.Fmt("**%s** (**%s**)", result.Title.Japanese, result.Title.English),
 				utils.Fmt("**%s**", result.Title.Japanese)))
-		ctx.SendResponse(response.WithContentEmoji(emojis.KannaPeer, "%s (Gerando Preview)", content))
+		ctx.SendResponse(response.WithContent(emojis.KannaPeer, "%s (Gerando Preview)", content))
 
 		video, err := utils.GetFromWeb(result.Video + "&size=l")
 		if err != nil {
-			ctx.SendResponse(response.WithContentEmoji(emojis.KannaPeer, "%s (Não foi possível gerar o Preview)", content))
+			ctx.SendResponse(response.WithContent(emojis.KannaPeer, "%s (Não foi possível gerar o Preview)", content))
 		} else {
 			ctx.SendResponse(response.
-				WithContentEmoji(emojis.KannaPeer, content).
+				WithContent(emojis.KannaPeer, content).
 				WithFile(&discordgo.File{
 					Name:        utils.Is(result.Adult, "SPOILER_preview.mp4", "preview.mp4"),
 					ContentType: "video/mp4",
