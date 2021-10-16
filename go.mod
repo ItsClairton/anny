@@ -11,6 +11,13 @@ require (
 
 require (
 	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/kkdai/youtube/v2 v2.7.4
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
 	golang.org/x/sys v0.0.0-20211007075335-d3039528d8ac // indirect
+)
+
+require (
+	github.com/Pauloo27/searchtube v0.0.0-20210906001334-44c3e43c257a
+	github.com/bitly/go-simplejson v0.5.0 // indirect
+	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect
 )

@@ -1,23 +1,18 @@
 package music
 
 import (
-	"regexp"
-	"time"
+	"strings"
 
 	"github.com/ItsClairton/Anny/audio"
 	"github.com/ItsClairton/Anny/base/discord"
-	"github.com/ItsClairton/Anny/providers"
 	"github.com/ItsClairton/Anny/utils"
 	"github.com/ItsClairton/Anny/utils/emojis"
 	"github.com/bwmarrin/discordgo"
 )
 
-var regex = regexp.MustCompile(`https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)`)
-
 var PlayCommand = discord.Interaction{
 	Name:        "tocar",
 	Description: "Tocar uma música, live ou playlist do YouTube",
-	Deffered:    true,
 	Options: []*discordgo.ApplicationCommandOption{{
 		Name:        "argumento",
 		Description: "Titulo ou link do conteúdo no YouTube",
@@ -28,7 +23,7 @@ var PlayCommand = discord.Interaction{
 		argument := ctx.ApplicationCommandData().Options[0].StringValue()
 		voiceID := ctx.GetVoiceChannel()
 		if voiceID == "" {
-			ctx.Send(emojis.MikuCry, "Você precisa estar conectado a um canal de voz para utilizar esse comando.")
+			ctx.SendEphemeral(emojis.MikuCry, "Você precisa estar conectado a um canal de voz para utilizar esse comando.")
 			return
 		}
 
@@ -42,8 +37,8 @@ var PlayCommand = discord.Interaction{
 					if _, ok := ctx.Session.VoiceConnections[ctx.GuildID]; ok {
 						connection = ctx.Session.VoiceConnections[ctx.GuildID]
 					} else {
-						audio.RemovePlayer(player, true)
 						ctx.SendError(err)
+						audio.RemovePlayer(player, true)
 						return
 					}
 				}
@@ -52,33 +47,85 @@ var PlayCommand = discord.Interaction{
 		}
 		player.Lock()
 
-		if !regex.MatchString(argument) {
-			argument = "ytsearch:" + argument
-		}
+		embed := discord.NewEmbed().
+			SetColor(0xF8C300).
+			SetDescription(utils.Fmt("%s %s", emojis.AnimatedStaff, "Tentando obter resultados..."))
+		go ctx.SendEmbed(embed.Build())
 
-		info, err := providers.FindSong(argument)
+		result, err := audio.FindSong(argument)
 		if err != nil {
 			ctx.SendError(err)
 			player.Unlock()
 			audio.RemovePlayer(player, false)
 			return
 		}
+		if result == nil {
+			embed.SetColor(0xF93A2F).SetDescription(utils.Fmt("%s %s", emojis.MikuCry, "Não consegui encontrar essa música"))
+			ctx.SendEmbed(embed.Build())
+			player.Unlock()
+			audio.RemovePlayer(player, false)
+			return
+		}
 
-		player.Unlock()
-		player.AddTrack(&audio.Track{
-			Song:      info,
-			Requester: ctx.Member.User,
-			Time:      time.Now(),
-		})
+		if result.IsFromSearch {
+			description := ""
+			response := discord.NewResponse().WithEmbed(embed)
 
-		embed := discord.NewEmbed().SetColor(0x00D166).
-			SetDescription(utils.Fmt("%s O conteúdo [%s](%s) foi adicionado com sucesso na fila", emojis.ZeroYeah, info.Title, info.PageURL)).
-			SetImage(info.ThumbnailURL).
-			AddField("Autor", info.Uploader, true).
-			AddField("Duração", info.Duration(), true).
-			AddField("Provedor", info.DisplayProvider(), true).
-			Build()
+			if len(result.Songs) == 1 {
+				loadAndAdd(ctx, player, result.Songs[0])
+				return
+			}
 
-		ctx.SendEmbed(embed)
+			for i := range result.Songs {
+				song := result.Songs[i]
+				description += utils.Fmt("\n%s [%s](%s) de %s", emojis.GetNumberAsEmoji(i+1), song.Title, song.URL, song.Author)
+
+				response.WithButton(discord.Button{
+					Style:   discordgo.SecondaryButton,
+					Label:   strings.ReplaceAll(utils.ToDisplayTime(song.Duration.Seconds()), "--:--", "Live"),
+					Emoji:   emojis.GetNumberAsEmoji(i + 1),
+					Once:    true,
+					Delayed: true,
+					OnClick: func(_ *discord.InteractionContext) {
+						loadAndAdd(ctx, player, song)
+					},
+				})
+			}
+
+			embed.SetColor(0x0099e1).SetDescription(description)
+			player.Unlock()
+			ctx.SendResponse(response)
+		} else {
+			player.Unlock()
+			loadAndAdd(ctx, player, result.Songs[0])
+		}
 	},
+}
+
+func loadAndAdd(ctx *discord.InteractionContext, player *audio.Player, song *audio.Song) {
+	player.Lock()
+	embed := discord.NewEmbed().SetColor(0xF8C300).
+		AddField("Autor", song.Author, true).
+		AddField("Duração", utils.ToDisplayTime(song.Duration.Seconds()), true).
+		AddField("Provedor", song.Provider.PrettyName(), true)
+
+	if song.StreamingURL == "" {
+		go ctx.SendEmbed(embed.SetDescription(utils.Fmt("%s Tentando descriptografar [%s](%s)...", emojis.AnimatedStaff, song.Title, song.URL)).Build())
+
+		var err error
+		song, err = song.Provider.GetInfo(song)
+		if err != nil {
+			ctx.SendError(err)
+			player.Unlock()
+			audio.RemovePlayer(player, false)
+			return
+		}
+	}
+	player.Unlock()
+
+	player.AddSong(ctx.Member.User, song)
+	ctx.SendEmbed(embed.SetColor(0x00D166).
+		SetImage(song.Thumbnail).
+		SetDescription(utils.Fmt("%s [%s](%s) foi adicionado com sucesso na fila", emojis.ZeroYeah, song.Title, song.URL)).
+		Build())
 }

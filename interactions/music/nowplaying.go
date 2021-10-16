@@ -22,13 +22,13 @@ var NowplayingCommand = discord.Interaction{
 		current := player.GetCurrent()
 		ctx.SendEmbed(discord.NewEmbed().
 			SetColor(0x0099E1).
-			SetDescription(utils.Fmt("[%s](%s)", current.Title, current.PageURL)).
-			SetThumbnail(current.ThumbnailURL).
-			AddField("Autor", current.Uploader, true).
+			SetDescription(utils.Fmt("[%s](%s)", current.Title, current.URL)).
+			SetThumbnail(current.Thumbnail).
+			AddField("Autor", current.Author, true).
 			AddField("Duração", utils.Fmt("%s/%s",
 				utils.ToDisplayTime(current.Session.PlaybackPosition().Seconds()),
-				current.Duration()), true).
-			AddField("Provedor", current.DisplayProvider(), true).
+				utils.ToDisplayTime(current.Duration.Seconds())), true).
+			AddField("Provedor", current.Provider.PrettyName(), true).
 			SetFooter(utils.Fmt("Pedido por %s", ctx.Member.User.Username), ctx.Member.User.AvatarURL("")).
 			SetTimestamp(current.Time.Format(time.RFC3339)).
 			Build())

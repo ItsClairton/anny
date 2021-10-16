@@ -62,7 +62,8 @@ func (ctx *InteractionContext) SendResponse(res *Response) (*discordgo.Message, 
 func (ctx *InteractionContext) SendEmbed(embeds ...*discordgo.MessageEmbed) (*discordgo.Message, error) {
 	if ctx.AlreadySended {
 		return ctx.EditComplex(&discordgo.WebhookEdit{
-			Embeds: embeds,
+			Embeds:     embeds,
+			Components: []discordgo.MessageComponent{},
 		})
 	}
 
@@ -113,7 +114,8 @@ func (ctx *InteractionContext) Send(emoji, text string, args ...interface{}) (*d
 	content := utils.Fmt("%s | %s", emoji, utils.Fmt(text, args...))
 	if ctx.AlreadySended {
 		return ctx.EditComplex(&discordgo.WebhookEdit{
-			Content: content,
+			Content:    content,
+			Components: []discordgo.MessageComponent{},
 		})
 	}
 

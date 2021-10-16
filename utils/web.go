@@ -14,3 +14,11 @@ func GetFromWeb(url string) ([]byte, error) {
 	defer res.Body.Close()
 	return io.ReadAll(res.Body)
 }
+
+func GetFromWebString(url string) (string, error) {
+	body, err := GetFromWeb(url)
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
+}
