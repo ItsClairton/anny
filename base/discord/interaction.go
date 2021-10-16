@@ -12,7 +12,7 @@ type Category struct {
 type Interaction struct {
 	Name, Description string
 	Type              discordgo.ApplicationCommandType
-	Delayed           bool
+	Deffered          bool
 	Options           []*discordgo.ApplicationCommandOption
 	Category          *Category
 	Handler           InteractionHandler

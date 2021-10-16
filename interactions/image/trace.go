@@ -12,9 +12,9 @@ import (
 )
 
 var TraceContext = discord.Interaction{
-	Name:    "Que anime é esse?",
-	Type:    discordgo.MessageApplicationCommand,
-	Delayed: true,
+	Name:     "Que anime é esse?",
+	Type:     discordgo.MessageApplicationCommand,
+	Deffered: true,
 	Handler: func(ctx *discord.InteractionContext) {
 		message := ctx.ApplicationCommandData().Resolved.Messages[ctx.ApplicationCommandData().TargetID]
 		attachment := getAttachment(message)

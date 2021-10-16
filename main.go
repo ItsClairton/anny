@@ -14,28 +14,25 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		panic(err)
+	if err := godotenv.Load(); err != nil {
+		logger.Fatal("Um erro ocorreu ao carregar o arquivo .env.", err)
 	}
 
 	discord.Init(os.Getenv("DISCORD_TOKEN"))
 	discord.Session.AddHandler(events.InteractionsEvent)
 	discord.Session.AddHandler(events.ReadyEvent)
 
-	err = discord.Connect()
-	if err != nil {
-		panic(err)
+	if err := discord.Connect(); err != nil {
+		logger.Fatal("Um erro ocorreu ao tentar se conectar ao Discord.", err)
 	}
-	err = discord.RegisterInDiscord()
-	if err != nil {
-		panic(err)
+	if err := discord.UpdateInteractions(); err != nil {
+		logger.Fatal("Um erro ocorreu ao obter a lista de interações do Discord.", err)
 	}
 
 	logger.Info("Conexão com o Discord feita com Sucesso.")
+
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-s
-
 	discord.Disconnect()
 }

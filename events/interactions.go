@@ -10,7 +10,7 @@ func InteractionsEvent(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	case discordgo.InteractionApplicationCommand: // Slash Commands, Context Menu's
 		cmd, exist := discord.GetInteractions()[i.ApplicationCommandData().Name]
 		if exist {
-			if cmd.Delayed {
+			if cmd.Deffered {
 				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{Type: 5})
 				go cmd.Handler(&discord.InteractionContext{Session: s, AlreadySended: true, InteractionCreate: i})
 			} else {

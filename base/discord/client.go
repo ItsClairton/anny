@@ -3,6 +3,7 @@ package discord
 import (
 	"reflect"
 
+	"github.com/ItsClairton/Anny/utils"
 	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/bwmarrin/discordgo"
 )
@@ -39,45 +40,45 @@ func GetInteractions() map[string]*Interaction {
 	return interactions
 }
 
-func RegisterInDiscord() error {
+func UpdateInteractions() error {
+	logger.Debug("Verificando se há interações para atualizar ou remover do Discord...")
+
 	previous, err := Session.ApplicationCommands(Session.State.User.ID, "")
 	if err != nil {
 		return err
 	}
 
-	registered := map[string]*discordgo.ApplicationCommand{}
-	for _, prev := range previous { // Verificar se precisa atualizar ou remover alguma interação no Discord.
-		i, exist := interactions[prev.Name]
+	checked := map[string]*discordgo.ApplicationCommand{}
+	for _, prevIn := range previous { // Atualizar ou remover interações, caso necessário
+		newIn := interactions[prevIn.Name]
+		if newIn == nil { // Remover interação, caso ela não exista no mapeador de interações.
+			logger.Debug(utils.Fmt("Deletando interação \"%s\" do Discord...", prevIn.Name))
 
-		if !exist {
-			err := Session.ApplicationCommandDelete(Session.State.User.ID, "", prev.ID)
-			if err != nil {
-				logger.Warn("Não foi possível remover a interação \"%s\" do Discord. (%s)", prev.Name, err.Error())
+			if err := Session.ApplicationCommandDelete(Session.State.User.ID, "", prevIn.ID); err != nil {
+				logger.Warn(utils.Fmt("Não foi possível remover a interação \"%s\" do Discord.", prevIn.Name), err)
 			}
-		} else {
-			if !reflect.DeepEqual(i.Options, prev.Options) || prev.Description != i.Description {
-				_, err = Session.ApplicationCommandEdit(Session.State.User.ID, "", prev.ID, i.ToRAW())
-				if err != nil {
-					logger.Warn("Não foi possível atualizar a interação \"%s\" no Discord. (%s)", i.Name, err.Error())
-				} else {
-					registered[i.Name] = i.ToRAW()
+		} else { // Atualizar interação, caso a descrição, ou as opções da interação estejam desatualizadas no Discord.
+			if !reflect.DeepEqual(newIn.Options, prevIn.Options) || prevIn.Description != newIn.Description {
+				logger.Debug(utils.Fmt("Atualizando interação \"%s\" no Discord...", newIn.Name))
+
+				if _, err := Session.ApplicationCommandEdit(Session.State.User.ID, "", prevIn.ID, newIn.ToRAW()); err != nil {
+					logger.Warn(utils.Fmt("Não foi possível atualizar a interação \"%s\" no Discord.", newIn.Name), err)
 				}
-			} else {
-				registered[i.Name] = i.ToRAW()
+			}
+			checked[newIn.Name] = newIn.ToRAW()
+		}
+	}
+
+	for _, newIn := range interactions { // Criar novas interações, se necessário
+		if checked[newIn.Name] == nil {
+			logger.Debug(utils.Fmt("Criando interação \"%s\" no Discord...", newIn.Name))
+
+			if _, err := Session.ApplicationCommandCreate(Session.State.User.ID, "", newIn.ToRAW()); err != nil {
+				logger.Warn(utils.Fmt("Não foi possível criar a interação \"%s\" no Discord.", newIn.Name), err)
 			}
 		}
 	}
 
-	for _, i := range interactions { // Registrar novas interações no Discord caso não existam.
-		_, exist := registered[i.Name]
-
-		if !exist {
-			_, err := Session.ApplicationCommandCreate(Session.State.User.ID, "", i.ToRAW())
-			if err != nil {
-				logger.Warn("Não foi possível criar a interação \"%s\" no Discord. (%s)", i.Name, err.Error())
-			}
-		}
-	}
 	return nil
 }
 

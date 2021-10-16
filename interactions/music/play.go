@@ -17,7 +17,7 @@ var regex = regexp.MustCompile(`https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}
 var PlayCommand = discord.Interaction{
 	Name:        "tocar",
 	Description: "Tocar uma música, live ou playlist do YouTube",
-	Delayed:     true,
+	Deffered:    true,
 	Options: []*discordgo.ApplicationCommandOption{{
 		Name:        "argumento",
 		Description: "Titulo ou link do conteúdo no YouTube",
