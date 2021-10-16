@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
 	"time"
 
@@ -58,7 +59,7 @@ func (s *EncodingSession) start() {
 	source := utils.Is(s.reader != nil, "pipe:0", s.path)
 
 	arguments := []string{
-		"-i", source, "-loglevel", "fatal",
+		"-i", source, "-loglevel", "error",
 		"-map", "0:a", "-acodec", "libopus",
 		"-f", "ogg", "-frame_duration", "20", "pipe:1"}
 
@@ -88,39 +89,35 @@ func (s *EncodingSession) start() {
 
 	s.process = cmd.Process
 	s.Unlock()
-	s.readStdout(stdout)
-
 	defer func() {
 		if s.err == nil {
-			stderr := s.stderr.String()
+			stderr := strings.TrimSpace(s.stderr.String())
 			if stderr != "" && stderr != "<nil>" {
-				s.err = errors.New(utils.Fmt("ffmpeg: %s", stderr))
+				s.Lock()
+				defer s.Unlock()
+				s.err = errors.New(strings.ReplaceAll(stderr, s.path, "source"))
 			}
 		}
 	}()
+
+	s.readStdout(stdout)
 	cmd.Wait()
 }
 
-func (s *EncodingSession) Stop() error {
+func (s *EncodingSession) Stop() {
 	s.Lock()
 	defer s.Unlock()
 
-	if !s.running || s.process == nil {
-		return errors.New("ffmpeg not running")
+	if s.running && s.process != nil {
+		s.process.Kill()
 	}
-
-	err := s.process.Kill()
-	return err
 }
 
-func (s *EncodingSession) StopClean() error {
-	err := s.Stop()
+func (s *EncodingSession) StopClean() {
+	s.Stop()
 
-	if err == nil {
-		for range s.data {
-		}
+	for range s.data {
 	}
-	return err
 }
 
 func (s *EncodingSession) FrameDuration() time.Duration {
