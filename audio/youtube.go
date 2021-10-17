@@ -12,9 +12,10 @@ import (
 )
 
 var (
-	client     = &youtube.Client{}
-	videoRegex = regexp.MustCompile(`^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$`)
-	hlsRegex   = regexp.MustCompile(`(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#,?&*//=]*)(.m3u8)\b([-a-zA-Z0-9@:%_\+.~#,?&//=]*))`)
+	client        = &youtube.Client{}
+	videoRegex    = regexp.MustCompile(`^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$`)
+	hlsRegex      = regexp.MustCompile(`(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#,?&*//=]*)(.m3u8)\b([-a-zA-Z0-9@:%_\+.~#,?&//=]*))`)
+	playlistRegex = regexp.MustCompile(`^https?:\/\/(www.youtube.com|youtube.com)\/playlist(.*)$`)
 )
 
 type YouTubeProvider struct{}
@@ -24,10 +25,40 @@ func (YouTubeProvider) PrettyName() string {
 }
 
 func (YouTubeProvider) IsValid(term string) bool {
-	return videoRegex.MatchString(term) || !utils.URLRegex.MatchString(term)
+	return videoRegex.MatchString(term) || !utils.URLRegex.MatchString(term) || playlistRegex.MatchString(term)
 }
 
 func (p YouTubeProvider) Find(term string) (*SongResult, error) {
+	if playlistRegex.MatchString(term) {
+		result, err := client.GetPlaylist(term)
+		if err != nil {
+			return nil, err
+		}
+
+		songResult := &SongResult{Songs: []*Song{}, IsFromSearch: false, IsFromPlaylist: true}
+		playlist := &Playlist{
+			Title:  result.Title,
+			Author: result.Author,
+			URL:    utils.Fmt("https://youtube.com/playlist?list=%s", result.ID),
+		}
+
+		for _, item := range result.Videos {
+			songResult.Songs = append(songResult.Songs, &Song{
+				Title:     item.Title,
+				URL:       utils.Fmt("https://youtu.be/%s", item.ID),
+				Thumbnail: utils.Fmt("https://img.youtube.com/vi/%s/mqdefault.jpg", item.ID),
+				Author:    item.Author,
+				Duration:  item.Duration,
+				Playlist:  playlist,
+				Provider:  &YouTubeProvider{},
+			})
+
+			playlist.Duration += item.Duration
+		}
+
+		return songResult, nil
+	}
+
 	if videoRegex.MatchString(term) {
 		song, err := p.getSong(term, nil)
 		if err != nil {
@@ -84,7 +115,7 @@ func (YouTubeProvider) getSong(term string, playlist *Playlist) (*Song, error) {
 			return nil, err
 		}
 	} else {
-		if streamingURL, err = client.GetStreamURL(video, &video.Formats.WithAudioChannels()[0]); err != nil {
+		if streamingURL, err = client.GetStreamURL(video, video.Formats.FindByItag(140)); err != nil {
 			return nil, err
 		}
 	}

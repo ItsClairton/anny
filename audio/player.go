@@ -91,11 +91,10 @@ func (p *Player) UpdateVoice(voiceID string, connection *discordgo.VoiceConnecti
 
 func (p *Player) AddSong(requester *discordgo.User, tracks ...*Song) {
 	p.Lock()
-	defer p.Unlock()
-
 	for _, track := range tracks {
 		p.queue = append(p.queue, &RequestedSong{track, requester, time.Now()})
 	}
+	p.Unlock()
 	go p.Play()
 }
 
@@ -156,11 +155,13 @@ func (p *Player) Play() {
 		p.Unlock()
 		return
 	}
+
 	if len(p.queue) < 1 {
 		p.Unlock()
 		RemovePlayer(p, false)
 		return
 	}
+
 	if p.timer != nil {
 		p.timer.Stop()
 		p.timer = nil
@@ -175,8 +176,10 @@ func (p *Player) Play() {
 			p.sendError(err)
 			p.Unlock()
 			go p.Play()
+			return
 		}
 		p.current.RequestedSong.Song = song
+		current = p.current
 	}
 
 	done := make(chan error)
@@ -184,16 +187,21 @@ func (p *Player) Play() {
 	p.Unlock()
 
 	go func() {
-		discord.NewResponse().
-			WithEmbed(discord.NewEmbed().
-				SetDescription(utils.Fmt("%s Tocando agora [%s](%s)", emojis.ZeroYeah, current.Title, current.URL)).
-				SetThumbnail(current.Thumbnail).
-				SetColor(0xA652BB).
-				AddField("Autor", current.Author, true).
-				AddField("Duração", utils.ToDisplayTime(current.Duration.Seconds()), true).
-				AddField("Provedor", current.Provider.PrettyName(), true).
-				SetFooter(utils.Fmt("Pedido por %s", current.Requester.Username), current.Requester.AvatarURL("")).
-				SetTimestamp(current.Time.Format(time.RFC3339))).Send(p.textID)
+		embed := discord.NewEmbed().
+			SetDescription(utils.Fmt("%s Tocando agora [%s](%s)", emojis.ZeroYeah, current.Title, current.URL)).
+			SetThumbnail(current.Thumbnail).
+			SetColor(0xA652BB).
+			AddField("Autor", current.Author, true).
+			AddField("Duração", utils.ToDisplayTime(current.Duration.Seconds()), true).
+			AddField("Provedor", current.Provider.PrettyName(), true).
+			SetTimestamp(current.Time.Format(time.RFC3339))
+		if current.Playlist != nil {
+			embed.SetFooter(utils.Fmt("Pedido por %s • Playlist %s", current.Requester.Username, current.Playlist.Title), current.Requester.AvatarURL(""))
+		} else {
+			embed.SetFooter(utils.Fmt("Pedido por %s", current.Requester.Username), current.Requester.AvatarURL(""))
+		}
+
+		discord.NewResponse().WithEmbed(embed).Send(p.textID)
 	}()
 
 	err := <-done

@@ -95,10 +95,27 @@ var PlayCommand = discord.Interaction{
 			embed.SetColor(0x0099e1).SetDescription(description)
 			player.Unlock()
 			ctx.SendResponse(response)
-		} else {
-			player.Unlock()
-			loadAndAdd(ctx, player, result.Songs[0])
+			return
 		}
+
+		if result.IsFromPlaylist {
+			player.Unlock()
+			player.AddSong(ctx.Member.User, result.Songs...)
+
+			playlist := result.Songs[0].Playlist
+			ctx.SendEmbed(embed.
+				SetColor(0x00D166).
+				SetThumbnail(result.Songs[0].Thumbnail).
+				SetDescription(utils.Fmt("%s A lista de reprodução [%s](%s) foi carregada com sucesso.", emojis.ZeroYeah, playlist.Title, playlist.URL)).
+				AddField("Autor", playlist.Author, true).
+				AddField("Itens", utils.Fmt("%v", len(result.Songs)), true).
+				AddField("Duração", utils.ToDisplayTime(playlist.Duration.Seconds()), true).Build())
+			return
+		}
+
+		player.Unlock()
+		loadAndAdd(ctx, player, result.Songs[0])
+
 	},
 }
 
@@ -122,8 +139,8 @@ func loadAndAdd(ctx *discord.InteractionContext, player *audio.Player, song *aud
 		}
 	}
 	player.Unlock()
-
 	player.AddSong(ctx.Member.User, song)
+
 	ctx.SendEmbed(embed.SetColor(0x00D166).
 		SetImage(song.Thumbnail).
 		SetDescription(utils.Fmt("%s [%s](%s) foi adicionado com sucesso na fila", emojis.ZeroYeah, song.Title, song.URL)).
