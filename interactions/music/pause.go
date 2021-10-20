@@ -16,11 +16,11 @@ var PauseCommand = discord.Interaction{
 		}
 		player := audio.GetPlayer(ctx.GuildID)
 
-		if player == nil || player.GetState() == audio.StoppedState {
+		if player == nil || player.State() == audio.StoppedState {
 			ctx.SendEphemeral(emojis.MikuCry, "Não há nada tocando no momento.")
 			return
 		}
-		if player.GetState() == audio.PausedState {
+		if player.State() == audio.PausedState {
 			ctx.SendEphemeral(emojis.MikuCry, "A música já está pausada.")
 			return
 		}

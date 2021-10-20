@@ -10,12 +10,13 @@ import (
 var buttons = map[string]*Button{}
 
 type Button struct {
-	Label, URL, ID string
-	Once           bool
-	Delayed        bool
-	Style          discordgo.ButtonStyle
-	Emoji          string
-	OnClick        InteractionHandler
+	Label, URL, ID, UserID string
+
+	Once    bool
+	Delayed bool
+	Style   discordgo.ButtonStyle
+	Emoji   string
+	OnClick InteractionHandler
 }
 
 func (b *Button) Build() discordgo.Button {

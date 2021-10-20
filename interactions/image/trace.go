@@ -31,9 +31,9 @@ var TraceContext = discord.Interaction{
 
 		response := discord.NewResponse()
 		content := utils.Fmt("Talvez seja uma cena (%s)%s de %s.",
-			utils.Is(utils.ToDisplayTime(result.From) == utils.ToDisplayTime(result.To),
-				utils.Fmt("`%s`", utils.ToDisplayTime(result.From)),
-				utils.Fmt("`%s`/`%s`", utils.ToDisplayTime(result.From), utils.ToDisplayTime(result.To))),
+			utils.Is(result.From == result.To,
+				utils.Fmt("`%s`", utils.FormatTime(result.From)),
+				utils.Fmt("`%s`/`%s`", utils.FormatTime(result.From), utils.FormatTime(result.To))),
 			utils.Is(result.Episode > 0, utils.Fmt(" do episódio **%d**", result.Episode), ""),
 			utils.Is(len(result.Title.English) > 0 && !strings.EqualFold(result.Title.Japanese, result.Title.English),
 				utils.Fmt("**%s** (**%s**)", result.Title.Japanese, result.Title.English),

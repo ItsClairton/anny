@@ -16,12 +16,12 @@ var StopCommand = discord.Interaction{
 		}
 
 		player := audio.GetPlayer(ctx.GuildID)
-		if player == nil || player.GetState() == audio.StoppedState {
+		if player == nil || player.State() == audio.StoppedState {
 			ctx.SendEphemeral(emojis.MikuCry, "Não há nada tocando no momento.")
 			return
 		}
 
-		audio.RemovePlayer(player, true)
+		player.Kill(true)
 		ctx.SendEphemeral(emojis.ZeroYeah, "Música parada com sucesso, e fila limpa.")
 	},
 }

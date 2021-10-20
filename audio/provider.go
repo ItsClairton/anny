@@ -15,7 +15,7 @@ type Song struct {
 }
 
 type SongProvider interface {
-	PrettyName() string
+	Name() string
 	IsValid(string) bool
 	Find(string) (*SongResult, error)
 	GetInfo(*Song) (*Song, error)

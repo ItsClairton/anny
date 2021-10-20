@@ -22,13 +22,15 @@ var (
 
 type Player struct {
 	*sync.Mutex
-	timer      *time.Timer
-	state      int
-	connection *discordgo.VoiceConnection
-	queue      []*RequestedSong
-	current    *CurrentSong
 
-	guildID, textID, voiceID string
+	timer      *time.Timer
+	connection *discordgo.VoiceConnection
+
+	state   int
+	current *CurrentSong
+	queue   []*RequestedSong
+
+	GuildID, TextID, VoiceID string
 }
 
 type RequestedSong struct {
@@ -39,66 +41,99 @@ type RequestedSong struct {
 
 type CurrentSong struct {
 	*RequestedSong
-	Session *StreamingSession
-}
-
-func NewPlayer(guildID, textID, voiceID string, conn *discordgo.VoiceConnection) *Player {
-	return &Player{
-		Mutex:      &sync.Mutex{},
-		state:      StoppedState,
-		connection: conn,
-		guildID:    guildID,
-		textID:     textID,
-		voiceID:    voiceID,
-	}
+	*StreamingSession
 }
 
 func GetPlayer(id string) *Player {
 	return players[id]
 }
 
-func AddPlayer(player *Player) *Player {
-	players[player.guildID] = player
+func NewPlayer(guildID, textID, voiceID string) *Player {
+	player := &Player{
+		Mutex:   &sync.Mutex{},
+		state:   StoppedState,
+		GuildID: guildID, TextID: textID, VoiceID: voiceID}
+
+	players[player.GuildID] = player
+	go player.CheckConnection()
 	return player
 }
 
-func RemovePlayer(player *Player, force bool) {
-	removeFunc := func() {
-		player.Lock()
-		defer player.Unlock()
-		if player.connection != nil {
-			player.connection.Disconnect()
-		}
-		players[player.guildID] = nil
+func RemovePlayer(player *Player) {
+	player.Lock()
+	defer player.Unlock()
+
+	player.queue = []*RequestedSong{}
+	if player.current != nil && player.current.StreamingSession != nil {
+		player.current.source.StopClean()
+	}
+	if player.connection != nil {
+		player.connection.Disconnect()
 	}
 
-	if force {
-		removeFunc()
-	} else {
-		if player.timer == nil {
-			player.timer = time.AfterFunc(5*time.Minute, removeFunc)
+	players[player.GuildID] = nil
+}
+
+func (p *Player) CheckConnection() {
+	if p.connection == nil {
+		connection, err := discord.Session.ChannelVoiceJoin(p.GuildID, p.VoiceID, false, true)
+		if err != nil {
+			discord.NewResponse().WithContent(emojis.MikuCry, "Um erro ocorreu na conexão com o Canal de voz.").Send(p.TextID)
+			p.Kill(true)
+		} else {
+			p.connection = connection
+			go p.Play()
 		}
 	}
 }
 
-func (p *Player) UpdateVoice(voiceID string, connection *discordgo.VoiceConnection) {
+func (p *Player) Current() *CurrentSong {
 	p.Lock()
 	defer p.Unlock()
 
-	p.connection, p.voiceID = connection, voiceID
-	go p.Play()
+	return p.current
+}
+
+func (p *Player) State() int {
+	p.Lock()
+	defer p.Unlock()
+
+	return p.state
+}
+
+func (p *Player) Skip() {
+	p.Lock()
+	defer p.Unlock()
+	p.current.source.StopClean()
+}
+
+func (p *Player) Pause() {
+	p.Lock()
+	defer p.Unlock()
+
+	p.current.Pause(true)
+	p.state = PausedState
+}
+
+func (p *Player) Unpause() {
+	p.Lock()
+	defer p.Unlock()
+
+	p.current.Pause(false)
+	p.state = PlayingState
 }
 
 func (p *Player) AddSong(requester *discordgo.User, tracks ...*Song) {
 	p.Lock()
+	defer p.Unlock()
+
 	for _, track := range tracks {
 		p.queue = append(p.queue, &RequestedSong{track, requester, time.Now()})
 	}
-	p.Unlock()
 	go p.Play()
 }
 
-func (p *Player) GetQueue() []*RequestedSong {
+func (p *Player) Queue() []*RequestedSong {
 	p.Lock()
 	defer p.Unlock()
 
@@ -114,51 +149,16 @@ func (p *Player) Shuffle() {
 	})
 }
 
-func (p *Player) GetCurrent() *CurrentSong {
-	p.Lock()
-	defer p.Unlock()
-
-	return p.current
-}
-
-func (p *Player) GetState() int {
-	p.Lock()
-	defer p.Unlock()
-
-	return p.state
-}
-
-func (p *Player) Skip() {
-	p.Lock()
-	defer p.Unlock()
-	p.current.Session.source.StopClean()
-}
-
-func (p *Player) Pause() {
-	p.Lock()
-	defer p.Unlock()
-	p.current.Session.Pause(true)
-	p.state = PausedState
-}
-
-func (p *Player) Unpause() {
-	p.Lock()
-	defer p.Unlock()
-	p.current.Session.Pause(false)
-	p.state = PlayingState
-}
-
 func (p *Player) Play() {
 	p.Lock()
+	defer p.Unlock()
 
-	if p.state != StoppedState || p.connection == nil {
-		p.Unlock()
+	if p.state != StoppedState {
 		return
 	}
 
-	if len(p.queue) < 1 {
-		p.Unlock()
-		RemovePlayer(p, false)
+	if len(p.queue) == 0 {
+		go p.Kill(false)
 		return
 	}
 
@@ -167,60 +167,65 @@ func (p *Player) Play() {
 		p.timer = nil
 	}
 
-	p.current, p.queue = &CurrentSong{p.queue[0], nil}, p.queue[1:]
-	current := p.current
-
+	current := p.queue[0]
 	if current.StreamingURL == "" {
 		song, err := current.Provider.GetInfo(current.Song)
 		if err != nil {
 			p.sendError(err)
-			p.Unlock()
 			go p.Play()
 			return
 		}
-		p.current.RequestedSong.Song = song
-		current = p.current
+
+		current.Song = song
 	}
 
 	done := make(chan error)
-	current.Session, p.state = StreamFromPath(current.StreamingURL, p.connection, done), PlayingState
-	p.Unlock()
+	p.current, p.queue, p.state = &CurrentSong{
+		RequestedSong:    current,
+		StreamingSession: StreamFromPath(current.StreamingURL, p.connection, done),
+	}, p.queue[1:], PlayingState
 
 	go func() {
-		embed := discord.NewEmbed().
-			SetDescription(utils.Fmt("%s Tocando agora [%s](%s)", emojis.ZeroYeah, current.Title, current.URL)).
-			SetThumbnail(current.Thumbnail).
-			SetColor(0xA652BB).
-			AddField("Autor", current.Author, true).
-			AddField("Duração", utils.ToDisplayTime(current.Duration.Seconds()), true).
-			AddField("Provedor", current.Provider.PrettyName(), true).
-			SetTimestamp(current.Time.Format(time.RFC3339))
-		if current.Playlist != nil {
-			embed.SetFooter(utils.Fmt("Pedido por %s • Playlist %s", current.Requester.Username, current.Playlist.Title), current.Requester.AvatarURL(""))
-		} else {
-			embed.SetFooter(utils.Fmt("Pedido por %s", current.Requester.Username), current.Requester.AvatarURL(""))
-		}
+		finished := <-done
 
-		discord.NewResponse().WithEmbed(embed).Send(p.textID)
-	}()
-
-	err := <-done
-	if err != nil {
 		p.Lock()
 		defer p.Unlock()
-		if err != io.EOF {
-			p.sendError(err)
+		if finished != io.EOF {
+			p.sendError(finished)
 		}
 
 		p.state = StoppedState
 		go p.Play()
+	}()
+
+	embed := discord.NewEmbed().
+		SetDescription("%s Tocando agora: [%s](%s)", emojis.ZeroYeah, current.Title, current.URL).
+		SetImage(current.Thumbnail).
+		SetColor(0xA652BB).
+		AddField("Autor", current.Author, true).
+		AddField("Duração", utils.Is(current.IsLive, "--:--", utils.FormatTime(current.Duration)), true).
+		AddField("Provedor", current.Provider.Name(), true).
+		SetFooter(utils.Fmt("Pedido por %s", current.Requester.Username), current.Requester.AvatarURL("")).
+		SetTimestamp(current.Time.Format(time.RFC3339))
+
+	discord.NewResponse().WithEmbed(embed).Send(p.TextID)
+}
+
+func (p *Player) Kill(force bool) {
+	p.Lock()
+	defer p.Unlock()
+
+	if force {
+		go RemovePlayer(p)
+		return
+	}
+
+	if p.timer == nil && p.state == StoppedState && len(p.queue) == 0 {
+		p.timer = time.AfterFunc(5*time.Minute, func() { RemovePlayer(p) })
 	}
 }
 
 func (p *Player) sendError(err error) {
-	discord.NewResponse().WithEmbed(
-		discord.NewEmbed().
-			SetColor(0xF93A2F).
-			SetDescription(utils.Fmt("%s Um erro ocorreu ao tocar [%s](%s): `%v`", emojis.MikuCry, p.current.Title, p.current.URL, err)),
-	).Send(p.textID)
+	discord.NewResponse().
+		WithContent(emojis.MikuCry, "Um erro ocorreu ao tocar a música %s: `%v`", p.current.Title, err).Send(p.TextID)
 }

@@ -3,6 +3,7 @@ package providers
 import (
 	"errors"
 	"net/url"
+	"time"
 
 	"github.com/ItsClairton/Anny/utils"
 	"github.com/buger/jsonparser"
@@ -16,7 +17,7 @@ type TraceResult struct {
 	Title        *TraceTitle
 	Adult        bool
 	Episode      int64
-	From, To     float64
+	From, To     time.Duration
 	Video, Image string
 }
 
@@ -52,8 +53,8 @@ func SearchAnimeByScene(sceneUrl string) (*TraceResult, error) {
 		},
 		Adult:   adult,
 		Episode: episode,
-		From:    from,
-		To:      to,
+		From:    time.Duration(from * 1000),
+		To:      time.Duration(to * 1000),
 		Video:   video,
 		Image:   image,
 	}, nil

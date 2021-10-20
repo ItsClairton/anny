@@ -16,11 +16,11 @@ var UnpauseCommand = discord.Interaction{
 			return
 		}
 		player := audio.GetPlayer(ctx.GuildID)
-		if player == nil || player.GetState() == audio.StoppedState {
+		if player == nil || player.State() == audio.StoppedState {
 			ctx.SendEphemeral(emojis.MikuCry, "Não há nada tocando no momento.")
 			return
 		}
-		if player.GetState() == audio.PlayingState {
+		if player.State() == audio.PlayingState {
 			ctx.SendEphemeral(emojis.MikuCry, "A música já está despausada.")
 			return
 		}

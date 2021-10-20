@@ -20,7 +20,7 @@ var (
 
 type YouTubeProvider struct{}
 
-func (YouTubeProvider) PrettyName() string {
+func (YouTubeProvider) Name() string {
 	return utils.Fmt("%s %s", emojis.Youtube, "YouTube")
 }
 

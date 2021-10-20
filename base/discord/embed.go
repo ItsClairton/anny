@@ -1,6 +1,9 @@
 package discord
 
-import "github.com/bwmarrin/discordgo"
+import (
+	"github.com/ItsClairton/Anny/utils"
+	"github.com/bwmarrin/discordgo"
+)
 
 type Embed struct {
 	*discordgo.MessageEmbed
@@ -26,7 +29,8 @@ func (e *Embed) SetAuthor(args ...string) *Embed {
 	return e
 }
 
-func (e *Embed) SetTitle(title string) *Embed {
+func (e *Embed) SetTitle(title string, args ...interface{}) *Embed {
+	title = utils.Fmt(title, args...)
 	if len(title) > 256 {
 		title = title[:256]
 	}
@@ -40,7 +44,8 @@ func (e *Embed) SetURL(url string) *Embed {
 	return e
 }
 
-func (e *Embed) SetDescription(desc string) *Embed {
+func (e *Embed) SetDescription(desc string, args ...interface{}) *Embed {
+	desc = utils.Fmt(desc, args...)
 	if len(desc) > 4096 {
 		desc = desc[:4096]
 	}

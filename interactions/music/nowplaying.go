@@ -14,27 +14,21 @@ var NowplayingCommand = discord.Interaction{
 	Description: "Saber que música está tocando.",
 	Handler: func(ctx *discord.InteractionContext) {
 		player := audio.GetPlayer(ctx.GuildID)
-		if player == nil || player.GetState() == audio.StoppedState {
+		if player == nil || player.State() == audio.StoppedState {
 			ctx.SendEphemeral(emojis.MikuCry, "Não há nada tocando no momento.")
 			return
 		}
 
-		current := player.GetCurrent()
+		current := player.Current()
 		embed := discord.NewEmbed().
-			SetColor(0x0099E1).
-			SetDescription(utils.Fmt("[%s](%s)", current.Title, current.URL)).
+			SetDescription("%s Tocando agora [%s](%s)", emojis.ZeroYeah, current.Title, current.URL).
 			SetThumbnail(current.Thumbnail).
+			SetColor(0xA652BB).
 			AddField("Autor", current.Author, true).
-			AddField("Duração", utils.Fmt("%s/%s",
-				utils.ToDisplayTime(current.Session.PlaybackPosition().Seconds()),
-				utils.ToDisplayTime(current.Duration.Seconds())), true).
-			AddField("Provedor", current.Provider.PrettyName(), true).
+			AddField("Duração", utils.Fmt("%v/%v", utils.FormatTime(current.PlaybackPosition()), utils.Is(current.IsLive, "--:--", utils.FormatTime(current.Duration))), true).
+			AddField("Provedor", current.Provider.Name(), true).
+			SetFooter(utils.Fmt("Pedido por %s", current.Requester.Username), current.Requester.AvatarURL("")).
 			SetTimestamp(current.Time.Format(time.RFC3339))
-		if current.Playlist != nil {
-			embed.SetFooter(utils.Fmt("Pedido por %s • Playlist %s", current.Requester.Username, current.Playlist.Title), current.Requester.AvatarURL(""))
-		} else {
-			embed.SetFooter(utils.Fmt("Pedido por %s", current.Requester.Username), current.Requester.AvatarURL(""))
-		}
 
 		ctx.SendEmbed(embed.Build())
 	},
