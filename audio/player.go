@@ -157,7 +157,7 @@ func (p *Player) Play() {
 		return
 	}
 
-	if len(p.queue) == 0 {
+	if len(p.queue) == 0 || p.connection == nil {
 		go p.Kill(false)
 		return
 	}

@@ -108,28 +108,31 @@ var PlayCommand = discord.Interaction{
 
 func loadAndAdd(ctx *discord.InteractionContext, player *audio.Player, song *audio.Song) {
 	player.Lock()
+	defer player.Unlock()
+
 	embed := discord.NewEmbed().SetColor(0xF8C300).
 		AddField("Autor", song.Author, true).
 		AddField("Duração", utils.FormatTime(song.Duration), true).
 		AddField("Provedor", song.Provider.Name(), true)
 
 	if song.StreamingURL == "" {
-		go ctx.SendEmbed(embed.SetDescription(utils.Fmt("%s Tentando descriptografar [%s](%s)...", emojis.AnimatedStaff, song.Title, song.URL)).Build())
+		go ctx.SendEmbed(embed.SetDescription("%s Tentando descriptografar [%s](%s)...", emojis.AnimatedStaff, song.Title, song.URL).Build())
 
 		var err error
 		song, err = song.Provider.GetInfo(song)
 		if err != nil {
 			ctx.SendError(err)
-			player.Unlock()
-			player.Kill(false)
+			go player.Kill(false)
 			return
 		}
 	}
-	player.Unlock()
-	player.AddSong(ctx.Member.User, song)
 
-	ctx.SendEmbed(embed.SetColor(0x00D166).
-		SetThumbnail(song.Thumbnail).
-		SetDescription(utils.Fmt("%s [%s](%s) foi adicionado com sucesso na fila", emojis.ZeroYeah, song.Title, song.URL)).
-		Build())
+	go func() {
+		player.AddSong(ctx.Member.User, song)
+
+		ctx.SendEmbed(embed.SetColor(0x00D166).
+			SetThumbnail(song.Thumbnail).
+			SetDescription("%s [%s](%s) foi adicionado com sucesso na fila", emojis.ZeroYeah, song.Title, song.URL).
+			Build())
+	}()
 }
