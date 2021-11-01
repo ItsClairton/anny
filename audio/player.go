@@ -78,7 +78,7 @@ func (p *Player) CheckConnection() {
 	if p.connection == nil {
 		connection, err := discord.Session.ChannelVoiceJoin(p.GuildID, p.VoiceID, false, true)
 		if err != nil {
-			discord.Session.ChannelMessageSend(p.TextID, utils.Fmt("%s Um erro ocorreu na conexão com o canal de voz.", emojis.MikuCry))
+			discord.Session.ChannelMessageSend(p.TextID, utils.Fmt("%s | Um erro ocorreu na conexão com o canal de voz.", emojis.MikuCry))
 			p.Kill(true)
 		} else {
 			p.connection = connection
@@ -227,5 +227,5 @@ func (p *Player) Kill(force bool) {
 }
 
 func (p *Player) sendError(err error) {
-	discord.Session.ChannelMessageSend(p.TextID, utils.Fmt("%s Um erro ocorreu ao tocar a música %s: `%v`", p.current.Thumbnail, err))
+	discord.Session.ChannelMessageSend(p.TextID, utils.Fmt("%s | Um erro ocorreu ao tocar a música %s: `%v`", emojis.MikuCry, p.current.Title, err))
 }
