@@ -60,7 +60,7 @@ var PlayCommand = discord.Interaction{
 
 		song := result.Songs[0]
 		embed.AddField("Autor", song.Author, true).
-			AddField("Duração", utils.FormatTime(song.Duration), true).
+			AddField("Duração", utils.Is(song.IsLive, "--:--", utils.FormatTime(song.Duration)), true).
 			AddField("Provedor", song.Provider.Name(), true)
 
 		if song.StreamingURL == "" {
