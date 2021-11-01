@@ -78,7 +78,7 @@ func (p *Player) CheckConnection() {
 	if p.connection == nil {
 		connection, err := discord.Session.ChannelVoiceJoin(p.GuildID, p.VoiceID, false, true)
 		if err != nil {
-			discord.NewResponse().WithContent(emojis.MikuCry, "Um erro ocorreu na conexão com o Canal de voz.").Send(p.TextID)
+			discord.Session.ChannelMessageSend(p.TextID, utils.Fmt("%s Um erro ocorreu na conexão com o canal de voz.", emojis.MikuCry))
 			p.Kill(true)
 		} else {
 			p.connection = connection
@@ -115,7 +115,7 @@ func (p *Player) Pause() {
 	p.state = PausedState
 }
 
-func (p *Player) Unpause() {
+func (p *Player) Resume() {
 	p.Lock()
 	defer p.Unlock()
 
@@ -171,6 +171,7 @@ func (p *Player) Play() {
 	if current.StreamingURL == "" {
 		song, err := current.Provider.GetInfo(current.Song)
 		if err != nil {
+			p.queue = p.queue[1:]
 			p.sendError(err)
 			go p.Play()
 			return
@@ -208,7 +209,7 @@ func (p *Player) Play() {
 		SetFooter(utils.Fmt("Pedido por %s", current.Requester.Username), current.Requester.AvatarURL("")).
 		SetTimestamp(current.Time.Format(time.RFC3339))
 
-	discord.NewResponse().WithEmbed(embed).Send(p.TextID)
+	discord.Session.ChannelMessageSendEmbed(p.TextID, embed.Build())
 }
 
 func (p *Player) Kill(force bool) {
@@ -226,6 +227,5 @@ func (p *Player) Kill(force bool) {
 }
 
 func (p *Player) sendError(err error) {
-	discord.NewResponse().
-		WithContent(emojis.MikuCry, "Um erro ocorreu ao tocar a música %s: `%v`", p.current.Title, err).Send(p.TextID)
+	discord.Session.ChannelMessageSend(p.TextID, utils.Fmt("%s Um erro ocorreu ao tocar a música %s: `%v`", p.current.Thumbnail, err))
 }

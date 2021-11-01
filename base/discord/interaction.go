@@ -18,7 +18,7 @@ type Interaction struct {
 	Handler           InteractionHandler
 }
 
-type InteractionHandler func(*InteractionContext)
+type InteractionHandler func(*InteractionContext) error
 
 func (i Interaction) ToRAW() *discordgo.ApplicationCommand {
 	raw := &discordgo.ApplicationCommand{

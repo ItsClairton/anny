@@ -9,19 +9,17 @@ import (
 var StopCommand = discord.Interaction{
 	Name:        "parar",
 	Description: "Parar a música atual, e limpar a fila",
-	Handler: func(ctx *discord.InteractionContext) {
-		if ctx.GetVoiceChannel() == "" {
-			ctx.SendEphemeral(emojis.MikuCry, "Você não está conectado em nenhum canal de voz.")
-			return
+	Handler: func(ctx *discord.InteractionContext) error {
+		if ctx.VoiceState() == nil {
+			return ctx.AsEphemeral().Send(emojis.MikuCry, "Você não está conectado em nenhum canal de voz.")
 		}
 
 		player := audio.GetPlayer(ctx.GuildID)
 		if player == nil || player.State() == audio.StoppedState {
-			ctx.SendEphemeral(emojis.MikuCry, "Não há nada tocando no momento.")
-			return
+			return ctx.AsEphemeral().Send(emojis.MikuCry, "Não há nada tocando no momento.")
 		}
 
 		player.Kill(true)
-		ctx.SendEphemeral(emojis.ZeroYeah, "Música parada com sucesso, e fila limpa.")
+		return ctx.Send(emojis.ZeroYeah, "Todas as músicas da fila foram limpas com sucesso.")
 	},
 }

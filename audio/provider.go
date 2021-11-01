@@ -14,6 +14,10 @@ type Song struct {
 	Playlist *Playlist
 }
 
+func (s *Song) GetMoreInfo() (*Song, error) {
+	return s.Provider.GetInfo(s)
+}
+
 type SongProvider interface {
 	Name() string
 	IsValid(string) bool

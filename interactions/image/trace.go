@@ -15,21 +15,19 @@ var TraceContext = discord.Interaction{
 	Name:     "Que anime é esse?",
 	Type:     discordgo.MessageApplicationCommand,
 	Deffered: true,
-	Handler: func(ctx *discord.InteractionContext) {
+	Handler: func(ctx *discord.InteractionContext) error {
 		message := ctx.ApplicationCommandData().Resolved.Messages[ctx.ApplicationCommandData().TargetID]
-		attachment := getAttachment(message)
 
+		attachment := getAttachment(message)
 		if attachment == "" {
-			ctx.Send(emojis.MikuCry, "Não achei nenhuma imagem, GIF ou vídeo nessa mensagem.")
-			return
+			return ctx.Send(emojis.MikuCry, "Não achei nenhuma imagem, GIF ou vídeo nessa mensagem.")
 		}
+
 		result, err := providers.SearchAnimeByScene(attachment)
 		if err != nil {
-			ctx.SendError(err)
-			return
+			return ctx.SendWithError(err)
 		}
 
-		response := discord.NewResponse()
 		content := utils.Fmt("Talvez seja uma cena (%s)%s de %s.",
 			utils.Is(result.From == result.To,
 				utils.Fmt("`%s`", utils.FormatTime(result.From)),
@@ -38,20 +36,18 @@ var TraceContext = discord.Interaction{
 			utils.Is(len(result.Title.English) > 0 && !strings.EqualFold(result.Title.Japanese, result.Title.English),
 				utils.Fmt("**%s** (**%s**)", result.Title.Japanese, result.Title.English),
 				utils.Fmt("**%s**", result.Title.Japanese)))
-		ctx.SendResponse(response.WithContent(emojis.KannaPeer, "%s (Gerando Preview)", content))
+		ctx.Send(emojis.KannaPeer, "%s (Gerando Preview)", content)
 
 		video, err := utils.GetFromWeb(result.Video + "&size=l")
 		if err != nil {
-			ctx.SendResponse(response.WithContent(emojis.KannaPeer, "%s (Não foi possível gerar o Preview)", content))
-		} else {
-			ctx.SendResponse(response.
-				WithContent(emojis.KannaPeer, content).
-				WithFile(&discordgo.File{
-					Name:        utils.Is(result.Adult, "SPOILER_preview.mp4", "preview.mp4"),
-					ContentType: "video/mp4",
-					Reader:      bytes.NewReader(video),
-				}))
+			return ctx.Edit(emojis.KannaPeer, "%s (Não foi possivel gerar o Preview)", content)
 		}
+
+		return ctx.WithFile(&discordgo.File{
+			Name:        utils.Is(result.Adult, "SPOILER_preview.mp4", "preview.mp4"),
+			ContentType: "video/mp4",
+			Reader:      bytes.NewReader(video),
+		}).Edit(emojis.KannaPeer, content)
 	},
 }
 

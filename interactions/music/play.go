@@ -10,129 +10,74 @@ import (
 
 var PlayCommand = discord.Interaction{
 	Name:        "tocar",
-	Description: "Tocar uma música, live ou playlist do YouTube",
+	Description: "Tocar uma música, lista de reprodução, ou live",
 	Options: []*discordgo.ApplicationCommandOption{{
 		Name:        "argumento",
 		Description: "Titulo ou link do conteúdo no YouTube",
 		Required:    true,
 		Type:        discordgo.ApplicationCommandOptionString,
 	}},
-	Handler: func(ctx *discord.InteractionContext) {
-		argument := ctx.ApplicationCommandData().Options[0].StringValue()
-		voiceID := ctx.GetVoiceChannel()
-		if voiceID == "" {
-			ctx.SendEphemeral(emojis.MikuCry, "Você precisa estar conectado a um canal de voz para utilizar esse comando.")
-			return
+	Handler: func(ctx *discord.InteractionContext) error {
+		argument, state := ctx.ApplicationCommandData().Options[0].StringValue(), ctx.VoiceState()
+		if state == nil {
+			return ctx.AsEphemeral().Send(emojis.MikuCry, "Você não está conectado em nenhum canal de voz.")
 		}
 
 		player := audio.GetPlayer(ctx.GuildID)
 		if player == nil {
-			player = audio.NewPlayer(ctx.GuildID, ctx.ChannelID, voiceID)
+			player = audio.NewPlayer(ctx.GuildID, ctx.ChannelID, state.ChannelID)
 		}
-		player.Lock()
-		defer player.Unlock()
 
-		embed := discord.NewEmbed().
+		embed := discord.
+			NewEmbed().
 			SetColor(0xF8C300).
 			SetDescription("%s Obtendo melhores resultados para sua pesquisa...", emojis.AnimatedStaff)
-		go ctx.SendEmbed(embed.Build())
+		ctx.WithEmbed(embed).Send()
+		defer player.Kill(false)
 
 		result, err := audio.FindSong(argument)
 		if err != nil {
-			ctx.SendError(err)
-			go player.Kill(false)
-			return
+			return ctx.SendWithError(err)
 		}
 
 		if result == nil {
-			ctx.SendEmbed(embed.
-				SetColor(0xF93A2F).
-				SetDescription("%s Não consegui achar essa música, Desculpa ;(", emojis.MikuCry).
-				Build())
-
-			go player.Kill(false)
-			return
-		}
-
-		if result.IsFromSearch {
-			if len(result.Songs) == 1 {
-				go loadAndAdd(ctx, player, result.Songs[0])
-				return
-			}
-
-			description := ""
-			response := discord.NewResponse().WithEmbed(embed)
-
-			for i := range result.Songs {
-				song := result.Songs[i]
-				description += utils.Fmt("\n%s [%s](%s) de %s", emojis.GetNumberAsEmoji(i+1), song.Title, song.URL, song.Author)
-
-				response.WithButton(discord.Button{
-					UserID:  ctx.Member.User.ID,
-					Style:   discordgo.SecondaryButton,
-					Label:   utils.Is(song.IsLive, "LIVE", utils.FormatTime(song.Duration)),
-					Emoji:   emojis.GetNumberAsEmoji(i + 1),
-					Once:    true,
-					Delayed: true,
-					OnClick: func(_ *discord.InteractionContext) {
-						loadAndAdd(ctx, player, song)
-					},
-				})
-			}
-
-			embed.SetColor(0x0099e1).SetDescription(description)
-			ctx.SendResponse(response)
-			return
+			embed.SetColor(0xF93A2F).SetDescription("%s Não consegui achar essa música, Desculpa ;(", emojis.MikuCry)
+			return ctx.Edit()
 		}
 
 		if result.IsFromPlaylist {
-			go func() {
-				player.AddSong(ctx.Member.User, result.Songs...)
+			playlist := result.Songs[0].Playlist
+			embed.SetColor(0x00D166).SetThumbnail(result.Songs[0].Thumbnail).
+				SetDescription("%s Playlist [%s](%s), carregada com sucesso.", emojis.ZeroYeah, playlist.Title, playlist.URL).
+				AddField("Criador", playlist.Author, true).
+				AddField("Itens", utils.Fmt("%v", len(result.Songs)), true).
+				AddField("Duração", utils.FormatTime(playlist.Duration), true)
+			ctx.Edit()
 
-				playlist := result.Songs[0].Playlist
-				ctx.SendEmbed(embed.
-					SetColor(0x00D166).
-					SetThumbnail(result.Songs[0].Thumbnail).
-					SetDescription(utils.Fmt("%s A lista de reprodução [%s](%s) foi carregada com sucesso.", emojis.ZeroYeah, playlist.Title, playlist.URL)).
-					AddField("Autor", playlist.Author, true).
-					AddField("Itens", utils.Fmt("%v", len(result.Songs)), true).
-					AddField("Duração", utils.FormatTime(playlist.Duration), true).Build())
-
-			}()
-			return
+			player.AddSong(ctx.Member.User, result.Songs...)
+			return nil
 		}
 
-		go loadAndAdd(ctx, player, result.Songs[0])
-	},
-}
+		song := result.Songs[0]
+		embed.AddField("Autor", song.Author, true).
+			AddField("Duração", utils.FormatTime(song.Duration), true).
+			AddField("Provedor", song.Provider.Name(), true)
 
-func loadAndAdd(ctx *discord.InteractionContext, player *audio.Player, song *audio.Song) {
-	player.Lock()
-	defer player.Unlock()
+		if song.StreamingURL == "" {
+			embed.SetDescription("%s Carregando melhores informações de [%s](%s)...", emojis.AnimatedStaff, song.Title, song.URL)
+			ctx.Edit()
 
-	embed := discord.NewEmbed().SetColor(0xF8C300).
-		AddField("Autor", song.Author, true).
-		AddField("Duração", utils.FormatTime(song.Duration), true).
-		AddField("Provedor", song.Provider.Name(), true)
-
-	if song.StreamingURL == "" {
-		go ctx.SendEmbed(embed.SetDescription("%s Tentando descriptografar [%s](%s)...", emojis.AnimatedStaff, song.Title, song.URL).Build())
-
-		var err error
-		song, err = song.Provider.GetInfo(song)
-		if err != nil {
-			ctx.SendError(err)
-			go player.Kill(false)
-			return
+			song, err = song.GetMoreInfo()
+			if err != nil {
+				return ctx.SendWithError(err)
+			}
 		}
-	}
-
-	go func() {
-		player.AddSong(ctx.Member.User, song)
-
-		ctx.SendEmbed(embed.SetColor(0x00D166).
+		embed.SetColor(0x00D166).
 			SetThumbnail(song.Thumbnail).
-			SetDescription("%s [%s](%s) foi adicionado com sucesso na fila", emojis.ZeroYeah, song.Title, song.URL).
-			Build())
-	}()
+			SetDescription("%s Música [%s](%s) adicionada com sucesso na fila", emojis.ZeroYeah, song.Title, song.URL)
+		ctx.Edit()
+
+		player.AddSong(ctx.Member.User, song)
+		return nil
+	},
 }

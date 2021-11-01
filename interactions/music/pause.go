@@ -8,24 +8,31 @@ import (
 
 var PauseCommand = discord.Interaction{
 	Name:        "pausar",
-	Description: "Pausar a música atual",
-	Handler: func(ctx *discord.InteractionContext) {
-		if ctx.GetVoiceChannel() == "" {
-			ctx.SendEphemeral(emojis.MikuCry, "Você não está conectado em nenhum canal de voz.")
-			return
-		}
-		player := audio.GetPlayer(ctx.GuildID)
+	Description: "Pausar ou despausar a música atual",
+	Handler:     handler,
+}
 
-		if player == nil || player.State() == audio.StoppedState {
-			ctx.SendEphemeral(emojis.MikuCry, "Não há nada tocando no momento.")
-			return
-		}
-		if player.State() == audio.PausedState {
-			ctx.SendEphemeral(emojis.MikuCry, "A música já está pausada.")
-			return
-		}
+var ResumeCommand = discord.Interaction{
+	Name:        "despausar",
+	Description: "Pausar ou despausar a música atual",
+	Handler:     handler,
+}
 
-		player.Pause()
-		ctx.Send(emojis.PepeArt, "A música foi pausada com sucesso.")
-	},
+var handler = func(ctx *discord.InteractionContext) error {
+	if ctx.VoiceState() == nil {
+		return ctx.AsEphemeral().Send(emojis.MikuCry, "Você não está conectado em nenhum canal de voz.")
+	}
+
+	player := audio.GetPlayer(ctx.GuildID)
+	if player == nil || player.State() == audio.StoppedState {
+		return ctx.AsEphemeral().Send(emojis.MikuCry, "Não há nada tocando no momento.")
+	}
+
+	if player.State() == audio.PausedState {
+		player.Resume()
+		return ctx.Send(emojis.PepeArt, "Música despausada com sucesso.")
+	}
+
+	player.Pause()
+	return ctx.Send(emojis.PepeArt, "Música pausada com sucesso.")
 }

@@ -15,14 +15,14 @@ var CatCommand = discord.Interaction{
 		Type:        discordgo.ApplicationCommandOptionBoolean,
 		Required:    false,
 	}},
-	Handler: func(ctx *discord.InteractionContext) {
+	Handler: func(ctx *discord.InteractionContext) error {
 		gif := len(ctx.ApplicationCommandData().Options) > 0 && ctx.ApplicationCommandData().Options[0].BoolValue()
-		info, err := providers.GetRandomCat(gif)
 
-		if err == nil {
-			ctx.SendRAW(info)
-		} else {
-			ctx.SendError(err)
+		info, err := providers.GetRandomCat(gif)
+		if err != nil {
+			return ctx.SendWithError(err)
 		}
+
+		return ctx.Send(info)
 	},
 }

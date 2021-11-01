@@ -7,117 +7,105 @@ import (
 )
 
 type InteractionContext struct {
-	Session       *discordgo.Session
-	ResponseType  int
-	AlreadySended bool
 	*discordgo.InteractionCreate
+	Session  *discordgo.Session
+	Response *discordgo.InteractionResponseData
+	Sended   bool
 }
 
-func (ctx *InteractionContext) GetGuild() (*discordgo.Guild, error) {
+func NewContext(ic *discordgo.InteractionCreate, s *discordgo.Session, sended bool) *InteractionContext {
+	return &InteractionContext{
+		InteractionCreate: ic,
+		Session:           s,
+		Response:          &discordgo.InteractionResponseData{},
+		Sended:            sended,
+	}
+}
+
+func (ctx *InteractionContext) Guild() *discordgo.Guild {
 	if ctx.GuildID == "" {
-		return nil, nil
+		return nil
 	}
 
-	return ctx.Session.State.Guild(ctx.GuildID)
+	guild, _ := ctx.Session.State.Guild(ctx.GuildID)
+	return guild
 }
 
-func (ctx *InteractionContext) GetVoiceChannel() string {
-	guild, err := ctx.GetGuild()
-	if guild == nil || err != nil {
-		return ""
+func (ctx *InteractionContext) VoiceState() *discordgo.VoiceState {
+	if ctx.GuildID == "" {
+		return nil
 	}
 
-	for _, vs := range guild.VoiceStates {
-		if vs.UserID == ctx.Member.User.ID {
-			return vs.ChannelID
-		}
-	}
-	return ""
+	state, _ := ctx.Session.State.VoiceState(ctx.GuildID, ctx.Member.User.ID)
+	return state
 }
 
-func (ctx *InteractionContext) SendComplex(data *discordgo.InteractionResponseData) (*discordgo.Message, error) {
+func (ctx *InteractionContext) WithContentRAW(content string) *InteractionContext {
+	ctx.Response.Content = content
+	return ctx
+}
+
+func (ctx *InteractionContext) WithContent(emoji, content string, args ...interface{}) *InteractionContext {
+	return ctx.WithContentRAW(utils.Fmt("%s | %s", emoji, utils.Fmt(content, args...)))
+}
+
+func (ctx *InteractionContext) WithFile(file *discordgo.File) *InteractionContext {
+	ctx.Response.Files = append(ctx.Response.Files, file)
+	return ctx
+}
+
+func (ctx *InteractionContext) WithEmbed(embed *Embed) *InteractionContext {
+	ctx.Response.Embeds = append(ctx.Response.Embeds, embed.Build())
+	return ctx
+}
+
+func (ctx *InteractionContext) AsEphemeral() *InteractionContext {
+	ctx.Response.Flags = 1 << 6
+	return ctx
+}
+
+func (ctx *InteractionContext) Edit(args ...interface{}) error {
+	if len(args) > 1 {
+		ctx.WithContent(args[0].(string), args[1].(string), args[2:]...)
+	}
+	if len(args) == 1 {
+		ctx.WithContentRAW(args[0].(string))
+	}
+
+	_, err := ctx.Session.InteractionResponseEdit(ctx.Session.State.User.ID, ctx.Interaction, &discordgo.WebhookEdit{
+		Content: ctx.Response.Content, Components: ctx.Response.Components,
+		Embeds: ctx.Response.Embeds, Files: ctx.Response.Files,
+	})
+	return err
+}
+
+func (ctx *InteractionContext) Send(args ...interface{}) error {
+	if len(args) > 1 {
+		ctx.WithContent(args[0].(string), args[1].(string), args[2:]...)
+	}
+
+	if len(args) == 1 {
+		ctx.WithContentRAW(args[0].(string))
+	}
+
+	if ctx.Sended {
+		return ctx.Edit(args...)
+	}
+
 	err := ctx.Session.InteractionRespond(ctx.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseType(ctx.ResponseType),
-		Data: data,
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: ctx.Response,
 	})
+
 	if err == nil {
-		ctx.AlreadySended = true
+		ctx.Sended = true
 	}
 
-	return nil, err
+	return err
 }
 
-func (ctx *InteractionContext) EditComplex(data *discordgo.WebhookEdit) (*discordgo.Message, error) {
-	return ctx.Session.InteractionResponseEdit(ctx.Session.State.User.ID, ctx.Interaction, data)
-}
-
-func (ctx *InteractionContext) SendResponse(res *Response) (*discordgo.Message, error) {
-	if ctx.AlreadySended {
-		return ctx.EditComplex(res.BuildAsWebhookEdit())
-	}
-
-	return ctx.SendComplex(res.Build())
-}
-
-func (ctx *InteractionContext) SendEmbed(embeds ...*discordgo.MessageEmbed) (*discordgo.Message, error) {
-	if ctx.AlreadySended {
-		return ctx.EditComplex(&discordgo.WebhookEdit{
-			Embeds:     embeds,
-			Components: []discordgo.MessageComponent{},
-		})
-	}
-
-	return ctx.SendComplex(&discordgo.InteractionResponseData{
-		Embeds: embeds,
-	})
-}
-
-func (ctx *InteractionContext) SendFile(files ...*discordgo.File) (*discordgo.Message, error) {
-	if ctx.AlreadySended {
-		return ctx.EditComplex(&discordgo.WebhookEdit{
-			Files: files,
-		})
-	}
-
-	return ctx.SendComplex(&discordgo.InteractionResponseData{
-		Files: files,
-	})
-}
-
-func (ctx *InteractionContext) SendRAW(text string) (*discordgo.Message, error) {
-	if ctx.AlreadySended {
-		return ctx.EditComplex(&discordgo.WebhookEdit{
-			Content: text,
-		})
-	}
-
-	return ctx.SendComplex(&discordgo.InteractionResponseData{
-		Content: text,
-	})
-}
-
-func (ctx *InteractionContext) SendError(err error) {
-	ctx.SendEmbed(NewEmbed().
-		SetColor(0xF93A2F).
-		SetDescription(utils.Fmt("%s Um erro ocorreu ao executar essa ação: `%s`", emojis.MikuCry, err.Error())).
-		Build())
-}
-
-func (ctx *InteractionContext) SendEphemeral(emoji, text string, args ...interface{}) (*discordgo.Message, error) {
-	return ctx.SendComplex(&discordgo.InteractionResponseData{
-		Content: utils.Fmt("%s | %s", emoji, utils.Fmt(text, args...)),
-		Flags:   1 << 6,
-	})
-}
-
-func (ctx *InteractionContext) Send(emoji, text string, args ...interface{}) (*discordgo.Message, error) {
-	content := utils.Fmt("%s | %s", emoji, utils.Fmt(text, args...))
-	if ctx.AlreadySended {
-		return ctx.EditComplex(&discordgo.WebhookEdit{
-			Content:    content,
-			Components: []discordgo.MessageComponent{},
-		})
-	}
-
-	return ctx.SendRAW(content)
+func (ctx *InteractionContext) SendWithError(err error) error {
+	return ctx.WithEmbed(NewEmbed().
+		SetDescription("%s Um erro ocorreu ao executar essa ação: \n```go\n%+v```", emojis.MikuCry, err)).
+		Send()
 }
