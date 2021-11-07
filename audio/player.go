@@ -152,7 +152,7 @@ func (p *Player) Play() {
 		AddField("Autor", current.Author, true).
 		AddField("Duração", utils.Is(current.IsLive, "--:--", utils.FormatTime(current.Duration)), true).
 		AddField("Provedor", current.Provider(), true).
-		SetFooter(utils.Fmt("Pedido por %s", current.Requester.Discriminator), current.Requester.AvatarURL("")).
+		SetFooter(utils.Fmt("Pedido por %s#%s", current.Requester.Username, current.Requester.Discriminator), current.Requester.AvatarURL("")).
 		SetTimestamp(current.Time.Format(time.RFC3339))
 
 	discord.Session.ChannelMessageSendEmbed(p.TextID, embed.Build())
