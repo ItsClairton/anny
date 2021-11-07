@@ -11,7 +11,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ItsClairton/Anny/utils"
 	"github.com/jonas747/ogg"
 )
 
@@ -20,8 +19,7 @@ import (
 type EncodingSession struct {
 	sync.Mutex
 
-	path   string    // Encoding from Path
-	reader io.Reader // Encoding from Reader
+	path string
 
 	running   bool
 	process   *os.Process
@@ -34,14 +32,8 @@ type EncodingSession struct {
 	buffer bytes.Buffer
 }
 
-func NewEncodingFromPath(path string) *EncodingSession {
+func NewEncodingURL(path string) *EncodingSession {
 	session := &EncodingSession{path: path, data: make(chan []byte)}
-	go session.start()
-	return session
-}
-
-func NewEncodingFromReader(reader io.Reader) *EncodingSession {
-	session := &EncodingSession{reader: reader, data: make(chan []byte)}
 	go session.start()
 	return session
 }
@@ -56,23 +48,16 @@ func (s *EncodingSession) start() {
 
 	s.Lock()
 	s.running = true
-	source := utils.Is(s.reader != nil, "pipe:0", s.path)
 
 	arguments := []string{
-		"-i", source, "-loglevel", "error",
-		"-map", "0:a", "-acodec", "libopus",
-		"-f", "ogg", "-frame_duration", "20", "pipe:1"}
+		"-hide_banner", "-threads", "1", "-loglevel", "error",
+		"-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "5",
+		"-i", s.path, "-c:a", "libopus", "-b:a", "96k", "-frame_duration", "20", "-vbr", "off",
+		"-f", "ogg", "-"}
 
-	if source != "pipe:0" {
-		arguments = append([]string{
-			"-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "2"}, arguments...)
-	}
 	cmd := exec.Command("ffmpeg", arguments...)
-	if s.reader != nil {
-		cmd.Stdin = s.reader
-	}
-
 	cmd.Stderr = &s.stderr
+
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		s.err = err
@@ -92,7 +77,7 @@ func (s *EncodingSession) start() {
 	defer func() {
 		if s.err == nil {
 			stderr := strings.TrimSpace(s.stderr.String())
-			if stderr != "" && stderr != "<nil>" {
+			if stderr != "" && stderr != "<nil>" && !strings.Contains(stderr, "Error in the pull function") {
 				s.Lock()
 				defer s.Unlock()
 				s.err = errors.New(strings.ReplaceAll(stderr, s.path, "source"))
@@ -106,15 +91,11 @@ func (s *EncodingSession) start() {
 
 func (s *EncodingSession) Stop() {
 	s.Lock()
-	defer s.Unlock()
 
 	if s.running && s.process != nil {
 		s.process.Kill()
 	}
-}
-
-func (s *EncodingSession) StopClean() {
-	s.Stop()
+	s.Unlock()
 
 	for range s.data {
 	}

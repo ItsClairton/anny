@@ -68,7 +68,7 @@ func (p YouTubeProvider) Find(term string) (*SongResult, error) {
 		return &SongResult{Songs: []*Song{song}, IsFromSearch: false, IsFromPlaylist: false}, nil
 	}
 
-	results, err := searchtube.Search(term, 5)
+	results, err := searchtube.Search(term, 1)
 	if err != nil {
 		return nil, err
 	}
@@ -108,14 +108,19 @@ func (YouTubeProvider) getSong(term string, playlist *Playlist) (*Song, error) {
 	if err != nil {
 		return nil, err
 	}
-	streamingURL := ""
 
+	streamingURL := ""
 	if video.HLSManifestURL != "" {
 		if streamingURL, err = getLiveURL(video.HLSManifestURL); err != nil {
 			return nil, err
 		}
 	} else {
-		if streamingURL, err = client.GetStreamURL(video, video.Formats.FindByItag(140)); err != nil {
+		format := video.Formats.FindByItag(251) // Opus
+		if format == nil {
+			format = video.Formats.FindByItag(140) // M4a
+		}
+
+		if streamingURL, err = client.GetStreamURL(video, format); err != nil {
 			return nil, err
 		}
 	}

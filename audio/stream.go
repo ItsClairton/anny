@@ -42,12 +42,8 @@ func NewStream(source *EncodingSession, vc *discordgo.VoiceConnection, callback 
 	return session
 }
 
-func StreamFromPath(path string, connection *discordgo.VoiceConnection, callback chan error) *StreamingSession {
-	return NewStream(NewEncodingFromPath(path), connection, callback)
-}
-
-func StreamFromReader(reader io.Reader, connection *discordgo.VoiceConnection, callback chan error) *StreamingSession {
-	return NewStream(NewEncodingFromReader(reader), connection, callback)
+func StreamURL(URL string, connection *discordgo.VoiceConnection, callback chan error) *StreamingSession {
+	return NewStream(NewEncodingURL(URL), connection, callback)
 }
 
 func (s *StreamingSession) stream() {
@@ -92,7 +88,7 @@ func (s *StreamingSession) stream() {
 			}
 			s.callback <- err
 
-			s.source.StopClean()
+			s.source.Stop()
 			s.Unlock()
 			break
 		}
@@ -146,7 +142,7 @@ func (s *StreamingSession) Stop() {
 	defer s.Unlock()
 
 	s.finished = true
-	s.source.StopClean()
+	s.source.Stop()
 
 	if s.source.err != nil {
 		s.callback <- s.source.err
