@@ -21,7 +21,6 @@ func main() {
 	discord.Init(os.Getenv("DISCORD_TOKEN"))
 	discord.Session.AddHandler(events.InteractionsEvent)
 	discord.Session.AddHandler(events.ReadyEvent)
-	discord.Session.AddHandler(events.VoiceStateUpdate)
 
 	if err := discord.Connect(); err != nil {
 		logger.Fatal("Um erro ocorreu ao tentar se conectar ao Discord.", err)
