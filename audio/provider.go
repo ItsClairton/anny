@@ -8,21 +8,17 @@ type Song struct {
 	Title, Author, Thumbnail, URL, StreamingURL string
 
 	Duration time.Duration
+	Playlist *Playlist
 	IsLive   bool
 
-	Provider SongProvider
-	Playlist *Playlist
-}
-
-func (s *Song) GetMoreInfo() (*Song, error) {
-	return s.Provider.GetInfo(s)
+	provider SongProvider
 }
 
 type SongProvider interface {
 	Name() string
 	IsValid(string) bool
 	Find(string) (*SongResult, error)
-	GetInfo(*Song) (*Song, error)
+	Load(*Song) (*Song, error)
 }
 
 type SongResult struct {
@@ -44,4 +40,16 @@ func FindSong(term string) (*SongResult, error) {
 		}
 	}
 	return nil, nil
+}
+
+func (s *Song) IsLoaded() bool {
+	return s.StreamingURL != ""
+}
+
+func (s *Song) Load() (*Song, error) {
+	return s.provider.Load(s)
+}
+
+func (s *Song) Provider() string {
+	return s.provider.Name()
 }

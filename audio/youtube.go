@@ -44,13 +44,13 @@ func (p YouTubeProvider) Find(term string) (*SongResult, error) {
 
 		for _, item := range result.Videos {
 			songResult.Songs = append(songResult.Songs, &Song{
+				provider:  &YouTubeProvider{},
 				Title:     item.Title,
 				URL:       utils.Fmt("https://youtu.be/%s", item.ID),
 				Thumbnail: utils.Fmt("https://img.youtube.com/vi/%s/mqdefault.jpg", item.ID),
 				Author:    item.Author,
 				Duration:  item.Duration,
 				Playlist:  playlist,
-				Provider:  &YouTubeProvider{},
 			})
 
 			playlist.Duration += item.Duration
@@ -86,20 +86,20 @@ func (p YouTubeProvider) Find(term string) (*SongResult, error) {
 		}
 
 		songResult.Songs = append(songResult.Songs, &Song{
+			provider:  &YouTubeProvider{},
 			Title:     video.Title,
 			URL:       video.URL,
 			Author:    video.Uploader,
 			Thumbnail: video.Thumbnail,
 			Duration:  duration,
 			IsLive:    video.Live,
-			Provider:  &YouTubeProvider{},
 		})
 	}
 
 	return songResult, nil
 }
 
-func (p *YouTubeProvider) GetInfo(song *Song) (*Song, error) {
+func (p *YouTubeProvider) Load(song *Song) (*Song, error) {
 	return p.getSong(song.URL, song.Playlist)
 }
 
@@ -121,6 +121,7 @@ func (YouTubeProvider) getSong(term string, playlist *Playlist) (*Song, error) {
 	}
 
 	return &Song{
+		provider:     &YouTubeProvider{},
 		Title:        video.Title,
 		URL:          utils.Fmt("https://youtu.be/%s", video.ID),
 		Author:       video.Author,
@@ -128,7 +129,6 @@ func (YouTubeProvider) getSong(term string, playlist *Playlist) (*Song, error) {
 		StreamingURL: streamingURL,
 		Duration:     video.Duration,
 		IsLive:       video.HLSManifestURL != "",
-		Provider:     &YouTubeProvider{},
 		Playlist:     playlist,
 	}, nil
 }

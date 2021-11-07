@@ -15,7 +15,7 @@ var StopCommand = discord.Interaction{
 		}
 
 		player := audio.GetPlayer(ctx.GuildID)
-		if player == nil || player.State() == audio.StoppedState {
+		if player == nil || player.State == audio.StoppedState {
 			return ctx.AsEphemeral().Send(emojis.MikuCry, "Não há nada tocando no momento.")
 		}
 

@@ -36,6 +36,10 @@ func AddCategory(category *Category) {
 	categories = append(categories, category)
 }
 
+func SendMessage(ChannelID, emoji, content string, args ...interface{}) (*discordgo.Message, error) {
+	return Session.ChannelMessageSend(ChannelID, utils.Fmt("%s | %s", emoji, utils.Fmt(content, args...)))
+}
+
 func GetInteractions() map[string]*Interaction {
 	return interactions
 }

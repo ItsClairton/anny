@@ -29,6 +29,8 @@ type StreamingSession struct {
 	callback   chan error
 }
 
+var ErrVoiceTimeout = errors.New("voice connection timeout")
+
 func NewStream(source *EncodingSession, vc *discordgo.VoiceConnection, callback chan error) *StreamingSession {
 	session := &StreamingSession{
 		source:     source,
@@ -67,23 +69,29 @@ func (s *StreamingSession) stream() {
 
 	for {
 		s.Lock()
+
+		if s.finished {
+			s.Unlock()
+			break
+		}
+
 		if s.paused {
 			s.Unlock()
 			return
 		}
+
 		s.Unlock()
 		err := s.readNext()
 
 		if err != nil {
 			s.Lock()
+
 			s.finished = true
 			if s.source.err != nil {
 				err = s.source.err
 			}
+			s.callback <- err
 
-			if s.callback != nil {
-				s.callback <- err
-			}
 			s.source.StopClean()
 			s.Unlock()
 			break
@@ -98,16 +106,17 @@ func (s *StreamingSession) readNext() error {
 		return err
 	}
 
-	timeOut := time.After(40 * time.Second)
+	timeOut := time.After(80 * time.Second)
 	select {
 	case <-timeOut:
-		return errors.New("voice connection timeout")
+		return ErrVoiceTimeout
 	case s.connection.OpusSend <- opus:
 	}
-	s.Lock()
-	s.framesSent++
-	s.Unlock()
 
+	s.Lock()
+	defer s.Unlock()
+
+	s.framesSent++
 	return nil
 }
 
@@ -132,23 +141,17 @@ func (s *StreamingSession) Pause(paused bool) {
 	}
 }
 
-func (s *StreamingSession) Finished() bool {
+func (s *StreamingSession) Stop() {
 	s.Lock()
 	defer s.Unlock()
 
-	return s.finished
-}
+	s.finished = true
+	s.source.StopClean()
 
-func (s *StreamingSession) Paused() bool {
-	s.Lock()
-	defer s.Unlock()
+	if s.source.err != nil {
+		s.callback <- s.source.err
+		return
+	}
 
-	return s.paused
-}
-
-func (s *StreamingSession) Source() *EncodingSession {
-	s.Lock()
-	defer s.Unlock()
-
-	return s.source
+	s.callback <- io.EOF
 }

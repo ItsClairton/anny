@@ -15,12 +15,11 @@ var ShuffleCommand = discord.Interaction{
 		}
 
 		player := audio.GetPlayer(ctx.GuildID)
-		if player == nil || player.State() == audio.StoppedState {
+		if player == nil || player.State == audio.StoppedState {
 			return ctx.AsEphemeral().Send(emojis.MikuCry, "Não há nada tocando no momento.")
 		}
 
-		queue := player.Queue()
-		if len(queue) < 2 {
+		if len(player.Queue) < 2 {
 			return ctx.AsEphemeral().Send(emojis.MikuCry, "Não há nada para embaralhar na fila.")
 		}
 
