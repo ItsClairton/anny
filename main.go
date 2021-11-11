@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,7 +16,11 @@ import (
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		logger.Fatal("Um erro ocorreu ao carregar o arquivo .env.", err)
+		if errors.Is(err, os.ErrNotExist) {
+			logger.Warn("Arquivo .env não encontrado, utilizando variaveis de ambiente fornecidas via linha de comando.")
+		} else {
+			logger.Fatal("Um erro ocorreu ao carregar as variaveis de ambiente do .env.", err)
+		}
 	}
 
 	discord.Init(os.Getenv("DISCORD_TOKEN"))
