@@ -2,23 +2,23 @@ package music
 
 import (
 	"github.com/ItsClairton/Anny/audio"
-	"github.com/ItsClairton/Anny/base/discord"
+	"github.com/ItsClairton/Anny/base"
 	"github.com/ItsClairton/Anny/utils/emojis"
 )
 
-var PauseCommand = discord.Interaction{
+var PauseCommand = base.Interaction{
 	Name:        "pausar",
 	Description: "Pausar ou despausar a música atual",
 	Handler:     handler,
 }
 
-var ResumeCommand = discord.Interaction{
+var ResumeCommand = base.Interaction{
 	Name:        "despausar",
 	Description: "Pausar ou despausar a música atual",
 	Handler:     handler,
 }
 
-var handler = func(ctx *discord.InteractionContext) error {
+var handler = func(ctx *base.InteractionContext) error {
 	if ctx.VoiceState() == nil {
 		return ctx.AsEphemeral().Send(emojis.MikuCry, "Você não está conectado em nenhum canal de voz.")
 	}

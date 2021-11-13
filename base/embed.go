@@ -1,25 +1,27 @@
-package discord
+package base
 
 import (
+	"time"
+
 	"github.com/ItsClairton/Anny/utils"
-	"github.com/bwmarrin/discordgo"
+	"github.com/diamondburned/arikawa/v3/discord"
 )
 
 type Embed struct {
-	*discordgo.MessageEmbed
+	discord.Embed
 }
 
 func NewEmbed() *Embed {
-	return &Embed{&discordgo.MessageEmbed{}}
+	return &Embed{discord.Embed{}}
 }
 
 func (e *Embed) SetAuthor(args ...string) *Embed {
-	author := &discordgo.MessageEmbedAuthor{
+	author := &discord.EmbedAuthor{
 		Name: args[0],
 	}
 
 	if len(args) >= 2 {
-		author.IconURL = args[1]
+		author.Icon = args[1]
 	}
 	if len(args) >= 3 {
 		author.URL = args[2]
@@ -55,12 +57,12 @@ func (e *Embed) SetDescription(desc string, args ...interface{}) *Embed {
 }
 
 func (e *Embed) SetColor(color int) *Embed {
-	e.Color = color
+	e.Color = discord.Color(color)
 	return e
 }
 
 func (e *Embed) SetImage(url string) *Embed {
-	e.Image = &discordgo.MessageEmbedImage{
+	e.Image = &discord.EmbedImage{
 		URL: url,
 	}
 
@@ -68,15 +70,15 @@ func (e *Embed) SetImage(url string) *Embed {
 }
 
 func (e *Embed) SetThumbnail(url string) *Embed {
-	e.Thumbnail = &discordgo.MessageEmbedThumbnail{
+	e.Thumbnail = &discord.EmbedThumbnail{
 		URL: url,
 	}
 
 	return e
 }
 
-func (e *Embed) SetTimestamp(time string) *Embed {
-	e.Timestamp = time
+func (e *Embed) SetTimestamp(time time.Time) *Embed {
+	e.Timestamp = discord.NewTimestamp(time)
 	return e
 }
 
@@ -91,7 +93,7 @@ func (e *Embed) SetField(index int, name, value string, inline bool) *Embed {
 		value = value[:1024]
 	}
 
-	e.Fields[index] = &discordgo.MessageEmbedField{
+	e.Fields[index] = discord.EmbedField{
 		Name:   name,
 		Value:  value,
 		Inline: inline,
@@ -107,7 +109,7 @@ func (e *Embed) AddField(name, value string, inline bool) *Embed {
 		value = value[:1024]
 	}
 
-	e.Fields = append(e.Fields, &discordgo.MessageEmbedField{
+	e.Fields = append(e.Fields, discord.EmbedField{
 		Name:   name,
 		Value:  value,
 		Inline: inline,
@@ -120,13 +122,13 @@ func (e *Embed) SetFooter(content, imgUrl string) *Embed {
 		content = content[:2048]
 	}
 
-	e.Footer = &discordgo.MessageEmbedFooter{
-		Text:    content,
-		IconURL: imgUrl,
+	e.Footer = &discord.EmbedFooter{
+		Text: content,
+		Icon: imgUrl,
 	}
 	return e
 }
 
-func (e *Embed) Build() *discordgo.MessageEmbed {
-	return e.MessageEmbed
+func (e *Embed) Build() discord.Embed {
+	return e.Embed
 }

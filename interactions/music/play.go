@@ -2,33 +2,25 @@ package music
 
 import (
 	"github.com/ItsClairton/Anny/audio"
-	"github.com/ItsClairton/Anny/base/discord"
+	"github.com/ItsClairton/Anny/base"
 	"github.com/ItsClairton/Anny/utils"
 	"github.com/ItsClairton/Anny/utils/emojis"
-	"github.com/bwmarrin/discordgo"
+	"github.com/diamondburned/arikawa/v3/discord"
 )
 
-var PlayCommand = discord.Interaction{
+var PlayCommand = base.Interaction{
 	Name:        "tocar",
 	Description: "Tocar uma música, lista de reprodução, ou live",
-	Options: []*discordgo.ApplicationCommandOption{{
-		Name:        "argumento",
-		Description: "Titulo ou link do conteúdo no YouTube",
+	Options: discord.CommandOptions{&discord.StringOption{
+		OptionName:  "argumento",
+		Description: "Titulo, ou URL de um vídeo, playlist ou áudio",
 		Required:    true,
-		Type:        discordgo.ApplicationCommandOptionString,
-	}, {
-		Name:        "embaralhar",
-		Description: "Embaralhar as músicas da fila",
-		Required:    false,
-		Type:        discordgo.ApplicationCommandOptionBoolean,
+	}, &discord.BooleanOption{
+		OptionName:  "embaralhar",
+		Description: "Embaralhar as músicas na fila caso seja uma playlist",
 	}},
-	Handler: func(ctx *discord.InteractionContext) error {
-		argument := ctx.ApplicationCommandData().Options[0].StringValue()
-
-		shuffle := false
-		if len(ctx.ApplicationCommandData().Options) == 2 {
-			shuffle = ctx.ApplicationCommandData().Options[1].BoolValue()
-		}
+	Handler: func(ctx *base.InteractionContext) error {
+		query, shuffle := ctx.ArgumentAsString(0), ctx.ArgumentAsBool(1)
 
 		state := ctx.VoiceState()
 		if state == nil {
@@ -40,25 +32,25 @@ var PlayCommand = discord.Interaction{
 			player = audio.NewPlayer(ctx.GuildID, ctx.ChannelID, state.ChannelID)
 		}
 
-		embed := discord.
+		embed := base.
 			NewEmbed().
 			SetColor(0xF8C300).
 			SetDescription("%s Obtendo melhores resultados para sua pesquisa...", emojis.AnimatedStaff)
 		ctx.WithEmbed(embed).Send()
 		defer player.Kill(false)
 
-		result, err := audio.FindSong(argument)
+		result, err := audio.FindSong(query)
 		if err != nil {
 			return ctx.SendWithError(err)
 		}
 
 		if result == nil {
 			embed.SetColor(0xF93A2F).SetDescription("%s Não consegui achar essa música, Desculpa ;(", emojis.MikuCry)
-			return ctx.Edit()
+			return ctx.WithEmbed(embed).Edit()
 		}
 
 		if result.IsFromPlaylist {
-			defer player.AddSong(ctx.Member.User, shuffle, result.Songs...)
+			defer player.AddSong(&ctx.Member.User, shuffle, result.Songs...)
 
 			playlist := result.Songs[0].Playlist
 			embed.SetColor(0x00D166).SetThumbnail(result.Songs[0].Thumbnail).
@@ -67,7 +59,7 @@ var PlayCommand = discord.Interaction{
 				AddField("Itens", utils.Fmt("%v", len(result.Songs)), true).
 				AddField("Duração", utils.FormatTime(playlist.Duration), true)
 
-			return ctx.Edit()
+			return ctx.WithEmbed(embed).Edit()
 		}
 
 		song := result.Songs[0]
@@ -77,7 +69,7 @@ var PlayCommand = discord.Interaction{
 
 		if !song.IsLoaded() {
 			embed.SetDescription("%s Carregando melhores informações de [%s](%s)...", emojis.AnimatedStaff, song.Title, song.URL)
-			ctx.Edit()
+			ctx.WithEmbed(embed).Edit()
 
 			song, err = song.Load()
 			if err != nil {
@@ -85,11 +77,11 @@ var PlayCommand = discord.Interaction{
 			}
 		}
 
-		defer player.AddSong(ctx.Member.User, shuffle, song)
+		defer player.AddSong(&ctx.Member.User, shuffle, song)
 		embed.SetColor(0x00D166).
 			SetThumbnail(song.Thumbnail).
 			SetDescription("%s Música [%s](%s) adicionada com sucesso na fila", emojis.ZeroYeah, song.Title, song.URL)
 
-		return ctx.Edit()
+		return ctx.WithEmbed(embed).Edit()
 	},
 }

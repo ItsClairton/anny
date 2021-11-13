@@ -1,15 +1,18 @@
 package events
 
 import (
-	"github.com/ItsClairton/Anny/base/discord"
+	"github.com/ItsClairton/Anny/base"
 	"github.com/ItsClairton/Anny/utils"
 	"github.com/ItsClairton/Anny/utils/emojis"
 	"github.com/ItsClairton/Anny/utils/logger"
-	"github.com/bwmarrin/discordgo"
+	"github.com/diamondburned/arikawa/v3/api"
+	"github.com/diamondburned/arikawa/v3/discord"
+	"github.com/diamondburned/arikawa/v3/gateway"
+	"github.com/diamondburned/arikawa/v3/state"
 )
 
-var handleFunc = func(i *discord.Interaction, ic *discordgo.InteractionCreate, s *discordgo.Session, sended bool) {
-	context := discord.NewContext(ic, s, sended)
+var handleFunc = func(i *base.Interaction, ic *gateway.InteractionCreateEvent, s *state.State, sended bool) {
+	context := base.NewContext(ic, s, sended)
 
 	err := i.Handler(context)
 	if err != nil {
@@ -23,18 +26,17 @@ var handleFunc = func(i *discord.Interaction, ic *discordgo.InteractionCreate, s
 	}
 }
 
-func InteractionsEvent(s *discordgo.Session, ic *discordgo.InteractionCreate) {
-
-	if ic.Type == discordgo.InteractionApplicationCommand {
-		i := discord.GetInteractions()[ic.ApplicationCommandData().Name]
-		if i != nil {
-			if i.Deffered {
-				s.InteractionRespond(ic.Interaction, &discordgo.InteractionResponse{Type: 5})
-				go handleFunc(i, ic, s, true)
+func OnInteraction(e *gateway.InteractionCreateEvent) {
+	switch data := e.Data.(type) {
+	case *discord.CommandInteraction:
+		interaction := base.Interactions[data.Name]
+		if interaction != nil {
+			if interaction.Deffered {
+				base.Session.RespondInteraction(e.ID, e.Token, api.InteractionResponse{Type: 5})
+				go handleFunc(interaction, e, base.Session, true)
 			} else {
-				go handleFunc(i, ic, s, false)
+				go handleFunc(interaction, e, base.Session, false)
 			}
 		}
 	}
-
 }

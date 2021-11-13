@@ -1,14 +1,14 @@
 package misc
 
 import (
-	"github.com/ItsClairton/Anny/base/discord"
+	"github.com/ItsClairton/Anny/base"
 	"github.com/ItsClairton/Anny/utils/emojis"
 )
 
-var PingCommand = discord.Interaction{
+var PingCommand = base.Interaction{
 	Name:        "ping",
 	Description: "Pong!",
-	Handler: func(ctx *discord.InteractionContext) error {
-		return ctx.Send(emojis.PingPong, "Pong, %dms.", ctx.Session.HeartbeatLatency().Milliseconds())
+	Handler: func(ctx *base.InteractionContext) error {
+		return ctx.Send(emojis.PingPong, "Pong, %dms.", 0)
 	},
 }

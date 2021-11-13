@@ -5,11 +5,11 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/ItsClairton/Anny/base/discord"
+	"github.com/ItsClairton/Anny/base"
 	"github.com/ItsClairton/Anny/utils"
 	"github.com/ItsClairton/Anny/utils/emojis"
-	"github.com/ItsClairton/Anny/utils/logger"
-	"github.com/bwmarrin/discordgo"
+	"github.com/diamondburned/arikawa/v3/discord"
+	"github.com/diamondburned/arikawa/v3/voice"
 )
 
 var (
@@ -17,23 +17,24 @@ var (
 	PausedState  = 1
 	PlayingState = 2
 
-	players = map[string]*Player{}
+	players = map[discord.GuildID]*Player{}
 )
 
 type Player struct {
 	Timer      *time.Timer
-	Connection *discordgo.VoiceConnection
+	Connection *voice.Session
 
 	State   int
 	Current *CurrentSong
 	Queue   []*RequestedSong
 
-	GuildID, TextID, VoiceID string
+	GuildID         discord.GuildID
+	VoiceID, TextID discord.ChannelID
 }
 
 type RequestedSong struct {
 	*Song
-	Requester *discordgo.User
+	Requester *discord.User
 	Time      time.Time
 }
 
@@ -42,30 +43,31 @@ type CurrentSong struct {
 	*StreamingSession
 }
 
-func NewPlayer(GuildID, TextID, VoiceID string) *Player {
+func NewPlayer(GuildID discord.GuildID, TextID, VoiceID discord.ChannelID) *Player {
 	player := &Player{State: StoppedState, GuildID: GuildID, TextID: TextID, VoiceID: VoiceID}
 	players[player.GuildID] = player
 
 	go func() {
-		connection, err := discord.Session.ChannelVoiceJoin(player.GuildID, player.VoiceID, false, true)
+		s, _ := voice.NewSession(base.Session)
+
+		err := s.JoinChannel(GuildID, VoiceID, false, true)
 		if err != nil {
-			discord.SendMessage(player.TextID, emojis.MikuCry, "Um erro ocorreu ao fazer conexão com o Canal de voz: `%v`", err)
-			logger.Warn(utils.Fmt("Um erro ocorreu ao fazer conexão com o canal de voz %s, da Guilda %s.", player.VoiceID, player.GuildID), err)
+			base.SendMessage(player.TextID, emojis.MikuCry, "Um erro ocorreu ao tentar se conectar ao canal de voz: `%v`", err)
 			player.Kill(true)
-		} else {
-			player.Connection = connection
-			player.Play()
 		}
+
+		player.Connection = s
+		player.Play()
 	}()
 
 	return player
 }
 
-func GetPlayer(id string) *Player {
+func GetPlayer(id discord.GuildID) *Player {
 	return players[id]
 }
 
-func (p *Player) AddSong(requester *discordgo.User, shuffle bool, tracks ...*Song) {
+func (p *Player) AddSong(requester *discord.User, shuffle bool, tracks ...*Song) {
 	for _, track := range tracks {
 		p.Queue = append(p.Queue, &RequestedSong{track, requester, time.Now()})
 	}
@@ -117,7 +119,7 @@ func (p *Player) Play() {
 
 	if !current.IsLoaded() {
 		if song, err := current.Load(); err != nil {
-			discord.SendMessage(p.TextID, emojis.MikuCry, "Um erro ocorreu ao carregar a música **%s**: `%v`", current.Title, err)
+			base.SendMessage(p.TextID, emojis.MikuCry, "Um erro ocorreu ao carregar a música **%s**: `%v`", current.Title, err)
 			go p.Play()
 			return
 		} else {
@@ -130,32 +132,25 @@ func (p *Player) Play() {
 	go func() {
 		err := <-done
 
-		if err == ErrVoiceTimeout {
-			discord.SendMessage(p.TextID, emojis.MikuCry, "Tempo de conexão com o canal de voz esgotado.")
-			p.Current, p.State = nil, StoppedState
-			p.Kill(true)
-			return
-		}
-
 		if err != io.EOF {
-			discord.SendMessage(p.TextID, emojis.MikuCry, "Um erro ocorreu enquanto tocava a música **%s**: `%v`", current.Title, err)
+			base.SendMessage(p.TextID, emojis.MikuCry, "Um erro ocorreu enquanto tocava a música **%s**: `%v`", current.Title, err)
 		}
 
 		p.Current, p.State = nil, StoppedState
 		p.Play()
 	}()
 
-	embed := discord.NewEmbed().
+	embed := base.NewEmbed().
 		SetDescription("%s Tocando agora [%s](%s)", emojis.ZeroYeah, current.Title, current.URL).
 		SetImage(current.Thumbnail).
 		SetColor(0xA652BB).
 		AddField("Autor", current.Author, true).
 		AddField("Duração", utils.Is(current.IsLive, "--:--", utils.FormatTime(current.Duration)), true).
 		AddField("Provedor", current.Provider(), true).
-		SetFooter(utils.Fmt("Pedido por %s#%s", current.Requester.Username, current.Requester.Discriminator), current.Requester.AvatarURL("")).
-		SetTimestamp(current.Time.Format(time.RFC3339))
+		SetFooter(utils.Fmt("Pedido por %s#%s", current.Requester.Username, current.Requester.Discriminator), current.Requester.AvatarURL()).
+		SetTimestamp(current.Time)
 
-	discord.Session.ChannelMessageSendEmbed(p.TextID, embed.Build())
+	base.Session.SendMessage(p.TextID, "", embed.Build())
 }
 
 func (p *Player) Kill(force bool) {
@@ -167,7 +162,7 @@ func (p *Player) Kill(force bool) {
 		}
 
 		if p.Connection != nil {
-			p.Connection.Disconnect()
+			p.Connection.Leave()
 		}
 
 		delete(players, p.GuildID)

@@ -1,28 +1,25 @@
 package image
 
 import (
-	"github.com/ItsClairton/Anny/base/discord"
+	"github.com/ItsClairton/Anny/base"
 	"github.com/ItsClairton/Anny/providers"
-	"github.com/bwmarrin/discordgo"
+	"github.com/diamondburned/arikawa/v3/discord"
 )
 
-var CatCommand = discord.Interaction{
+var CatCommand = base.Interaction{
 	Name:        "cat",
 	Description: "Imagem aleatória de um Gatinho",
-	Options: []*discordgo.ApplicationCommandOption{{
-		Name:        "gif",
+	Options: discord.CommandOptions{&discord.BooleanOption{
+		OptionName:  "GIF",
 		Description: "Filtrar apenas por GIF's",
-		Type:        discordgo.ApplicationCommandOptionBoolean,
-		Required:    false,
 	}},
-	Handler: func(ctx *discord.InteractionContext) error {
-		gif := len(ctx.ApplicationCommandData().Options) > 0 && ctx.ApplicationCommandData().Options[0].BoolValue()
+	Handler: func(ctx *base.InteractionContext) error {
+		gif := ctx.ArgumentAsBool(0)
 
 		info, err := providers.GetRandomCat(gif)
 		if err != nil {
 			return ctx.SendWithError(err)
 		}
-
 		return ctx.Send(info)
 	},
 }

@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/ItsClairton/Anny/base/discord"
+	"github.com/ItsClairton/Anny/base"
 	"github.com/ItsClairton/Anny/events"
 	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/joho/godotenv"
@@ -23,21 +23,21 @@ func main() {
 		}
 	}
 
-	discord.Init(os.Getenv("DISCORD_TOKEN"))
-	discord.Session.AddHandler(events.InteractionsEvent)
-	discord.Session.AddHandler(events.ReadyEvent)
-
-	if err := discord.Connect(); err != nil {
+	if err := base.New(os.Getenv("DISCORD_TOKEN")); err != nil {
 		logger.Fatal("Um erro ocorreu ao tentar se conectar ao Discord.", err)
 	}
-	if err := discord.UpdateInteractions(); err != nil {
-		logger.Fatal("Um erro ocorreu ao obter a lista de interações do Discord.", err)
+
+	base.AddHandler(events.OnReady)
+	base.AddHandler(events.OnInteraction)
+	base.AddHandler(events.OnServerChange)
+
+	if err := base.CheckInteractions(); err != nil {
+		logger.Fatal("Um erro ocorreu ao obter a lista de interações registradas no Discord.", err)
 	}
 
 	logger.Info("Conexão com o Discord feita com Sucesso.")
-
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-s
-	discord.Disconnect()
+	base.Disconnect()
 }

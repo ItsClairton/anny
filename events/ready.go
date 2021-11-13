@@ -3,9 +3,16 @@ package events
 import (
 	"os"
 
-	"github.com/bwmarrin/discordgo"
+	"github.com/ItsClairton/Anny/base"
+	"github.com/diamondburned/arikawa/v3/discord"
+	"github.com/diamondburned/arikawa/v3/gateway"
 )
 
-func ReadyEvent(s *discordgo.Session, r *discordgo.Ready) {
-	s.UpdateListeningStatus(os.Getenv("DISCORD_STATUS"))
+func OnReady(_ *gateway.ReadyEvent) {
+	base.Session.UpdateStatus(gateway.UpdateStatusData{
+		Activities: []discord.Activity{{
+			Name: os.Getenv("DISCORD_STATUS"),
+			Type: discord.ListeningActivity,
+		}},
+	})
 }

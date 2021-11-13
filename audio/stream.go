@@ -1,12 +1,12 @@
 package audio
 
 import (
-	"errors"
 	"io"
 	"sync"
 	"time"
 
-	"github.com/bwmarrin/discordgo"
+	"github.com/diamondburned/arikawa/v3/voice"
+	"github.com/diamondburned/arikawa/v3/voice/voicegateway"
 )
 
 // https://github.com/jonas747/dca
@@ -19,7 +19,7 @@ type OpusReader interface {
 type StreamingSession struct {
 	sync.Mutex
 	source     *EncodingSession
-	connection *discordgo.VoiceConnection
+	connection *voice.Session
 
 	running  bool
 	paused   bool
@@ -29,9 +29,7 @@ type StreamingSession struct {
 	callback   chan error
 }
 
-var ErrVoiceTimeout = errors.New("voice connection timeout")
-
-func NewStream(source *EncodingSession, vc *discordgo.VoiceConnection, callback chan error) *StreamingSession {
+func NewStream(source *EncodingSession, vc *voice.Session, callback chan error) *StreamingSession {
 	session := &StreamingSession{
 		source:     source,
 		connection: vc,
@@ -42,7 +40,7 @@ func NewStream(source *EncodingSession, vc *discordgo.VoiceConnection, callback 
 	return session
 }
 
-func StreamURL(URL string, connection *discordgo.VoiceConnection, callback chan error) *StreamingSession {
+func StreamURL(URL string, connection *voice.Session, callback chan error) *StreamingSession {
 	return NewStream(NewEncodingURL(URL), connection, callback)
 }
 
@@ -62,6 +60,12 @@ func (s *StreamingSession) stream() {
 		s.running = false
 		s.Unlock()
 	}()
+
+	if err := s.connection.Speaking(voicegateway.Microphone); err != nil {
+		s.callback <- err
+		close(s.callback)
+		return
+	}
 
 	for {
 		s.Lock()
@@ -88,6 +92,7 @@ func (s *StreamingSession) stream() {
 			}
 			s.callback <- err
 
+			close(s.callback)
 			s.source.Stop()
 			s.Unlock()
 			break
@@ -102,16 +107,13 @@ func (s *StreamingSession) readNext() error {
 		return err
 	}
 
-	timeOut := time.After(80 * time.Second)
-	select {
-	case <-timeOut:
-		return ErrVoiceTimeout
-	case s.connection.OpusSend <- opus:
+	_, err = s.connection.Write(opus)
+	if err != nil {
+		return err
 	}
 
 	s.Lock()
 	defer s.Unlock()
-
 	s.framesSent++
 	return nil
 }

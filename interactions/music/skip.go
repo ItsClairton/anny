@@ -2,14 +2,14 @@ package music
 
 import (
 	"github.com/ItsClairton/Anny/audio"
-	"github.com/ItsClairton/Anny/base/discord"
+	"github.com/ItsClairton/Anny/base"
 	"github.com/ItsClairton/Anny/utils/emojis"
 )
 
-var SkipCommand = discord.Interaction{
+var SkipCommand = base.Interaction{
 	Name:        "pular",
 	Description: "Pular a música atual",
-	Handler: func(ctx *discord.InteractionContext) error {
+	Handler: func(ctx *base.InteractionContext) error {
 		if ctx.VoiceState() == nil {
 			return ctx.AsEphemeral().Send(emojis.MikuCry, "Você não está conectado em nenhum canal de voz.")
 		}
