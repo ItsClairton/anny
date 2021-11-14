@@ -15,7 +15,7 @@ var (
 	client        = &youtube.Client{}
 	videoRegex    = regexp.MustCompile(`^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$`)
 	hlsRegex      = regexp.MustCompile(`(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#,?&*//=]*)(.m3u8)\b([-a-zA-Z0-9@:%_\+.~#,?&//=]*))`)
-	playlistRegex = regexp.MustCompile(`^https?:\/\/(www.youtube.com|youtube.com)\/playlist(.*)$`)
+	playlistRegex = regexp.MustCompile(`[&?]list=([A-Za-z0-9_-]{18,42})(&.*)?$`)
 )
 
 type YouTubeProvider struct{}
@@ -24,39 +24,13 @@ func (YouTubeProvider) Name() string {
 	return utils.Fmt("%s %s", emojis.Youtube, "YouTube")
 }
 
-func (YouTubeProvider) IsValid(term string) bool {
+func (YouTubeProvider) IsCompatible(term string) bool {
 	return videoRegex.MatchString(term) || !utils.URLRegex.MatchString(term) || playlistRegex.MatchString(term)
 }
 
 func (p YouTubeProvider) Find(term string) (*SongResult, error) {
 	if playlistRegex.MatchString(term) {
-		result, err := client.GetPlaylist(term)
-		if err != nil {
-			return nil, err
-		}
-
-		songResult := &SongResult{Songs: []*Song{}, IsFromSearch: false, IsFromPlaylist: true}
-		playlist := &Playlist{
-			Title:  result.Title,
-			Author: result.Author,
-			URL:    utils.Fmt("https://youtube.com/playlist?list=%s", result.ID),
-		}
-
-		for _, item := range result.Videos {
-			songResult.Songs = append(songResult.Songs, &Song{
-				provider:  &YouTubeProvider{},
-				Title:     item.Title,
-				URL:       utils.Fmt("https://youtu.be/%s", item.ID),
-				Thumbnail: utils.Fmt("https://img.youtube.com/vi/%s/mqdefault.jpg", item.ID),
-				Author:    item.Author,
-				Duration:  item.Duration,
-				Playlist:  playlist,
-			})
-
-			playlist.Duration += item.Duration
-		}
-
-		return songResult, nil
+		return p.getPlaylist(term)
 	}
 
 	if videoRegex.MatchString(term) {
@@ -68,39 +42,68 @@ func (p YouTubeProvider) Find(term string) (*SongResult, error) {
 		return &SongResult{Songs: []*Song{song}, IsFromSearch: false, IsFromPlaylist: false}, nil
 	}
 
-	results, err := searchtube.Search(term, 1)
+	items, err := searchtube.Search(term, 1)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(results) < 1 {
+	if len(items) < 1 {
 		return nil, nil
 	}
 
-	songResult := &SongResult{Songs: []*Song{}, IsFromSearch: true, IsFromPlaylist: false}
+	result := &SongResult{Songs: []*Song{}, IsFromSearch: true, IsFromPlaylist: false}
 
-	for _, video := range results {
+	for _, video := range items {
 		var duration time.Duration
 		if !video.Live {
 			duration, _ = video.GetDuration()
 		}
 
-		songResult.Songs = append(songResult.Songs, &Song{
-			provider:  &YouTubeProvider{},
+		result.Songs = append(result.Songs, &Song{
 			Title:     video.Title,
 			URL:       video.URL,
 			Author:    video.Uploader,
 			Thumbnail: video.Thumbnail,
 			Duration:  duration,
 			IsLive:    video.Live,
+			provider:  &YouTubeProvider{},
 		})
 	}
 
-	return songResult, nil
+	return result, nil
 }
 
 func (p *YouTubeProvider) Load(song *Song) (*Song, error) {
 	return p.getSong(song.URL, song.Playlist)
+}
+
+func (YouTubeProvider) getPlaylist(term string) (*SongResult, error) {
+	data, err := client.GetPlaylist(term)
+	if err != nil {
+		return nil, err
+	}
+
+	result := &SongResult{Songs: []*Song{}, IsFromSearch: false, IsFromPlaylist: true}
+
+	playlist := &Playlist{
+		Title: data.Title, Author: data.Author,
+		URL: utils.Fmt("https://youtube.com/playlist?list=%s", data.ID),
+	}
+
+	for _, item := range data.Videos {
+		playlist.Duration += item.Duration
+
+		result.Songs = append(result.Songs, &Song{
+			Title:     item.Title,
+			URL:       utils.Fmt("https://youtu.be/%s", item.ID),
+			Thumbnail: utils.Fmt("https://img.youtube.com/vi/%s/mqdefault.jpg", item.ID),
+			Duration:  item.Duration,
+			Playlist:  playlist,
+			provider:  &YouTubeProvider{},
+		})
+	}
+
+	return result, nil
 }
 
 func (YouTubeProvider) getSong(term string, playlist *Playlist) (*Song, error) {
@@ -126,7 +129,6 @@ func (YouTubeProvider) getSong(term string, playlist *Playlist) (*Song, error) {
 	}
 
 	return &Song{
-		provider:     &YouTubeProvider{},
 		Title:        video.Title,
 		URL:          utils.Fmt("https://youtu.be/%s", video.ID),
 		Author:       video.Author,
@@ -135,6 +137,7 @@ func (YouTubeProvider) getSong(term string, playlist *Playlist) (*Song, error) {
 		Duration:     video.Duration,
 		IsLive:       video.HLSManifestURL != "",
 		Playlist:     playlist,
+		provider:     &YouTubeProvider{},
 	}, nil
 }
 
@@ -149,4 +152,8 @@ func getLiveURL(url string) (string, error) {
 	} else {
 		return "", errors.New("no valid URL found within HLS")
 	}
+}
+
+func (YouTubeProvider) IsLoaded(song *Song) bool {
+	return song.StreamingURL != ""
 }

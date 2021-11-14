@@ -16,8 +16,9 @@ type Song struct {
 
 type SongProvider interface {
 	Name() string
-	IsValid(string) bool
+	IsCompatible(string) bool
 	Find(string) (*SongResult, error)
+	IsLoaded(*Song) bool
 	Load(*Song) (*Song, error)
 }
 
@@ -35,7 +36,7 @@ type Playlist struct {
 
 func FindSong(term string) (*SongResult, error) {
 	for _, provider := range availableProviders {
-		if provider.IsValid(term) {
+		if provider.IsCompatible(term) {
 			return provider.Find(term)
 		}
 	}
@@ -43,7 +44,7 @@ func FindSong(term string) (*SongResult, error) {
 }
 
 func (s *Song) IsLoaded() bool {
-	return s.StreamingURL != ""
+	return s.provider.IsLoaded(s)
 }
 
 func (s *Song) Load() (*Song, error) {
