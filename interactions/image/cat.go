@@ -18,7 +18,7 @@ var CatCommand = base.Interaction{
 
 		info, err := providers.GetRandomCat(gif)
 		if err != nil {
-			return ctx.SendWithError(err)
+			return ctx.SendError(err)
 		}
 		return ctx.Send(info)
 	},

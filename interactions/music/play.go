@@ -41,7 +41,7 @@ var PlayCommand = base.Interaction{
 
 		result, err := audio.FindSong(query)
 		if err != nil {
-			return ctx.SendWithError(err)
+			return ctx.SendError(err)
 		}
 
 		if result == nil {
@@ -73,7 +73,7 @@ var PlayCommand = base.Interaction{
 
 			song, err = song.Load()
 			if err != nil {
-				return ctx.SendWithError(err)
+				return ctx.SendError(err)
 			}
 		}
 

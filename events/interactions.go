@@ -1,9 +1,10 @@
 package events
 
 import (
+	"runtime/debug"
+
 	"github.com/ItsClairton/Anny/base"
 	"github.com/ItsClairton/Anny/utils"
-	"github.com/ItsClairton/Anny/utils/emojis"
 	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/diamondburned/arikawa/v3/api"
 	"github.com/diamondburned/arikawa/v3/discord"
@@ -14,15 +15,18 @@ import (
 var handleFunc = func(i *base.Interaction, ic *gateway.InteractionCreateEvent, s *state.State, sended bool) {
 	context := base.NewContext(ic, s, sended)
 
+	defer func() {
+		if err := recover(); err != nil {
+			stacktrace := utils.Fmt("panic: %s\n\n%v", err, string(debug.Stack()))
+
+			logger.ErrorF("Um erro fatal ocorreu ao executar as ações da interação %s, Guilda %s.\n%s", i.Name, ic.GuildID, stacktrace)
+			context.SendStackTrace(stacktrace)
+		}
+	}()
+
 	err := i.Handler(context)
 	if err != nil {
 		logger.Warn(utils.Fmt("Não foi possível responder a interação %s, Guild: %s", i.Name, ic.GuildID), err)
-	}
-
-	panic := recover()
-	if panic != nil {
-		logger.Error(utils.Fmt("Um erro fatal ocorreu ao executar a interação %s, Guild: %s", i.Name, ic.GuildID))
-		context.Send(emojis.MikuCry, "Um erro fatal ocorreu ao executar essa ação: `%v`", panic)
 	}
 }
 
