@@ -2,7 +2,10 @@ package audio
 
 import (
 	"errors"
+	"fmt"
+	"net/http"
 	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/ItsClairton/Anny/utils"
@@ -16,25 +19,26 @@ var (
 	videoRegex    = regexp.MustCompile(`^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$`)
 	hlsRegex      = regexp.MustCompile(`(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#,?&*//=]*)(.m3u8)\b([-a-zA-Z0-9@:%_\+.~#,?&//=]*))`)
 	playlistRegex = regexp.MustCompile(`[&?]list=([A-Za-z0-9_-]{18,42})(&.*)?$`)
+	cache         = make(map[string]*Song)
 )
 
 type YouTubeProvider struct{}
 
-func (YouTubeProvider) Name() string {
+func (*YouTubeProvider) Name() string {
 	return utils.Fmt("%s %s", emojis.Youtube, "YouTube")
 }
 
-func (YouTubeProvider) IsCompatible(term string) bool {
+func (*YouTubeProvider) IsCompatible(term string) bool {
 	return videoRegex.MatchString(term) || !utils.URLRegex.MatchString(term) || playlistRegex.MatchString(term)
 }
 
-func (p YouTubeProvider) Find(term string) (*SongResult, error) {
+func (p *YouTubeProvider) Find(term string) (*SongResult, error) {
 	if playlistRegex.MatchString(term) {
 		return p.getPlaylist(term)
 	}
 
 	if videoRegex.MatchString(term) {
-		song, err := p.getSong(term, nil)
+		song, err := p.getSong(term, nil, 1)
 		if err != nil {
 			return nil, err
 		}
@@ -66,7 +70,7 @@ func (p YouTubeProvider) Find(term string) (*SongResult, error) {
 			Thumbnail: video.Thumbnail,
 			Duration:  duration,
 			IsLive:    video.Live,
-			provider:  &YouTubeProvider{},
+			provider:  p,
 		})
 	}
 
@@ -74,10 +78,10 @@ func (p YouTubeProvider) Find(term string) (*SongResult, error) {
 }
 
 func (p *YouTubeProvider) Load(song *Song) (*Song, error) {
-	return p.getSong(song.URL, song.Playlist)
+	return p.getSong(song.URL, song.Playlist, 1)
 }
 
-func (YouTubeProvider) getPlaylist(term string) (*SongResult, error) {
+func (p *YouTubeProvider) getPlaylist(term string) (*SongResult, error) {
 	data, err := client.GetPlaylist(term)
 	if err != nil {
 		return nil, err
@@ -99,14 +103,19 @@ func (YouTubeProvider) getPlaylist(term string) (*SongResult, error) {
 			Thumbnail: utils.Fmt("https://img.youtube.com/vi/%s/mqdefault.jpg", item.ID),
 			Duration:  item.Duration,
 			Playlist:  playlist,
-			provider:  &YouTubeProvider{},
+			provider:  p,
 		})
 	}
 
 	return result, nil
 }
 
-func (YouTubeProvider) getSong(term string, playlist *Playlist) (*Song, error) {
+func (p *YouTubeProvider) getSong(term string, playlist *Playlist, attempts int) (*Song, error) {
+	cached := cache[term]
+	if cached != nil && p.IsLoaded(cached) {
+		return cached, nil
+	}
+
 	video, err := client.GetVideo(term)
 	if err != nil {
 		return nil, err
@@ -128,7 +137,22 @@ func (YouTubeProvider) getSong(term string, playlist *Playlist) (*Song, error) {
 		}
 	}
 
-	return &Song{
+	res, err := http.Get(streamingURL)
+	if err != nil {
+		return nil, err
+	}
+	res.Body.Close()
+
+	if res.StatusCode >= 400 {
+		if attempts >= 5 {
+			return nil, fmt.Errorf("the server responded with unexpected %d status code after 5 attempts", res.StatusCode)
+		}
+
+		attempts++
+		return p.getSong(term, playlist, attempts)
+	}
+
+	song := &Song{
 		Title:        video.Title,
 		URL:          utils.Fmt("https://youtu.be/%s", video.ID),
 		Author:       video.Author,
@@ -137,8 +161,20 @@ func (YouTubeProvider) getSong(term string, playlist *Playlist) (*Song, error) {
 		Duration:     video.Duration,
 		IsLive:       video.HLSManifestURL != "",
 		Playlist:     playlist,
-		provider:     &YouTubeProvider{},
-	}, nil
+		provider:     p,
+	}
+
+	expiresStr := res.Request.URL.Query().Get("expire")
+	if expiresStr != "" {
+		if expires, err := strconv.Atoi(expiresStr); err == nil {
+			song.Expires = time.Unix(int64(expires), 0)
+		}
+	}
+
+	if !song.IsLive {
+		cache[song.URL] = song
+	}
+	return song, nil
 }
 
 func getLiveURL(url string) (string, error) {
@@ -155,5 +191,5 @@ func getLiveURL(url string) (string, error) {
 }
 
 func (YouTubeProvider) IsLoaded(song *Song) bool {
-	return song.StreamingURL != ""
+	return !song.Expires.IsZero() && !time.Now().Add(song.Duration).After(song.Expires)
 }

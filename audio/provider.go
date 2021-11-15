@@ -12,6 +12,7 @@ type Song struct {
 	IsLive   bool
 
 	provider SongProvider
+	Expires  time.Time
 }
 
 type SongProvider interface {
