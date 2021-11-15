@@ -29,6 +29,14 @@ var handler = func(ctx *base.InteractionContext) error {
 		return ctx.AsEphemeral().Send(emojis.Cry, "Não há nada tocando no momento.")
 	}
 
+	if player.State == audio.LoadingState {
+		return ctx.AsEphemeral().Send(emojis.Cry, "Espere alguns segundos para fazer essa ação.")
+	}
+
+	if player.Current.IsLive {
+		return ctx.AsEphemeral().Send(emojis.Cry, "Você não pode pausar transmissões ao vivo.")
+	}
+
 	if player.State == audio.PausedState {
 		player.Resume()
 		return ctx.Send(emojis.Sip, "Música despausada com sucesso.")

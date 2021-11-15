@@ -15,7 +15,7 @@ var ShuffleCommand = base.Interaction{
 		}
 
 		player := audio.GetPlayer(ctx.GuildID)
-		if player == nil || player.State == audio.StoppedState {
+		if player == nil {
 			return ctx.AsEphemeral().Send(emojis.Cry, "Não há nada tocando no momento.")
 		}
 

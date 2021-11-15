@@ -37,7 +37,7 @@ var PlayCommand = base.Interaction{
 			SetColor(0xF8C300).
 			SetDescription("%s Obtendo melhores resultados para sua pesquisa...", emojis.AnimatedStaff)
 		ctx.WithEmbed(embed).Send()
-		defer player.Kill(false, "", "")
+		defer player.Kill(false)
 
 		result, err := audio.FindSong(query)
 		if err != nil {

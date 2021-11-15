@@ -80,6 +80,7 @@ func (s *EncodingSession) start() {
 			if stderr != "" && stderr != "<nil>" && !strings.Contains(stderr, "Error in the pull function") {
 				s.Lock()
 				defer s.Unlock()
+
 				s.err = errors.New(strings.ReplaceAll(stderr, s.path, "source"))
 			}
 		}

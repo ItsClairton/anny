@@ -19,6 +19,10 @@ var SkipCommand = base.Interaction{
 			return ctx.AsEphemeral().Send(emojis.Cry, "Não há nada tocando no momento.")
 		}
 
+		if player.State == audio.LoadingState {
+			return ctx.AsEphemeral().Send(emojis.Cry, "Espere alguns segundos para fazer essa ação.")
+		}
+
 		player.Skip()
 		return ctx.Send(emojis.Sip, "Música pulada com sucesso.")
 	},

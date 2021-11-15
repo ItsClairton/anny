@@ -19,7 +19,11 @@ var StopCommand = base.Interaction{
 			return ctx.AsEphemeral().Send(emojis.Cry, "Não há nada tocando no momento.")
 		}
 
-		player.Kill(true, "", "")
+		if player.State == audio.LoadingState {
+			return ctx.AsEphemeral().Send(emojis.Cry, "Espere alguns segundos para fazer essa ação.")
+		}
+
+		player.Kill(true)
 		return ctx.Send(emojis.Yeah, "Todas as músicas da fila foram limpas com sucesso.")
 	},
 }

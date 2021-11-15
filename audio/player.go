@@ -3,6 +3,7 @@ package audio
 import (
 	"io"
 	"math/rand"
+	"sync"
 	"time"
 
 	"github.com/ItsClairton/Anny/base"
@@ -13,14 +14,18 @@ import (
 )
 
 var (
-	StoppedState = 0
-	PausedState  = 1
-	PlayingState = 2
+	StoppedState   = 0
+	LoadingState   = 1
+	PausedState    = 2
+	PlayingState   = 3
+	DestroyedState = 4
 
 	players = map[discord.GuildID]*Player{}
 )
 
 type Player struct {
+	*sync.Mutex
+
 	Timer      *time.Timer
 	Connection *voice.Session
 
@@ -44,7 +49,7 @@ type CurrentSong struct {
 }
 
 func NewPlayer(GuildID discord.GuildID, TextID, VoiceID discord.ChannelID) *Player {
-	player := &Player{State: StoppedState, GuildID: GuildID, TextID: TextID, VoiceID: VoiceID}
+	player := &Player{Mutex: &sync.Mutex{}, State: StoppedState, GuildID: GuildID, TextID: TextID, VoiceID: VoiceID}
 	players[player.GuildID] = player
 
 	go func() {
@@ -99,15 +104,16 @@ func (p *Player) Shuffle() {
 }
 
 func (p *Player) Play() {
-	if p.State != StoppedState || players[p.GuildID] == nil {
+	if p.State != StoppedState {
 		return
 	}
 
 	if len(p.Queue) == 0 || p.Connection == nil {
-		go p.Kill(false, emojis.Sleep, "Devido a inatividade, desconectei do canal de voz.")
+		go p.Kill(false)
 		return
 	}
 
+	p.State = LoadingState
 	if p.Timer != nil {
 		p.Timer.Stop()
 		p.Timer = nil
@@ -118,8 +124,10 @@ func (p *Player) Play() {
 
 	if !current.IsLoaded() {
 		if song, err := current.Load(); err != nil {
-			base.SendMessage(p.TextID, emojis.Cry, "Um erro ocorreu ao carregar a música **%s**: `%v`", current.Title, err)
+			p.State = StoppedState
 			go p.Play()
+
+			base.SendMessage(p.TextID, emojis.Cry, "Um erro ocorreu ao carregar a música **%s**: `%v`", current.Title, err)
 			return
 		} else {
 			current.Song = song
@@ -152,31 +160,49 @@ func (p *Player) Play() {
 	base.Session.SendMessage(p.TextID, "", embed.Build())
 }
 
-func (p *Player) Kill(force bool, emoji, reason string, args ...interface{}) {
+func (p *Player) Kill(force bool, args ...interface{}) {
+	p.Lock()
+
 	removePlayer := func() {
-		if reason != "" {
-			base.SendMessage(p.TextID, emoji, reason, args...)
+		p.Lock()
+
+		if p.Timer != nil {
+			p.Timer.Stop()
+			p.Timer = nil
 		}
 
-		p.Queue = []*RequestedSong{}
+		if force || p.State == StoppedState {
+			println(len(args))
+			if len(args) >= 2 {
+				base.SendMessage(p.TextID, args[0].(string), args[1].(string), args[2:]...)
+			}
 
-		if p.Current != nil {
-			p.Current.Stop()
+			p.Queue = []*RequestedSong{}
+
+			if p.Current != nil {
+				p.Current.Stop()
+			}
+
+			if p.Connection != nil {
+				p.Connection.Leave()
+			}
+
+			p.State = DestroyedState
+			delete(players, p.GuildID)
 		}
 
-		if p.Connection != nil {
-			p.Connection.Leave()
-		}
-
-		delete(players, p.GuildID)
+		p.Unlock()
 	}
 
 	if force {
+		p.Unlock()
 		removePlayer()
 		return
 	}
 
-	if p.Timer == nil && p.State == StoppedState && len(p.Queue) == 0 {
-		p.Timer = time.AfterFunc(5*time.Minute, removePlayer)
+	if p.Timer == nil && p.State == StoppedState {
+		p.Timer = time.AfterFunc(3*time.Minute, removePlayer)
 	}
+
+	p.Unlock()
 }

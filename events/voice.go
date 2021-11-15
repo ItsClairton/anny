@@ -28,6 +28,7 @@ func VoiceStateUpdate(e *gateway.VoiceStateUpdateEvent) {
 		return
 	}
 
+	time.Sleep(1 * time.Second)
 	player := audio.GetPlayer(e.GuildID)
 	if player != nil && e.ChannelID.IsNull() {
 		player.Kill(true, emojis.Cry, "Fui desconectada do canal de voz, Sayonara ;(")
