@@ -52,7 +52,7 @@ func (s *EncodingSession) start() {
 	arguments := []string{
 		"-hide_banner", "-threads", "1", "-loglevel", "error",
 		"-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "5",
-		"-i", s.path, "-c:a", "libopus", "-b:a", "96k", "-frame_duration", "20", "-vbr", "off",
+		"-i", s.path, "-vn", "-c:a", "libopus", "-b:a", "96k", "-frame_duration", "20", "-vbr", "off",
 		"-f", "ogg", "-"}
 
 	cmd := exec.Command("ffmpeg", arguments...)
