@@ -20,20 +20,20 @@ var ResumeCommand = base.Interaction{
 
 var handler = func(ctx *base.InteractionContext) error {
 	if ctx.VoiceState() == nil {
-		return ctx.AsEphemeral().Send(emojis.MikuCry, "Você não está conectado em nenhum canal de voz.")
+		return ctx.AsEphemeral().Send(emojis.Cry, "Você não está conectado em nenhum canal de voz.")
 	}
 
 	player := audio.GetPlayer(ctx.GuildID)
 
 	if player == nil || player.State == audio.StoppedState {
-		return ctx.AsEphemeral().Send(emojis.MikuCry, "Não há nada tocando no momento.")
+		return ctx.AsEphemeral().Send(emojis.Cry, "Não há nada tocando no momento.")
 	}
 
 	if player.State == audio.PausedState {
 		player.Resume()
-		return ctx.Send(emojis.PepeArt, "Música despausada com sucesso.")
+		return ctx.Send(emojis.Sip, "Música despausada com sucesso.")
 	}
 
 	player.Pause()
-	return ctx.Send(emojis.PepeArt, "Música pausada com sucesso.")
+	return ctx.Send(emojis.Sip, "Música pausada com sucesso.")
 }

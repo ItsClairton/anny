@@ -24,7 +24,7 @@ var PlayCommand = base.Interaction{
 
 		state := ctx.VoiceState()
 		if state == nil {
-			return ctx.AsEphemeral().Send(emojis.MikuCry, "Você não está conectado em nenhum canal de voz.")
+			return ctx.AsEphemeral().Send(emojis.Cry, "Você não está conectado em nenhum canal de voz.")
 		}
 
 		player := audio.GetPlayer(ctx.GuildID)
@@ -37,7 +37,7 @@ var PlayCommand = base.Interaction{
 			SetColor(0xF8C300).
 			SetDescription("%s Obtendo melhores resultados para sua pesquisa...", emojis.AnimatedStaff)
 		ctx.WithEmbed(embed).Send()
-		defer player.Kill(false)
+		defer player.Kill(false, "", "")
 
 		result, err := audio.FindSong(query)
 		if err != nil {
@@ -45,7 +45,7 @@ var PlayCommand = base.Interaction{
 		}
 
 		if result == nil {
-			embed.SetColor(0xF93A2F).SetDescription("%s Não consegui achar essa música, Desculpa ;(", emojis.MikuCry)
+			embed.SetColor(0xF93A2F).SetDescription("%s Não consegui achar essa música, Desculpa ;(", emojis.Cry)
 			return ctx.WithEmbed(embed).Edit()
 		}
 
@@ -54,7 +54,7 @@ var PlayCommand = base.Interaction{
 
 			playlist := result.Songs[0].Playlist
 			embed.SetColor(0x00D166).SetThumbnail(result.Songs[0].Thumbnail).
-				SetDescription("%s Playlist [%s](%s), carregada com sucesso.", emojis.ZeroYeah, playlist.Title, playlist.URL).
+				SetDescription("%s Playlist [%s](%s), carregada com sucesso.", emojis.Yeah, playlist.Title, playlist.URL).
 				AddField("Criador", playlist.Author, true).
 				AddField("Itens", utils.Fmt("%v", len(result.Songs)), true).
 				AddField("Duração", utils.FormatTime(playlist.Duration), true)
@@ -80,7 +80,7 @@ var PlayCommand = base.Interaction{
 		defer player.AddSong(&ctx.Member.User, shuffle, song)
 		embed.SetColor(0x00D166).
 			SetThumbnail(song.Thumbnail).
-			SetDescription("%s Música [%s](%s) adicionada com sucesso na fila", emojis.ZeroYeah, song.Title, song.URL)
+			SetDescription("%s Música [%s](%s) adicionada com sucesso na fila", emojis.Yeah, song.Title, song.URL)
 
 		return ctx.WithEmbed(embed).Edit()
 	},

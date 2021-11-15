@@ -11,15 +11,15 @@ var SkipCommand = base.Interaction{
 	Description: "Pular a música atual",
 	Handler: func(ctx *base.InteractionContext) error {
 		if ctx.VoiceState() == nil {
-			return ctx.AsEphemeral().Send(emojis.MikuCry, "Você não está conectado em nenhum canal de voz.")
+			return ctx.AsEphemeral().Send(emojis.Cry, "Você não está conectado em nenhum canal de voz.")
 		}
 
 		player := audio.GetPlayer(ctx.GuildID)
 		if player == nil || player.State == audio.StoppedState {
-			return ctx.AsEphemeral().Send(emojis.MikuCry, "Não há nada tocando no momento.")
+			return ctx.AsEphemeral().Send(emojis.Cry, "Não há nada tocando no momento.")
 		}
 
 		player.Skip()
-		return ctx.Send(emojis.PepeArt, "Música pulada com sucesso.")
+		return ctx.Send(emojis.Sip, "Música pulada com sucesso.")
 	},
 }

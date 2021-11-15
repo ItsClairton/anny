@@ -14,11 +14,11 @@ var NowplayingCommand = base.Interaction{
 		player := audio.GetPlayer(ctx.GuildID)
 
 		if player == nil || player.Current == nil {
-			return ctx.AsEphemeral().Send(emojis.MikuCry, "Não há nada tocando no momento.")
+			return ctx.AsEphemeral().Send(emojis.Cry, "Não há nada tocando no momento.")
 		}
 
 		return ctx.WithEmbed(base.NewEmbed().
-			SetDescription("%s Tocando agora [%s](%s)", emojis.ZeroYeah, player.Current.Title, player.Current.URL).
+			SetDescription("%s Tocando agora [%s](%s)", emojis.Yeah, player.Current.Title, player.Current.URL).
 			SetThumbnail(player.Current.Thumbnail).
 			SetColor(0xA652BB).
 			AddField("Autor", player.Current.Author, true).

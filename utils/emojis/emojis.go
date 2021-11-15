@@ -3,15 +3,17 @@ package emojis
 var (
 	PingPong = "🏓"
 
-	PepeArt       = "<:pepeart:857771343633580113>"
-	KannaPeer     = "<:KannaPeer:838567821205176340>"
-	ZeroYeah      = "<:yeah:838568353139916850>"
-	MikuCry       = "<:mikuCry:830091923129237554>"
-	AnimatedStaff = "<a:1180staff:836709984909525032>"
+	Peer    = "<:KannaPeer:838567821205176340>"
+	Yeah    = "<:yeah:838568353139916850>"
+	Cry     = "<:paimonpanic:909597749970874408>"
+	Loading = "<a:1180staff:836709984909525032>"
+	Sleep   = "<:keqingsleep:909567537778421810>"
+	Sip     = "<:nejiresip:909600499131646063>"
 
-	Twitch     = "<:twitch:896600475833606154>"
-	Youtube    = "<:youtube:896600900909559868>"
-	Soundcloud = "<:soundcloud:896612681992253452>"
+	Twitch  = "<:twitch:896600475833606154>"
+	Youtube = "<:youtube:896600900909559868>"
+
+	AnimatedStaff = "<a:1180staff:836709984909525032>"
 )
 
 func GetNumberAsEmoji(num int) string {

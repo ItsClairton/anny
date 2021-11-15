@@ -52,8 +52,7 @@ func NewPlayer(GuildID discord.GuildID, TextID, VoiceID discord.ChannelID) *Play
 
 		err := s.JoinChannel(GuildID, VoiceID, false, true)
 		if err != nil {
-			base.SendMessage(player.TextID, emojis.MikuCry, "Um erro ocorreu ao tentar se conectar ao canal de voz: `%v`", err)
-			player.Kill(true)
+			player.Kill(true, emojis.Cry, "Um erro ocorreu ao tentar se conectar ao canal de voz: `%v`", err)
 		}
 
 		player.Connection = s
@@ -105,7 +104,7 @@ func (p *Player) Play() {
 	}
 
 	if len(p.Queue) == 0 || p.Connection == nil {
-		go p.Kill(false)
+		go p.Kill(false, emojis.Sleep, "Devido a inatividade, desconectei do canal de voz.")
 		return
 	}
 
@@ -119,7 +118,7 @@ func (p *Player) Play() {
 
 	if !current.IsLoaded() {
 		if song, err := current.Load(); err != nil {
-			base.SendMessage(p.TextID, emojis.MikuCry, "Um erro ocorreu ao carregar a música **%s**: `%v`", current.Title, err)
+			base.SendMessage(p.TextID, emojis.Cry, "Um erro ocorreu ao carregar a música **%s**: `%v`", current.Title, err)
 			go p.Play()
 			return
 		} else {
@@ -133,7 +132,7 @@ func (p *Player) Play() {
 		err := <-done
 
 		if err != io.EOF {
-			base.SendMessage(p.TextID, emojis.MikuCry, "Um erro ocorreu enquanto tocava a música **%s**: `%v`", current.Title, err)
+			base.SendMessage(p.TextID, emojis.Cry, "Um erro ocorreu enquanto tocava a música **%s**: `%v`", current.Title, err)
 		}
 
 		p.Current, p.State = nil, StoppedState
@@ -141,7 +140,7 @@ func (p *Player) Play() {
 	}()
 
 	embed := base.NewEmbed().
-		SetDescription("%s Tocando agora [%s](%s)", emojis.ZeroYeah, current.Title, current.URL).
+		SetDescription("%s Tocando agora [%s](%s)", emojis.Yeah, current.Title, current.URL).
 		SetImage(current.Thumbnail).
 		SetColor(0xA652BB).
 		AddField("Autor", current.Author, true).
@@ -153,8 +152,12 @@ func (p *Player) Play() {
 	base.Session.SendMessage(p.TextID, "", embed.Build())
 }
 
-func (p *Player) Kill(force bool) {
+func (p *Player) Kill(force bool, emoji, reason string, args ...interface{}) {
 	removePlayer := func() {
+		if reason != "" {
+			base.SendMessage(p.TextID, emoji, reason, args...)
+		}
+
 		p.Queue = []*RequestedSong{}
 
 		if p.Current != nil {

@@ -7,6 +7,6 @@ import (
 
 var Category = &base.Category{
 	Name:         "Imagens",
-	Emote:        emojis.KannaPeer,
+	Emote:        emojis.Peer,
 	Interactions: []*base.Interaction{&CatCommand},
 }

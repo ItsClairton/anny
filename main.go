@@ -29,7 +29,8 @@ func main() {
 
 	base.AddHandler(events.OnReady)
 	base.AddHandler(events.OnInteraction)
-	base.AddHandler(events.OnServerChange)
+	base.AddHandler(events.VoiceServerUpdate)
+	base.AddHandler(events.VoiceStateUpdate)
 
 	if err := base.CheckInteractions(); err != nil {
 		logger.Fatal("Um erro ocorreu ao obter a lista de interações registradas no Discord.", err)
