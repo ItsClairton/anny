@@ -172,7 +172,6 @@ func (p *Player) Kill(force bool, args ...interface{}) {
 		}
 
 		if force || p.State == StoppedState {
-			println(len(args))
 			if len(args) >= 2 {
 				base.SendMessage(p.TextID, args[0].(string), args[1].(string), args[2:]...)
 			}

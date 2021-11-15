@@ -111,8 +111,8 @@ func (p *YouTubeProvider) getPlaylist(term string) (*SongResult, error) {
 }
 
 func (p *YouTubeProvider) getSong(term string, playlist *Playlist, attempts int) (*Song, error) {
-	cached := cache[term]
-	if cached != nil && p.IsLoaded(cached) {
+	if cached := cache[term]; cached != nil && p.IsLoaded(cached) {
+		cached.Playlist = playlist
 		return cached, nil
 	}
 
