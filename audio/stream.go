@@ -90,8 +90,8 @@ func (s *StreamingSession) stream() {
 			if s.source.err != nil {
 				err = s.source.err
 			}
-			s.callback <- err
 
+			s.callback <- err
 			close(s.callback)
 			s.source.Stop()
 			s.Unlock()
