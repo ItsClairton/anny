@@ -1,7 +1,9 @@
 package audio
 
 import (
+	"context"
 	"io"
+	"net"
 	"sync"
 	"time"
 
@@ -61,7 +63,7 @@ func (s *StreamingSession) stream() {
 		s.Unlock()
 	}()
 
-	if err := s.connection.Speaking(voicegateway.Microphone); err != nil {
+	if err := s.connection.Speaking(context.Background(), voicegateway.Microphone); err != nil {
 		s.callback <- err
 		close(s.callback)
 		return
@@ -86,12 +88,13 @@ func (s *StreamingSession) stream() {
 		if err != nil {
 			s.Lock()
 
-			s.finished = true
-			if s.source.err != nil {
+			if err != net.ErrClosed && s.source.err != nil {
 				err = s.source.err
 			}
 
+			s.finished = true
 			s.callback <- err
+
 			close(s.callback)
 			s.source.Stop()
 			s.Unlock()

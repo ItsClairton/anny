@@ -1,10 +1,7 @@
 package events
 
+/*
 import (
-	"os"
-
-	"github.com/ItsClairton/Anny/base"
-	"github.com/diamondburned/arikawa/v3/discord"
 	"github.com/diamondburned/arikawa/v3/gateway"
 )
 
@@ -15,4 +12,4 @@ func OnReady(_ *gateway.ReadyEvent) {
 			Type: discord.ListeningActivity,
 		}},
 	})
-}
+}*/

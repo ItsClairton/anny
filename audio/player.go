@@ -1,8 +1,10 @@
 package audio
 
 import (
+	"context"
 	"io"
 	"math/rand"
+	"net"
 	"sync"
 	"time"
 
@@ -55,7 +57,7 @@ func NewPlayer(GuildID discord.GuildID, TextID, VoiceID discord.ChannelID) *Play
 	go func() {
 		s, _ := voice.NewSession(base.Session)
 
-		err := s.JoinChannel(GuildID, VoiceID, false, true)
+		err := s.JoinChannel(context.Background(), VoiceID, false, true)
 		if err != nil {
 			player.Kill(true, emojis.Cry, "Um erro ocorreu ao tentar se conectar ao canal de voz: `%v`", err)
 		}
@@ -138,8 +140,14 @@ func (p *Player) Play() {
 	p.Current, p.State = &CurrentSong{current, StreamURL(current.StreamingURL, p.Connection, done)}, PlayingState
 	go func() {
 		err := <-done
-
 		if err != io.EOF {
+			if err == net.ErrClosed {
+				p.Current = nil
+				p.Kill(true, emojis.Cry, "Conexão com o canal de voz perdida, Sayonara ;(")
+
+				return
+			}
+
 			base.SendMessage(p.TextID, emojis.Cry, "Um erro ocorreu enquanto tocava a música **%s**: `%v`", current.Title, err)
 		}
 
@@ -183,7 +191,7 @@ func (p *Player) Kill(force bool, args ...interface{}) {
 			}
 
 			if p.Connection != nil {
-				p.Connection.Leave()
+				p.Connection.Leave(context.Background())
 			}
 
 			p.State = DestroyedState

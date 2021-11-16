@@ -29,7 +29,7 @@ var handler = func(ctx *base.InteractionContext) error {
 		return ctx.AsEphemeral().Send(emojis.Cry, "Não há nada tocando no momento.")
 	}
 
-	if player.State == audio.LoadingState {
+	if player.State == audio.LoadingState || player.Current == nil {
 		return ctx.AsEphemeral().Send(emojis.Cry, "Espere alguns segundos para fazer essa ação.")
 	}
 
