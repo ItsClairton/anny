@@ -27,7 +27,7 @@ func main() {
 		logger.Fatal("Um erro ocorreu ao tentar se conectar ao Discord.", err)
 	}
 
-	// base.AddHandler(events.OnReady)
+	base.AddHandler(events.OnReady)
 	base.AddHandler(events.OnInteraction)
 	base.AddHandler(events.VoiceServerUpdate)
 	base.AddHandler(events.VoiceStateUpdate)

@@ -13,10 +13,14 @@ var (
 	Session *state.State
 )
 
-func New(token string) error {
-	Session = state.NewWithIntents(utils.Fmt("Bot %s", token), gateway.IntentGuilds, gateway.IntentGuildMessages, gateway.IntentGuildVoiceStates)
+func New(token string) (err error) {
+	Session, err = state.NewWithIntents(utils.Fmt("Bot %s", token), gateway.IntentGuilds, gateway.IntentGuildMessages, gateway.IntentGuildVoiceStates)
 
-	return Session.Open(context.Background())
+	if err == nil {
+		err = Session.Open(context.Background())
+	}
+
+	return err
 }
 
 func Me() *discord.User {

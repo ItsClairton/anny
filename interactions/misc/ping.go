@@ -9,6 +9,6 @@ var PingCommand = base.Interaction{
 	Name:        "ping",
 	Description: "Pong!",
 	Handler: func(ctx *base.InteractionContext) error {
-		return ctx.Send(emojis.PingPong, "Pong, %dms.", base.Session.Gateway().Latency().Milliseconds())
+		return ctx.Send(emojis.PingPong, "Pong")
 	},
 }
