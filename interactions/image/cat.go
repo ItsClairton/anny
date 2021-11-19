@@ -10,7 +10,7 @@ var CatCommand = base.Interaction{
 	Name:        "cat",
 	Description: "Imagem aleatória de um Gatinho",
 	Options: discord.CommandOptions{&discord.BooleanOption{
-		OptionName:  "GIF",
+		OptionName:  "gif",
 		Description: "Filtrar apenas por GIF's",
 	}},
 	Handler: func(ctx *base.InteractionContext) error {

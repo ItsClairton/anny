@@ -23,9 +23,12 @@ func New(token string) (err error) {
 	return err
 }
 
+func AddHandler(handler interface{}) {
+	Session.AddHandler(handler)
+}
+
 func Me() *discord.User {
 	me, _ := Session.Me()
-
 	return me
 }
 

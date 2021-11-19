@@ -32,8 +32,8 @@ func main() {
 	base.AddHandler(events.VoiceServerUpdate)
 	base.AddHandler(events.VoiceStateUpdate)
 
-	if err := base.CheckInteractions(); err != nil {
-		logger.Fatal("Um erro ocorreu ao obter a lista de interações registradas no Discord.", err)
+	if err := base.DeployInteractions(); err != nil {
+		logger.Fatal("Um erro ocorreu ao fazer o deploy das interações para o Discord.", err)
 	}
 
 	logger.Info("Conexão com o Discord feita com Sucesso.")
