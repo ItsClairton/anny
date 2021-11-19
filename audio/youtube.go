@@ -110,7 +110,12 @@ func (p *YouTubeProvider) getPlaylist(term string) (*SongResult, error) {
 	return result, nil
 }
 
-func (p *YouTubeProvider) getSong(term string, playlist *Playlist, attempts int) (*Song, error) {
+func (p *YouTubeProvider) getSong(term string, playlist *Playlist, attempts int) (song *Song, err error) {
+	term, err = youtube.ExtractVideoID(term) // Pegar apenas o ID do vídeo para usar como key no cache
+	if err != nil {
+		return nil, err
+	}
+
 	if cached := cache[term]; cached != nil && p.IsLoaded(cached) {
 		cached.Playlist = playlist
 		return cached, nil
@@ -121,7 +126,7 @@ func (p *YouTubeProvider) getSong(term string, playlist *Playlist, attempts int)
 		return nil, err
 	}
 
-	streamingURL := ""
+	var streamingURL string
 	if video.HLSManifestURL != "" {
 		if streamingURL, err = getLiveURL(video.HLSManifestURL); err != nil {
 			return nil, err
@@ -129,7 +134,7 @@ func (p *YouTubeProvider) getSong(term string, playlist *Playlist, attempts int)
 	} else {
 		format := video.Formats.FindByItag(251) // Opus
 		if format == nil {
-			format = video.Formats.FindByItag(140) // M4a
+			format = video.Formats.FindByItag(140) // m4a
 		}
 
 		if streamingURL, err = client.GetStreamURL(video, format); err != nil {
@@ -152,7 +157,7 @@ func (p *YouTubeProvider) getSong(term string, playlist *Playlist, attempts int)
 		return p.getSong(term, playlist, attempts)
 	}
 
-	song := &Song{
+	song = &Song{
 		Title:        video.Title,
 		URL:          utils.Fmt("https://youtu.be/%s", video.ID),
 		Author:       video.Author,
@@ -172,8 +177,9 @@ func (p *YouTubeProvider) getSong(term string, playlist *Playlist, attempts int)
 	}
 
 	if !song.IsLive {
-		cache[song.URL] = song
+		cache[term] = song
 	}
+
 	return song, nil
 }
 
