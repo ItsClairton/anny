@@ -20,6 +20,7 @@ func VoiceServerUpdate(e *gateway.VoiceServerUpdateEvent) {
 		logger.DebugF("Mudança de Região de voz: %d", e.GuildID)
 
 		if err := player.Connection.Speaking(voicegateway.Microphone); err != nil {
+			player.Kill(true, emojis.Cry, "Conexão com o servidor de voz perdida ;(")
 			logger.ErrorF("Um erro ocorreu ao enviar pacote de Speaking para o Discord, ID %d: %v", e.GuildID, err)
 		}
 	}
@@ -32,18 +33,35 @@ func VoiceStateUpdate(e *gateway.VoiceStateUpdateEvent) {
 
 	time.Sleep(500 * time.Millisecond)
 	player := audio.GetPlayer(e.GuildID)
+
+	if player != nil && player.State == audio.PlayingState && e.Mute {
+		player.Pause()
+	}
+
+	if player != nil && player.State == audio.PausedState && !e.Mute {
+		player.Resume()
+	}
+
 	if player != nil && e.ChannelID.IsNull() {
 		player.Kill(true)
 
-		logs, err := base.Session.AuditLog(e.GuildID, api.AuditLogData{
-			ActionType: discord.MemberDisconnect,
-			Limit:      1,
-		})
-
-		if err == nil && len(logs.Users) > 0 && time.Since(logs.Entries[0].CreatedAt()) < 5*time.Second {
-			base.SendMessage(player.TextID, emojis.Cry, "O Vacilão do <@%s> me desconectou do canal de voz, Bonk nele ;(", logs.Entries[0].UserID)
+		if author := getActionAuthor(e.GuildID, discord.MemberDisconnect); author.IsValid() {
+			base.SendMessage(player.TextID, emojis.Cry, "O Vacilão do <@%d> me desconectou do canal de voz, Bonk nele ;(", author)
 		} else {
 			base.SendMessage(player.TextID, emojis.Cry, "Fui desconectada do canal de voz, Sayonara ;(")
 		}
 	}
+}
+
+func getActionAuthor(guildID discord.GuildID, action discord.AuditLogEvent) discord.UserID {
+	logs, err := base.Session.AuditLog(guildID, api.AuditLogData{
+		ActionType: action,
+		Limit:      1,
+	})
+
+	if err == nil && len(logs.Users) > 0 && time.Since(logs.Entries[0].CreatedAt()) < 5*time.Second {
+		return logs.Entries[0].UserID
+	}
+
+	return 0
 }

@@ -88,13 +88,17 @@ func (p *Player) Skip() {
 }
 
 func (p *Player) Pause() {
-	p.Current.Pause(true)
-	p.State = PausedState
+	if p.Current != nil && !p.Current.IsLive {
+		p.Current.Pause(true)
+		p.State = PausedState
+	}
 }
 
 func (p *Player) Resume() {
-	p.Current.Pause(false)
-	p.State = PlayingState
+	if p.Current != nil {
+		p.Current.Pause(false)
+		p.State = PlayingState
+	}
 }
 
 func (p *Player) Shuffle() {
