@@ -133,8 +133,8 @@ func (p *YouTubeProvider) getSong(term string, playlist *Playlist, attempts int)
 		}
 	} else {
 		var format *youtube.Format
-		if format, isOpus = video.Formats.FindByItag(251), false; format == nil {
-			format, isOpus = video.Formats.FindByItag(140), false
+		if format, isOpus = video.Formats.FindByItag(251), true; format == nil { // Opus
+			format, isOpus = video.Formats.FindByItag(140), false // m4a
 		}
 
 		if streamingURL, err = client.GetStreamURL(video, format); err != nil {
