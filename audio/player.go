@@ -135,7 +135,7 @@ func (p *Player) Play() {
 	}
 
 	done := make(chan error)
-	p.Current, p.State = &CurrentSong{current, StreamURL(current.StreamingURL, p.Connection, done)}, PlayingState
+	p.Current, p.State = &CurrentSong{current, StreamURL(current.StreamingURL, current.IsOpus, p.Connection, done)}, PlayingState
 	go func() {
 		err := <-done
 

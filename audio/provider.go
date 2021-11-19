@@ -7,9 +7,9 @@ var availableProviders = []SongProvider{&YouTubeProvider{}}
 type Song struct {
 	Title, Author, Thumbnail, URL, StreamingURL string
 
-	Duration time.Duration
-	Playlist *Playlist
-	IsLive   bool
+	Duration       time.Duration
+	Playlist       *Playlist
+	IsLive, IsOpus bool
 
 	provider SongProvider
 	Expires  time.Time

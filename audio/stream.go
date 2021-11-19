@@ -40,8 +40,8 @@ func NewStream(source *EncodingSession, vc *voice.Session, callback chan error) 
 	return session
 }
 
-func StreamURL(URL string, connection *voice.Session, callback chan error) *StreamingSession {
-	return NewStream(NewEncodingURL(URL), connection, callback)
+func StreamURL(URL string, isOpus bool, connection *voice.Session, callback chan error) *StreamingSession {
+	return NewStream(NewEncodingURL(URL, isOpus), connection, callback)
 }
 
 func (s *StreamingSession) stream() {

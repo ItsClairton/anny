@@ -111,8 +111,7 @@ func (p *YouTubeProvider) getPlaylist(term string) (*SongResult, error) {
 }
 
 func (p *YouTubeProvider) getSong(term string, playlist *Playlist, attempts int) (song *Song, err error) {
-	term, err = youtube.ExtractVideoID(term) // Pegar apenas o ID do vídeo para usar como key no cache
-	if err != nil {
+	if term, err = youtube.ExtractVideoID(term); err != nil { // Pegar apenas o ID do vídeo para usar como key no cache
 		return nil, err
 	}
 
@@ -126,15 +125,16 @@ func (p *YouTubeProvider) getSong(term string, playlist *Playlist, attempts int)
 		return nil, err
 	}
 
-	var streamingURL string
+	streamingURL, isOpus := "", false
 	if video.HLSManifestURL != "" {
-		if streamingURL, err = getLiveURL(video.HLSManifestURL); err != nil {
+		streamingURL, err = getLiveURL(video.HLSManifestURL)
+		if err != nil {
 			return nil, err
 		}
 	} else {
-		format := video.Formats.FindByItag(251) // Opus
-		if format == nil {
-			format = video.Formats.FindByItag(140) // m4a
+		var format *youtube.Format
+		if format, isOpus = video.Formats.FindByItag(251), false; format == nil {
+			format, isOpus = video.Formats.FindByItag(140), false
 		}
 
 		if streamingURL, err = client.GetStreamURL(video, format); err != nil {
@@ -142,45 +142,42 @@ func (p *YouTubeProvider) getSong(term string, playlist *Playlist, attempts int)
 		}
 	}
 
-	res, err := http.Get(streamingURL)
-	if err != nil {
+	if data, err := http.Get(streamingURL); err != nil {
 		return nil, err
-	}
-	res.Body.Close()
+	} else {
+		data.Body.Close()
 
-	if res.StatusCode >= 400 {
-		if attempts >= 5 {
-			return nil, fmt.Errorf("the server responded with unexpected %d status code after 5 attempts", res.StatusCode)
+		if data.StatusCode >= 400 {
+			if attempts >= 5 {
+				return nil, fmt.Errorf("the server responded with unexpected %d status code after 5 attempts", data.StatusCode)
+			}
+			attempts++
+			return p.getSong(term, playlist, attempts)
 		}
 
-		attempts++
-		return p.getSong(term, playlist, attempts)
-	}
+		song = &Song{
+			Title:        video.Title,
+			URL:          utils.Fmt("https://youtu.be/%s", video.ID),
+			Author:       video.Author,
+			Thumbnail:    video.Thumbnails[len(video.Thumbnails)-1].URL,
+			StreamingURL: streamingURL,
+			Duration:     video.Duration,
+			IsLive:       video.HLSManifestURL != "",
+			IsOpus:       isOpus,
+			Playlist:     playlist,
+			provider:     p,
+		}
 
-	song = &Song{
-		Title:        video.Title,
-		URL:          utils.Fmt("https://youtu.be/%s", video.ID),
-		Author:       video.Author,
-		Thumbnail:    video.Thumbnails[len(video.Thumbnails)-1].URL,
-		StreamingURL: streamingURL,
-		Duration:     video.Duration,
-		IsLive:       video.HLSManifestURL != "",
-		Playlist:     playlist,
-		provider:     p,
-	}
-
-	expiresStr := res.Request.URL.Query().Get("expire")
-	if expiresStr != "" {
-		if expires, err := strconv.Atoi(expiresStr); err == nil {
+		if expires, err := strconv.Atoi(data.Request.URL.Query().Get("expire")); err == nil {
 			song.Expires = time.Unix(int64(expires), 0)
 		}
-	}
 
-	if !song.IsLive {
-		cache[term] = song
-	}
+		if !song.IsLive {
+			cache[term] = song
+		}
 
-	return song, nil
+		return song, nil
+	}
 }
 
 func getLiveURL(url string) (string, error) {

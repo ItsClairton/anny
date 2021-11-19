@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ItsClairton/Anny/utils"
 	"github.com/jonas747/ogg"
 )
 
@@ -21,7 +22,8 @@ type EncodingSession struct {
 
 	path string
 
-	running   bool
+	running, isOpus bool
+
 	process   *os.Process
 	lastFrame int
 
@@ -32,8 +34,8 @@ type EncodingSession struct {
 	buffer bytes.Buffer
 }
 
-func NewEncodingURL(path string) *EncodingSession {
-	session := &EncodingSession{path: path, data: make(chan []byte)}
+func NewEncodingURL(path string, isOpus bool) *EncodingSession {
+	session := &EncodingSession{path: path, data: make(chan []byte), isOpus: isOpus}
 	go session.start()
 	return session
 }
@@ -52,7 +54,7 @@ func (s *EncodingSession) start() {
 	arguments := []string{
 		"-hide_banner", "-threads", "1", "-loglevel", "error",
 		"-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "5",
-		"-i", s.path, "-vn", "-c:a", "libopus", "-b:a", "96k", "-frame_duration", "20", "-vbr", "off",
+		"-i", s.path, "-vn", "-c:a", utils.Is(s.isOpus, "copy", "libopus"), "-frame_duration", "20", "-vbr", "off",
 		"-f", "ogg", "-"}
 
 	cmd := exec.Command("ffmpeg", arguments...)
