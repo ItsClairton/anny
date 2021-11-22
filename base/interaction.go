@@ -83,7 +83,7 @@ func DeployInteractions() error {
 	}
 
 	for _, interaction := range Interactions {
-		if !utils.Contains(checked, interaction.Name) {
+		if !utils.StringArrayContains(checked, interaction.Name) {
 			logger.DebugF("Criando interação \"%s\" no Discord...", interaction.Name)
 
 			if _, err := Session.CreateCommand(app.ID, interaction.RAW()); err != nil {

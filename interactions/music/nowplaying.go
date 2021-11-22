@@ -22,7 +22,7 @@ var NowplayingCommand = base.Interaction{
 			SetThumbnail(player.Current.Thumbnail).
 			SetColor(0xA652BB).
 			AddField("Autor", player.Current.Author, true).
-			AddField("Duração", utils.Fmt("%v/%v", utils.FormatTime(player.Current.PlaybackPosition()), utils.Is(player.Current.IsLive, "--:--", utils.FormatTime(player.Current.Duration))), true).
+			AddField("Duração", utils.Fmt("%v/%v", utils.FormatTime(player.Session.Position), utils.Is(player.Current.IsLive, "--:--", utils.FormatTime(player.Current.Duration))), true).
 			AddField("Provedor", player.Current.Provider(), true).
 			SetFooter(utils.Fmt("Pedido por %s#%s", player.Current.Requester.Username, player.Current.Requester.Discriminator), player.Current.Requester.AvatarURL()).
 			SetTimestamp(player.Current.Time)).Send()

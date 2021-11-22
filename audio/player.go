@@ -1,7 +1,6 @@
 package audio
 
 import (
-	"io"
 	"math/rand"
 	"sync"
 	"time"
@@ -10,7 +9,6 @@ import (
 	"github.com/ItsClairton/Anny/utils"
 	"github.com/ItsClairton/Anny/utils/emojis"
 	"github.com/diamondburned/arikawa/v3/discord"
-	"github.com/diamondburned/arikawa/v3/voice"
 )
 
 var (
@@ -26,11 +24,11 @@ var (
 type Player struct {
 	*sync.Mutex
 
-	Timer      *time.Timer
-	Connection *voice.Session
+	Timer   *time.Timer
+	Session *VoicySession
 
 	State   int
-	Current *CurrentSong
+	Current *RequestedSong
 	Queue   []*RequestedSong
 
 	GuildID         discord.GuildID
@@ -43,25 +41,17 @@ type RequestedSong struct {
 	Time      time.Time
 }
 
-type CurrentSong struct {
-	*RequestedSong
-	*StreamingSession
-}
-
 func NewPlayer(GuildID discord.GuildID, TextID, VoiceID discord.ChannelID) *Player {
 	player := &Player{Mutex: &sync.Mutex{}, State: StoppedState, GuildID: GuildID, TextID: TextID, VoiceID: VoiceID}
 	players[player.GuildID] = player
 
 	go func() {
-		s, _ := voice.NewSession(base.Session)
-
-		err := s.JoinChannel(GuildID, VoiceID, false, true)
-		if err != nil {
+		if session, err := NewVoicy(base.Session, GuildID, VoiceID); err == nil {
+			player.Session = session
+			player.Play()
+		} else {
 			player.Kill(true, emojis.Cry, "Um erro ocorreu ao tentar se conectar ao canal de voz: `%v`", err)
 		}
-
-		player.Connection = s
-		player.Play()
 	}()
 
 	return player
@@ -84,19 +74,19 @@ func (p *Player) AddSong(requester *discord.User, shuffle bool, tracks ...*Song)
 }
 
 func (p *Player) Skip() {
-	p.Current.Stop()
+	p.Session.Stop()
 }
 
 func (p *Player) Pause() {
 	if p.Current != nil && !p.Current.IsLive {
-		p.Current.Pause(true)
+		p.Session.Pause()
 		p.State = PausedState
 	}
 }
 
 func (p *Player) Resume() {
 	if p.Current != nil {
-		p.Current.Pause(false)
+		p.Session.Resume()
 		p.State = PlayingState
 	}
 }
@@ -112,7 +102,7 @@ func (p *Player) Play() {
 		return
 	}
 
-	if len(p.Queue) == 0 || p.Connection == nil {
+	if len(p.Queue) == 0 || p.Session == nil {
 		go p.Kill(false)
 		return
 	}
@@ -138,12 +128,9 @@ func (p *Player) Play() {
 		}
 	}
 
-	done := make(chan error)
-	p.Current, p.State = &CurrentSong{current, StreamURL(current.StreamingURL, current.IsOpus, p.Connection, done)}, PlayingState
+	p.Current, p.State = current, PlayingState
 	go func() {
-		err := <-done
-
-		if err != io.EOF {
+		if err := p.Session.PlayURL(current.StreamingURL, current.IsOpus); err != nil {
 			base.SendMessage(p.TextID, emojis.Cry, "Um erro ocorreu enquanto tocava a música **%s**: `%v`", current.Title, err)
 		}
 
@@ -176,22 +163,22 @@ func (p *Player) Kill(force bool, args ...interface{}) {
 		}
 
 		if force || p.State == StoppedState {
-			if len(args) >= 2 {
-				base.SendMessage(p.TextID, args[0].(string), args[1].(string), args[2:]...)
+			if p.Timer != nil {
+				p.Timer.Stop()
+				p.Timer = nil
 			}
 
 			p.Queue = []*RequestedSong{}
-
-			if p.Current != nil {
-				p.Current.Stop()
-			}
-
-			if p.Connection != nil {
-				p.Connection.Leave()
+			if p.Session != nil {
+				p.Session.Destroy()
 			}
 
 			p.State = DestroyedState
+
 			delete(players, p.GuildID)
+			if len(args) >= 2 {
+				base.SendMessage(p.TextID, args[0].(string), args[1].(string), args[2:]...)
+			}
 		}
 
 		p.Unlock()
@@ -204,7 +191,7 @@ func (p *Player) Kill(force bool, args ...interface{}) {
 	}
 
 	if p.Timer == nil && p.State == StoppedState {
-		p.Timer = time.AfterFunc(3*time.Minute, removePlayer)
+		p.Timer = time.AfterFunc(1*time.Minute, removePlayer)
 	}
 
 	p.Unlock()

@@ -19,7 +19,7 @@ func VoiceServerUpdate(e *gateway.VoiceServerUpdateEvent) {
 	if player != nil && player.State == audio.PlayingState {
 		logger.DebugF("Mudança de Região de voz: %d", e.GuildID)
 
-		if err := player.Connection.Speaking(voicegateway.Microphone); err != nil {
+		if err := player.Session.Session.Speaking(voicegateway.Microphone); err != nil {
 			player.Kill(true, emojis.Cry, "Conexão com o servidor de voz perdida ;(")
 			logger.ErrorF("Um erro ocorreu ao enviar pacote de Speaking para o Discord, ID %d: %v", e.GuildID, err)
 		}

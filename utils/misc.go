@@ -28,3 +28,22 @@ func FormatTime(duration time.Duration) string {
 
 	return Fmt("%02d:%02d", minutes, seconds)
 }
+
+func StringArrayContains(array []string, term string) bool {
+	for _, item := range array {
+		if item == term {
+			return true
+		}
+	}
+
+	return false
+}
+
+func IntegerArrayContains(array []int, number int) bool {
+	for _, i := range array {
+		if i == number {
+			return true
+		}
+	}
+	return false
+}
