@@ -130,6 +130,10 @@ func (p *Player) Play() {
 
 	p.Current, p.State = current, PlayingState
 	go func() {
+		if p.State == DestroyedState {
+			return
+		}
+
 		if err := p.Session.PlayURL(current.StreamingURL, current.IsOpus); err != nil {
 			base.SendMessage(p.TextID, emojis.Cry, "Um erro ocorreu enquanto tocava a música **%s**: `%v`", current.Title, err)
 		}
@@ -163,6 +167,8 @@ func (p *Player) Kill(force bool, args ...interface{}) {
 		}
 
 		if force || p.State == StoppedState {
+			p.State = DestroyedState
+
 			if p.Timer != nil {
 				p.Timer.Stop()
 				p.Timer = nil
@@ -172,8 +178,6 @@ func (p *Player) Kill(force bool, args ...interface{}) {
 			if p.Session != nil {
 				p.Session.Destroy()
 			}
-
-			p.State = DestroyedState
 
 			delete(players, p.GuildID)
 			if len(args) >= 2 {
@@ -191,7 +195,7 @@ func (p *Player) Kill(force bool, args ...interface{}) {
 	}
 
 	if p.Timer == nil && p.State == StoppedState {
-		p.Timer = time.AfterFunc(1*time.Minute, removePlayer)
+		p.Timer = time.AfterFunc(5*time.Minute, removePlayer)
 	}
 
 	p.Unlock()

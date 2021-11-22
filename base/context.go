@@ -58,6 +58,16 @@ func (ctx *InteractionContext) ArgumentAsString(index int) string {
 	return argument.String()
 }
 
+func (ctx *InteractionContext) ArgumentAsInteger(index int) int64 {
+	argument, exist := ctx.Argument(index)
+	if !exist {
+		return -1
+	}
+
+	parsed, _ := argument.IntValue()
+	return parsed
+}
+
 func (ctx *InteractionContext) Guild() *discord.Guild {
 	if !ctx.GuildID.IsValid() {
 		return nil

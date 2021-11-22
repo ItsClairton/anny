@@ -48,9 +48,17 @@ func NewVoicy(state *state.State, guildID discord.GuildID, channelID discord.Cha
 	return &VoicySession{Session: voice, volume: 1}, nil
 }
 
-func (vs *VoicySession) SetVolume(volume float32) {
-	vs.volume = volume / 100
+func (vs *VoicySession) SetVolume(volume int64) {
+	vol := float32(volume) / 100
+	if vol == vs.volume {
+		return
+	}
 
+	if vol < 1 {
+		vol = -vol
+	}
+
+	vs.volume = vol
 	vs.setState(changeState)
 	vs.Stop()
 }
@@ -90,7 +98,7 @@ func (vs *VoicySession) PlayURL(source string, isOpus bool) error {
 	var stderr bytes.Buffer
 	ffmpeg.Stderr = &stderr
 
-	if err := vs.Session.Speaking(voicegateway.Microphone); err != nil {
+	if err := vs.SendSpeaking(); err != nil {
 		return fmt.Errorf("failed to send speaking packet to discord: %w", err)
 	}
 
@@ -108,7 +116,6 @@ func (vs *VoicySession) PlayURL(source string, isOpus bool) error {
 		if str := string(stderr.String()); str != "" {
 			return fmt.Errorf("ffmpeg returned error: %w", errors.New(strings.ReplaceAll(str, vs.source, "source")))
 		}
-
 		return fmt.Errorf("failed to wait ffmpeg: %w", err)
 	}
 
@@ -131,7 +138,7 @@ func (vs *VoicySession) State() int {
 func (vs *VoicySession) Resume() {
 	if vs.state == pausedState {
 		vs.setState(playingState)
-		vs.Session.Speaking(voicegateway.Microphone)
+		vs.SendSpeaking()
 	}
 }
 
@@ -150,6 +157,10 @@ func (vs *VoicySession) Stop() {
 	if vs.cancel != nil {
 		vs.cancel()
 	}
+}
+
+func (vs *VoicySession) SendSpeaking() error {
+	return vs.Session.Speaking(voicegateway.Microphone)
 }
 
 func (vs *VoicySession) Write(data []byte) (n int, err error) {
