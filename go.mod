@@ -1,7 +1,7 @@
 module github.com/ItsClairton/Anny
 
 go 1.17
-
+// +heroku goVersion go1.17
 require (
 	github.com/Pauloo27/searchtube v0.0.0-20210906001334-44c3e43c257a
 	github.com/buger/jsonparser v1.1.1
