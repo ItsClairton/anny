@@ -40,6 +40,6 @@ var SeekCommand = base.Interaction{
 		}
 
 		defer player.Session.SetPosition(duration)
-		return ctx.Send("Posição do player alterada para `%s`.", utils.FormatTime(duration))
+		return ctx.Send(emojis.Yeah, "Posição do player alterada para `%s`.", utils.FormatTime(duration))
 	},
 }
