@@ -8,5 +8,5 @@ import (
 var Category = &base.Category{
 	Name:         "Música",
 	Emote:        emojis.PingPong,
-	Interactions: []*base.Interaction{&PlayCommand, &SkipCommand, &PauseCommand, &ResumeCommand, &ShuffleCommand, &NowplayingCommand, &StopCommand, &VolumeCommand},
+	Interactions: []*base.Interaction{&PlayCommand, &SkipCommand, &PauseCommand, &ResumeCommand, &ShuffleCommand, &NowplayingCommand, &StopCommand},
 }

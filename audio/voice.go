@@ -17,14 +17,15 @@ import (
 	"github.com/diamondburned/oggreader"
 )
 
-var stoppedState, changeState, pausedState, playingState = 0, 1, 2, 3
+var (
+	stoppedState, changingState, pausedState, playingState = 0, 1, 2, 3
+)
 
 type VoicySession struct {
 	Session *voice.Session
 
 	source string
 	isOpus bool
-	volume float32
 
 	Position time.Duration
 
@@ -45,33 +46,18 @@ func NewVoicy(state *state.State, guildID discord.GuildID, channelID discord.Cha
 		return nil, err
 	}
 
-	return &VoicySession{Session: voice, volume: 1}, nil
-}
-
-func (vs *VoicySession) SetVolume(volume int64) {
-	vol := float32(volume) / 100
-	if vol == vs.volume {
-		return
-	}
-
-	if vol < 1 {
-		vol = -vol
-	}
-
-	vs.volume = vol
-	vs.setState(changeState)
-	vs.Stop()
+	return &VoicySession{Session: voice}, nil
 }
 
 func (vs *VoicySession) SetPosition(duration time.Duration) {
 	vs.Position = duration
 
-	vs.setState(changeState)
+	vs.setState(changingState)
 	vs.Stop()
 }
 
 func (vs *VoicySession) PlayURL(source string, isOpus bool) error {
-	if vs.state != stoppedState && vs.state != changeState {
+	if vs.state != stoppedState && vs.state != changingState {
 		vs.Stop()
 	}
 
@@ -79,17 +65,10 @@ func (vs *VoicySession) PlayURL(source string, isOpus bool) error {
 	vs.source, vs.isOpus = source, isOpus
 	defer vs.Stop()
 
-	options := []string{"-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "5", "-ss", utils.FormatTime(vs.Position), "-loglevel", "error", "-i", source, "-vn", "-vbr", "on", "-frame_duration", "20"}
+	ffmpeg := exec.CommandContext(vs.context, "ffmpeg",
+		"-loglevel", "error", "-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "5", "-ss", utils.FormatTime(vs.Position),
+		"-i", source, "-vn", "-codec", utils.Is(vs.isOpus, "copy", "libopus"), "-vbr", "off", "-frame_duration", "20", "-f", "opus", "-")
 
-	if isOpus && vs.volume == 1 {
-		options = append(options, "-preset", "ultrafast", "-codec", "copy")
-	}
-
-	if vs.volume != 1 {
-		options = append(options, "-af", fmt.Sprintf("volume=%v", vs.volume))
-	}
-
-	ffmpeg := exec.CommandContext(vs.context, "ffmpeg", append(options, "-f", "opus", "-")...)
 	stdout, err := ffmpeg.StdoutPipe()
 	if err != nil {
 		return fmt.Errorf("failed to get ffmpeg stdout: %w", err)
@@ -108,18 +87,15 @@ func (vs *VoicySession) PlayURL(source string, isOpus bool) error {
 
 	vs.setState(playingState)
 
-	if err := oggreader.DecodeBuffered(vs, stdout); err != nil && err.Error() != "failed to write a packet: context canceled" {
+	if err := oggreader.DecodeBuffered(vs, stdout); err != nil && !errors.Is(err, context.Canceled) {
 		return fmt.Errorf("failed to send to voice connection: %w", err)
 	}
 
-	if err := ffmpeg.Wait(); err != nil && err.Error() != "signal: killed" {
-		if str := string(stderr.String()); str != "" {
-			return fmt.Errorf("ffmpeg returned error: %w", errors.New(strings.ReplaceAll(str, vs.source, "source")))
-		}
-		return fmt.Errorf("failed to wait ffmpeg: %w", err)
+	if err, std := ffmpeg.Wait(), stderr.String(); err != nil && std != "" {
+		return fmt.Errorf("ffmpeg returned error: %w", errors.New(strings.ReplaceAll(std, vs.source, "source")))
 	}
 
-	if vs.state == changeState {
+	if vs.state == changingState {
 		return vs.PlayURL(vs.source, vs.isOpus)
 	}
 
@@ -149,7 +125,7 @@ func (vs *VoicySession) Pause() {
 }
 
 func (vs *VoicySession) Stop() {
-	if vs.state != changeState {
+	if vs.state != changingState {
 		vs.Position = 0
 		vs.setState(stoppedState)
 	}
