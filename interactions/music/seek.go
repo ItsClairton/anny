@@ -30,6 +30,10 @@ var SeekCommand = base.Interaction{
 			return ctx.AsEphemeral().Send(emojis.Cry, "Espere alguns segundos para fazer essa ação.")
 		}
 
+		if player.State == audio.PausedState {
+			return ctx.AsEphemeral().Send(emojis.Cry, "Você precisa primeiro despausar a música para fazer isso.")
+		}
+
 		if player.Current.IsLive {
 			return ctx.AsEphemeral().Send(emojis.Cry, "Você não pode fazer isso em transmissões ao vivo.")
 		}

@@ -144,10 +144,10 @@ func (vs *VoicySession) SendSpeaking() error {
 
 func (vs *VoicySession) Write(data []byte) (n int, err error) {
 	if vs.state == pausedState {
-		vs.waitState(playingState, stoppedState)
+		vs.waitState(playingState, stoppedState, changingState)
 	}
 
-	if vs.state == stoppedState {
+	if vs.state == stoppedState || vs.state == changingState {
 		return 0, nil
 	}
 
