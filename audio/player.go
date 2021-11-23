@@ -11,15 +11,15 @@ import (
 	"github.com/diamondburned/arikawa/v3/discord"
 )
 
-var (
-	StoppedState   = 0
-	LoadingState   = 1
-	PausedState    = 2
-	PlayingState   = 3
-	DestroyedState = 4
-
-	players = map[discord.GuildID]*Player{}
+const (
+	StoppedState = iota
+	LoadingState
+	PausedState
+	PlayingState
+	DestroyedState
 )
+
+var players = map[discord.GuildID]*Player{}
 
 type Player struct {
 	*sync.Mutex

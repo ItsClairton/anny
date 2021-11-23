@@ -17,8 +17,11 @@ import (
 	"github.com/diamondburned/oggreader"
 )
 
-var (
-	stoppedState, changingState, pausedState, playingState = 0, 1, 2, 3
+const (
+	stoppedState = iota
+	changingState
+	pausedState
+	playingState
 )
 
 type VoicySession struct {
