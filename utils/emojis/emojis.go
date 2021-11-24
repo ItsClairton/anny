@@ -5,15 +5,16 @@ var (
 
 	Peer    = "<:KannaPeer:838567821205176340>"
 	Yeah    = "<:yeah:838568353139916850>"
-	Cry     = "<:paimonpanic:909597749970874408>"
+	Cry     = "<:pepebugado:913080535914512394>"
 	Loading = "<a:1180staff:836709984909525032>"
 	Sleep   = "<:keqingsleep:909567537778421810>"
-	Sip     = "<:nejiresip:909600499131646063>"
+	OK      = "<:catok:913081364503470080>"
 
 	Twitch  = "<:twitch:896600475833606154>"
 	Youtube = "<:youtube:896600900909559868>"
 
 	AnimatedStaff = "<a:1180staff:836709984909525032>"
+	AnimatedHype  = "<a:hypejump:913079244593168394>"
 )
 
 func GetNumberAsEmoji(num int) string {

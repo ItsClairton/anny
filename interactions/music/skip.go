@@ -24,6 +24,6 @@ var SkipCommand = base.Interaction{
 		}
 
 		player.Skip()
-		return ctx.Send(emojis.Sip, "Música pulada com sucesso.")
+		return ctx.Send(emojis.OK, "Música pulada com sucesso.")
 	},
 }

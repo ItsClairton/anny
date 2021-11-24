@@ -24,6 +24,6 @@ var ShuffleCommand = base.Interaction{
 		}
 
 		player.Shuffle()
-		return ctx.Send(emojis.Yeah, "As músicas foram embaralhadas com sucesso.")
+		return ctx.Send(emojis.OK, "Músicas embaralhadas.")
 	},
 }

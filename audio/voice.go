@@ -52,7 +52,7 @@ func NewVoicy(state *state.State, guildID discord.GuildID, channelID discord.Cha
 	return &VoicySession{Session: voice}, nil
 }
 
-func (vs *VoicySession) SetPosition(duration time.Duration) {
+func (vs *VoicySession) Seek(duration time.Duration) {
 	vs.Position = duration
 
 	vs.setState(changingState)

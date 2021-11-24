@@ -39,9 +39,9 @@ var handler = func(ctx *base.InteractionContext) error {
 
 	if player.State == audio.PausedState {
 		player.Resume()
-		return ctx.Send(emojis.Sip, "Música despausada com sucesso.")
+		return ctx.Send(emojis.OK, "Música despausada.")
 	}
 
 	player.Pause()
-	return ctx.Send(emojis.Sip, "Música pausada com sucesso.")
+	return ctx.Send(emojis.OK, "Música pausada.")
 }

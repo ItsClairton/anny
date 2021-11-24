@@ -31,7 +31,7 @@ var SeekCommand = base.Interaction{
 		}
 
 		if player.State == audio.PausedState {
-			return ctx.AsEphemeral().Send(emojis.Cry, "Você precisa primeiro despausar a música para fazer isso.")
+			return ctx.AsEphemeral().Send(emojis.Cry, "Você precisa primeiro despausar primeiro para fazer isso.")
 		}
 
 		if player.Current.IsLive {
@@ -43,7 +43,7 @@ var SeekCommand = base.Interaction{
 			return ctx.AsEphemeral().Send(emojis.Cry, "Duração inválida ou maior do que a duração da música.")
 		}
 
-		defer player.Session.SetPosition(duration)
-		return ctx.Send(emojis.Yeah, "Posição do player alterada para `%s`.", utils.FormatTime(duration))
+		player.Session.Seek(duration)
+		return ctx.Send(emojis.OK, "Posição do player alterada para **%s**.", utils.FormatTime(duration))
 	},
 }
