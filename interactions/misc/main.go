@@ -1,10 +1,8 @@
 package misc
 
-import (
-	"github.com/ItsClairton/Anny/base"
-)
+import "github.com/ItsClairton/Anny/core"
 
-var Category = &base.Category{
+var Category = &core.Category{
 	Name:         "Miscelâneas",
-	Interactions: []*base.Interaction{&PingCommand},
+	Interactions: []*core.Interaction{&PingCommand},
 }

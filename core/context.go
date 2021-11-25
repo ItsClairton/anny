@@ -1,4 +1,4 @@
-package base
+package core
 
 import (
 	"github.com/ItsClairton/Anny/utils"

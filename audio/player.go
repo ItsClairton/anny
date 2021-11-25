@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ItsClairton/Anny/base"
+	"github.com/ItsClairton/Anny/core"
 	"github.com/ItsClairton/Anny/utils"
 	"github.com/ItsClairton/Anny/utils/emojis"
 	"github.com/diamondburned/arikawa/v3/discord"
@@ -46,7 +46,7 @@ func NewPlayer(GuildID discord.GuildID, TextID, VoiceID discord.ChannelID) *Play
 	players[player.GuildID] = player
 
 	go func() {
-		if session, err := NewVoicy(base.Session, GuildID, VoiceID); err == nil {
+		if session, err := NewVoicy(core.Session, GuildID, VoiceID); err == nil {
 			player.Session = session
 			player.Play()
 		} else {
@@ -121,7 +121,7 @@ func (p *Player) Play() {
 			p.State = StoppedState
 			go p.Play()
 
-			base.SendMessage(p.TextID, emojis.Cry, "Um erro ocorreu ao carregar a música **%s**: `%v`", current.Title, err)
+			core.SendMessage(p.TextID, emojis.Cry, "Um erro ocorreu ao carregar a música **%s**: `%v`", current.Title, err)
 			return
 		} else {
 			current.Song = song
@@ -135,14 +135,14 @@ func (p *Player) Play() {
 		}
 
 		if err := p.Session.PlayURL(current.StreamingURL, current.IsOpus); err != nil {
-			base.SendMessage(p.TextID, emojis.Cry, "Um erro ocorreu enquanto tocava a música **%s**: `%v`", current.Title, err)
+			core.SendMessage(p.TextID, emojis.Cry, "Um erro ocorreu enquanto tocava a música **%s**: `%v`", current.Title, err)
 		}
 
 		p.Current, p.State = nil, StoppedState
 		p.Play()
 	}()
 
-	embed := base.NewEmbed().
+	embed := core.NewEmbed().
 		SetDescription("%s Tocando agora [%s](%s)", emojis.AnimatedHype, current.Title, current.URL).
 		SetImage(current.Thumbnail).
 		SetColor(0x00C1FF).
@@ -152,7 +152,7 @@ func (p *Player) Play() {
 		SetFooter(utils.Fmt("Adicionado por %s#%s", current.Requester.Username, current.Requester.Discriminator), current.Requester.AvatarURL()).
 		SetTimestamp(current.Time)
 
-	base.Session.SendMessage(p.TextID, "", embed.Build())
+	core.Session.SendMessage(p.TextID, "", embed.Build())
 }
 
 func (p *Player) Kill(force bool, args ...interface{}) {
@@ -181,7 +181,7 @@ func (p *Player) Kill(force bool, args ...interface{}) {
 
 			delete(players, p.GuildID)
 			if len(args) >= 2 {
-				base.SendMessage(p.TextID, args[0].(string), args[1].(string), args[2:]...)
+				core.SendMessage(p.TextID, args[0].(string), args[1].(string), args[2:]...)
 			}
 		}
 

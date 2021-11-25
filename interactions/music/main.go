@@ -1,12 +1,12 @@
 package music
 
 import (
-	"github.com/ItsClairton/Anny/base"
+	"github.com/ItsClairton/Anny/core"
 	"github.com/ItsClairton/Anny/utils/emojis"
 )
 
-var Category = &base.Category{
+var Category = &core.Category{
 	Name:         "Música",
 	Emote:        emojis.PingPong,
-	Interactions: []*base.Interaction{&PlayCommand, &SkipCommand, &PauseCommand, &ResumeCommand, &ShuffleCommand, &NowplayingCommand, &StopCommand, &SeekCommand},
+	Interactions: []*core.Interaction{&PlayCommand, &SkipCommand, &PauseCommand, &ResumeCommand, &ShuffleCommand, &NowplayingCommand, &StopCommand, &SeekCommand},
 }

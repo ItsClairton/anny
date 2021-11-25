@@ -6,7 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/ItsClairton/Anny/base"
+	"github.com/ItsClairton/Anny/core"
 	"github.com/ItsClairton/Anny/events"
 	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/joho/godotenv"
@@ -23,16 +23,16 @@ func main() {
 		}
 	}
 
-	if err := base.New(os.Getenv("DISCORD_TOKEN")); err != nil {
+	if err := core.New(os.Getenv("DISCORD_TOKEN")); err != nil {
 		logger.Fatal("Um erro ocorreu ao tentar se conectar ao Discord.", err)
 	}
 
-	base.AddHandler(events.OnReady)
-	base.AddHandler(events.OnInteraction)
-	base.AddHandler(events.VoiceServerUpdate)
-	base.AddHandler(events.VoiceStateUpdate)
+	core.AddHandler(events.OnReady)
+	core.AddHandler(events.OnInteraction)
+	core.AddHandler(events.VoiceServerUpdate)
+	core.AddHandler(events.VoiceStateUpdate)
 
-	if err := base.DeployInteractions(); err != nil {
+	if err := core.DeployInteractions(); err != nil {
 		logger.Fatal("Um erro ocorreu ao fazer o deploy das interações para o Discord.", err)
 	}
 
@@ -40,5 +40,5 @@ func main() {
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-s
-	base.Disconnect()
+	core.Disconnect()
 }

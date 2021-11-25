@@ -3,7 +3,7 @@ package events
 import (
 	"runtime/debug"
 
-	"github.com/ItsClairton/Anny/base"
+	"github.com/ItsClairton/Anny/core"
 	"github.com/ItsClairton/Anny/utils"
 	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/diamondburned/arikawa/v3/api"
@@ -12,8 +12,8 @@ import (
 	"github.com/diamondburned/arikawa/v3/state"
 )
 
-var handleFunc = func(i *base.Interaction, ic *gateway.InteractionCreateEvent, s *state.State, sended bool) {
-	context := base.NewContext(ic, s, sended)
+var handleFunc = func(i *core.Interaction, ic *gateway.InteractionCreateEvent, s *state.State, sended bool) {
+	context := core.NewContext(ic, s, sended)
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -33,13 +33,13 @@ var handleFunc = func(i *base.Interaction, ic *gateway.InteractionCreateEvent, s
 func OnInteraction(e *gateway.InteractionCreateEvent) {
 	switch data := e.Data.(type) {
 	case *discord.CommandInteraction:
-		interaction := base.Interactions[data.Name]
+		interaction := core.Interactions[data.Name]
 		if interaction != nil {
 			if interaction.Deffered {
-				base.Session.RespondInteraction(e.ID, e.Token, api.InteractionResponse{Type: 5})
-				go handleFunc(interaction, e, base.Session, true)
+				core.Session.RespondInteraction(e.ID, e.Token, api.InteractionResponse{Type: 5})
+				go handleFunc(interaction, e, core.Session, true)
 			} else {
-				go handleFunc(interaction, e, base.Session, false)
+				go handleFunc(interaction, e, core.Session, false)
 			}
 		}
 	}

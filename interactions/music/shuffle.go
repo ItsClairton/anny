@@ -2,14 +2,14 @@ package music
 
 import (
 	"github.com/ItsClairton/Anny/audio"
-	"github.com/ItsClairton/Anny/base"
+	"github.com/ItsClairton/Anny/core"
 	"github.com/ItsClairton/Anny/utils/emojis"
 )
 
-var ShuffleCommand = base.Interaction{
+var ShuffleCommand = core.Interaction{
 	Name:        "embaralhar",
 	Description: "Embaralhar as músicas da fila",
-	Handler: func(ctx *base.InteractionContext) error {
+	Handler: func(ctx *core.InteractionContext) error {
 		if ctx.VoiceState() == nil {
 			return ctx.AsEphemeral().Send(emojis.Cry, "Você não está conectado em nenhum canal de voz.")
 		}

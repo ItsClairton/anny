@@ -2,13 +2,13 @@ package music
 
 import (
 	"github.com/ItsClairton/Anny/audio"
-	"github.com/ItsClairton/Anny/base"
+	"github.com/ItsClairton/Anny/core"
 	"github.com/ItsClairton/Anny/utils"
 	"github.com/ItsClairton/Anny/utils/emojis"
 	"github.com/diamondburned/arikawa/v3/discord"
 )
 
-var SeekCommand = base.Interaction{
+var SeekCommand = core.Interaction{
 	Name:        "seek",
 	Description: "Ir para um tempo especifico da música",
 	Options: discord.CommandOptions{&discord.StringOption{
@@ -16,7 +16,7 @@ var SeekCommand = base.Interaction{
 		Description: "Posição desejada, formatos válidos são 01:22 ou 1m22s",
 		Required:    true,
 	}},
-	Handler: func(ctx *base.InteractionContext) error {
+	Handler: func(ctx *core.InteractionContext) error {
 		if ctx.VoiceState() == nil {
 			return ctx.AsEphemeral().Send(emojis.Cry, "Você não está conectado em nenhum canal de voz.")
 		}

@@ -2,13 +2,13 @@ package music
 
 import (
 	"github.com/ItsClairton/Anny/audio"
-	"github.com/ItsClairton/Anny/base"
+	"github.com/ItsClairton/Anny/core"
 	"github.com/ItsClairton/Anny/utils"
 	"github.com/ItsClairton/Anny/utils/emojis"
 	"github.com/diamondburned/arikawa/v3/discord"
 )
 
-var PlayCommand = base.Interaction{
+var PlayCommand = core.Interaction{
 	Name:        "tocar",
 	Description: "Tocar uma música, lista de reprodução, ou live",
 	Options: discord.CommandOptions{&discord.StringOption{
@@ -19,7 +19,7 @@ var PlayCommand = base.Interaction{
 		OptionName:  "embaralhar",
 		Description: "Embaralhar as músicas na fila caso seja uma playlist",
 	}},
-	Handler: func(ctx *base.InteractionContext) error {
+	Handler: func(ctx *core.InteractionContext) error {
 		query, shuffle := ctx.ArgumentAsString(0), ctx.ArgumentAsBool(1)
 
 		state := ctx.VoiceState()
@@ -27,7 +27,7 @@ var PlayCommand = base.Interaction{
 			return ctx.AsEphemeral().Send(emojis.Cry, "Você não está conectado em nenhum canal de voz.")
 		}
 
-		embed := base.
+		embed := core.
 			NewEmbed().
 			SetColor(0xF0FF00).
 			SetDescription("%s Obtendo resultados para sua pesquisa...", emojis.AnimatedStaff)

@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/ItsClairton/Anny/audio"
-	"github.com/ItsClairton/Anny/base"
+	"github.com/ItsClairton/Anny/core"
 	"github.com/ItsClairton/Anny/utils/emojis"
 	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/diamondburned/arikawa/v3/api"
@@ -26,7 +26,7 @@ func VoiceServerUpdate(e *gateway.VoiceServerUpdateEvent) {
 }
 
 func VoiceStateUpdate(e *gateway.VoiceStateUpdateEvent) {
-	if e.UserID != base.Me().ID {
+	if e.UserID != core.Me().ID {
 		return
 	}
 
@@ -45,15 +45,15 @@ func VoiceStateUpdate(e *gateway.VoiceStateUpdateEvent) {
 		player.Kill(true)
 
 		if author := getActionAuthor(e.GuildID, discord.MemberDisconnect); author.IsValid() {
-			base.SendMessage(player.TextID, emojis.Cry, "O Vacilão do <@%d> me desconectou do canal de voz, Bonk nele ;(", author)
+			core.SendMessage(player.TextID, emojis.Cry, "O Vacilão do <@%d> me desconectou do canal de voz, Bonk nele ;(", author)
 		} else {
-			base.SendMessage(player.TextID, emojis.Cry, "Fui desconectada do canal de voz, Sayonara ;(")
+			core.SendMessage(player.TextID, emojis.Cry, "Fui desconectada do canal de voz, Sayonara ;(")
 		}
 	}
 }
 
 func getActionAuthor(guildID discord.GuildID, action discord.AuditLogEvent) discord.UserID {
-	logs, err := base.Session.AuditLog(guildID, api.AuditLogData{
+	logs, err := core.Session.AuditLog(guildID, api.AuditLogData{
 		ActionType: action,
 		Limit:      1,
 	})
