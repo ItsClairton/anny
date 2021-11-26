@@ -154,12 +154,12 @@ func (ctx *InteractionContext) Send(args ...interface{}) error {
 }
 
 func (ctx *InteractionContext) SendError(err error) error {
-	return ctx.WithEmbed(NewEmbed().SetColor(0xE74C3C).SetDescription("%s Um erro ocorreu ao executar essa ação: `%v`", emojis.Cry, err)).Send()
+	return ctx.WithEmbed(NewEmbed().Color(0xE74C3C).Description("%s Um erro ocorreu ao executar essa ação: `%v`", emojis.Cry, err)).Send()
 }
 
 func (ctx *InteractionContext) SendStackTrace(stack string) error {
-	return ctx.WithEmbed(NewEmbed().SetColor(0xE74C3C).
-		SetTitle("%s Um erro ocorreu ao executar essa ação:", emojis.Cry).
-		SetDescription("```go\n%+v```", stack)).
+	return ctx.WithEmbed(NewEmbed().Color(0xE74C3C).
+		Title("%s Um erro ocorreu ao executar essa ação:", emojis.Cry).
+		Description("```go\n%+v```", stack)).
 		Send()
 }

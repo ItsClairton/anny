@@ -29,8 +29,8 @@ var PlayCommand = core.Interaction{
 
 		embed := core.
 			NewEmbed().
-			SetColor(0xF0FF00).
-			SetDescription("%s Obtendo resultados para sua pesquisa...", emojis.AnimatedStaff)
+			Color(0xF0FF00).
+			Description("%s Obtendo resultados para sua pesquisa...", emojis.AnimatedStaff)
 		ctx.WithEmbed(embed).Send()
 
 		player := audio.GetPlayer(ctx.GuildID)
@@ -45,7 +45,7 @@ var PlayCommand = core.Interaction{
 		}
 
 		if result == nil {
-			embed.SetColor(0xF93A2F).SetDescription("%s Não consegui achar essa música, Desculpa ;(", emojis.Cry)
+			embed.Color(0xF93A2F).Description("%s Não consegui achar essa música, Desculpa ;(", emojis.Cry)
 			return ctx.WithEmbed(embed).Edit()
 		}
 
@@ -53,22 +53,22 @@ var PlayCommand = core.Interaction{
 			defer player.AddSong(&ctx.Member.User, shuffle, result.Songs...)
 
 			playlist := result.Songs[0].Playlist
-			embed.SetColor(0x00D166).SetThumbnail(result.Songs[0].Thumbnail).
-				SetDescription("%s Lista de reprodução [%s](%s) adicionada na fila", emojis.Yeah, playlist.Title, playlist.URL).
-				AddField("Criador", playlist.Author, true).
-				AddField("Itens", utils.Fmt("%d", len(result.Songs)), true).
-				AddField("Duração", utils.FormatTime(playlist.Duration), true)
+			embed.Color(0x00D166).Thumbnail(result.Songs[0].Thumbnail).
+				Description("%s Lista de reprodução [%s](%s) adicionada na fila", emojis.Yeah, playlist.Title, playlist.URL).
+				Field("Criador", playlist.Author, true).
+				Field("Itens", utils.Fmt("%d", len(result.Songs)), true).
+				Field("Duração", utils.FormatTime(playlist.Duration), true)
 
 			return ctx.WithEmbed(embed).Edit()
 		}
 
 		song := result.Songs[0]
-		embed.AddField("Autor", song.Author, true).
-			AddField("Duração", utils.Is(song.IsLive, "--:--", utils.FormatTime(song.Duration)), true).
-			AddField("Provedor", song.Provider(), true)
+		embed.Field("Autor", song.Author, true).
+			Field("Duração", utils.Is(song.IsLive, "--:--", utils.FormatTime(song.Duration)), true).
+			Field("Provedor", song.Provider(), true)
 
 		if !song.IsLoaded() {
-			embed.SetDescription("%s Carregando mais informações de [%s](%s)...", emojis.AnimatedStaff, song.Title, song.URL)
+			embed.Description("%s Carregando mais informações de [%s](%s)...", emojis.AnimatedStaff, song.Title, song.URL)
 			ctx.WithEmbed(embed).Edit()
 
 			song, err = song.Load()
@@ -78,8 +78,8 @@ var PlayCommand = core.Interaction{
 		}
 
 		defer player.AddSong(&ctx.Member.User, shuffle, song)
-		return ctx.WithEmbed(embed.SetColor(0x00D166).
-			SetThumbnail(song.Thumbnail).
-			SetDescription("%s Música [%s](%s) adicionada na fila", emojis.Yeah, song.Title, song.URL)).Edit()
+		return ctx.WithEmbed(embed.Color(0x00D166).
+			Thumbnail(song.Thumbnail).
+			Description("%s Música [%s](%s) adicionada na fila", emojis.Yeah, song.Title, song.URL)).Edit()
 	},
 }

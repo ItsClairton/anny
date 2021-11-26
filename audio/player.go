@@ -143,14 +143,14 @@ func (p *Player) Play() {
 	}()
 
 	embed := core.NewEmbed().
-		SetDescription("%s Tocando agora [%s](%s)", emojis.AnimatedHype, current.Title, current.URL).
-		SetImage(current.Thumbnail).
-		SetColor(0x00C1FF).
-		AddField("Autor", current.Author, true).
-		AddField("Duração", utils.Is(current.IsLive, "--:--", utils.FormatTime(current.Duration)), true).
-		AddField("Provedor", current.Provider(), true).
-		SetFooter(utils.Fmt("Adicionado por %s#%s", current.Requester.Username, current.Requester.Discriminator), current.Requester.AvatarURL()).
-		SetTimestamp(current.Time)
+		Description("%s Tocando agora [%s](%s)", emojis.AnimatedHype, current.Title, current.URL).
+		Image(current.Thumbnail).
+		Color(0x00C1FF).
+		Field("Autor", current.Author, true).
+		Field("Duração", utils.Is(current.IsLive, "--:--", utils.FormatTime(current.Duration)), true).
+		Field("Provedor", current.Provider(), true).
+		Footer(utils.Fmt("Adicionado por %s#%s", current.Requester.Username, current.Requester.Discriminator), current.Requester.AvatarURL()).
+		Timestamp(current.Time)
 
 	core.Session.SendMessage(p.TextID, "", embed.Build())
 }

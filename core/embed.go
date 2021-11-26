@@ -15,11 +15,8 @@ func NewEmbed() *Embed {
 	return &Embed{discord.Embed{}}
 }
 
-func (e *Embed) SetAuthor(args ...string) *Embed {
-	author := &discord.EmbedAuthor{
-		Name: args[0],
-	}
-
+func (e *Embed) Author(args ...string) *Embed {
+	author := &discord.EmbedAuthor{Name: args[0]}
 	if len(args) >= 2 {
 		author.Icon = args[1]
 	}
@@ -27,70 +24,63 @@ func (e *Embed) SetAuthor(args ...string) *Embed {
 		author.URL = args[2]
 	}
 
-	e.Author = author
+	e.Embed.Author = author
 	return e
 }
 
-func (e *Embed) SetTitle(title string, args ...interface{}) *Embed {
-	title = utils.Fmt(title, args...)
-	if len(title) > 256 {
-		title = title[:256]
-	}
-
-	e.Title = title
+func (e *Embed) URL(url string) *Embed {
+	e.Embed.URL = url
 	return e
 }
 
-func (e *Embed) SetURL(url string) *Embed {
-	e.URL = url
+func (e *Embed) Title(title string, args ...interface{}) *Embed {
+	e.Embed.Title = utils.Fmt(title, args...)
 	return e
 }
 
-func (e *Embed) SetDescription(desc string, args ...interface{}) *Embed {
-	desc = utils.Fmt(desc, args...)
-	if len(desc) > 4096 {
-		desc = desc[:4096]
-	}
-
-	e.Description = desc
+func (e *Embed) Description(desc string, args ...interface{}) *Embed {
+	e.Embed.Description = utils.Fmt(desc, args...)
 	return e
 }
 
-func (e *Embed) SetColor(color int) *Embed {
-	e.Color = discord.Color(color)
+func (e *Embed) Color(color int) *Embed {
+	e.Embed.Color = discord.Color(color)
 	return e
 }
 
-func (e *Embed) SetImage(url string) *Embed {
-	e.Image = &discord.EmbedImage{
+func (e *Embed) Image(url string) *Embed {
+	e.Embed.Image = &discord.EmbedImage{
 		URL: url,
 	}
 
 	return e
 }
 
-func (e *Embed) SetThumbnail(url string) *Embed {
-	e.Thumbnail = &discord.EmbedThumbnail{
+func (e *Embed) Thumbnail(url string) *Embed {
+	e.Embed.Thumbnail = &discord.EmbedThumbnail{
 		URL: url,
 	}
 
 	return e
 }
 
-func (e *Embed) SetTimestamp(time time.Time) *Embed {
-	e.Timestamp = discord.NewTimestamp(time)
+func (e *Embed) Timestamp(time time.Time) *Embed {
+	e.Embed.Timestamp = discord.NewTimestamp(time)
+	return e
+}
+
+func (e *Embed) Field(name, value string, inline bool) *Embed {
+	e.Fields = append(e.Fields, discord.EmbedField{
+		Name:   name,
+		Value:  value,
+		Inline: inline,
+	})
 	return e
 }
 
 func (e *Embed) SetField(index int, name, value string, inline bool) *Embed {
 	if index > len(e.Fields) {
 		return e
-	}
-	if len(name) > 256 {
-		name = name[:256]
-	}
-	if len(value) > 1024 {
-		value = value[:1024]
 	}
 
 	e.Fields[index] = discord.EmbedField{
@@ -101,28 +91,8 @@ func (e *Embed) SetField(index int, name, value string, inline bool) *Embed {
 	return e
 }
 
-func (e *Embed) AddField(name, value string, inline bool) *Embed {
-	if len(name) > 256 {
-		name = name[:256]
-	}
-	if len(value) > 1024 {
-		value = value[:1024]
-	}
-
-	e.Fields = append(e.Fields, discord.EmbedField{
-		Name:   name,
-		Value:  value,
-		Inline: inline,
-	})
-	return e
-}
-
-func (e *Embed) SetFooter(content, imgUrl string) *Embed {
-	if len(content) > 2048 {
-		content = content[:2048]
-	}
-
-	e.Footer = &discord.EmbedFooter{
+func (e *Embed) Footer(content, imgUrl string) *Embed {
+	e.Embed.Footer = &discord.EmbedFooter{
 		Text: content,
 		Icon: imgUrl,
 	}
