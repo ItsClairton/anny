@@ -2,40 +2,112 @@ package core
 
 import (
 	"context"
+	"reflect"
 
-	"github.com/ItsClairton/Anny/utils"
+	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/diamondburned/arikawa/v3/discord"
 	"github.com/diamondburned/arikawa/v3/gateway"
 	"github.com/diamondburned/arikawa/v3/state"
+	"github.com/pkg/errors"
 )
+
+type Event struct {
+	Handler interface{}
+}
+
+type Module struct {
+	Commands  []*Command
+	Events    []*Event
+	StartFunc func()
+}
 
 var (
-	Session *state.State
+	State *state.State
+	Self  *discord.User
+	App   *discord.Application
+
+	Commands = make(map[string]*Command)
 )
 
-func New(token string) (err error) {
-	Session, err = state.NewWithIntents(utils.Fmt("Bot %s", token), gateway.IntentGuilds, gateway.IntentGuildMessages, gateway.IntentGuildVoiceStates)
+func NewClient(token string) (err error) {
+	State, err = state.NewWithIntents("Bot "+token, gateway.IntentGuilds, gateway.IntentGuildVoiceStates)
+
+	return err
+}
+
+func Connect() error {
+	err := State.Open(context.Background())
 
 	if err == nil {
-		err = Session.Open(context.Background())
+		Self, err = State.Me()
+	}
+	if err == nil {
+		App, err = State.CurrentApplication()
 	}
 
 	return err
 }
 
-func AddHandler(handler interface{}) {
-	Session.AddHandler(handler)
+func DeployCommands() error {
+
+	previous, err := State.Commands(App.ID)
+	if err != nil {
+		return errors.Wrap(err, "Failed to get Discord command list")
+	}
+
+	checked := make(map[string]interface{})
+	for _, prevCmd := range previous {
+		newCmd := Commands[prevCmd.Name]
+
+		if newCmd == nil {
+			logger.DebugF("Removendo comando \"%s\" do Discord.", prevCmd.Name)
+			if err := State.DeleteCommand(App.ID, prevCmd.ID); err != nil {
+				return errors.Wrapf(err, "failed to delete \"%s\" command", prevCmd.Name)
+			}
+		} else {
+			if !reflect.DeepEqual(prevCmd.Options, newCmd.Options) || newCmd.Description != prevCmd.Description {
+				logger.DebugF("Atualizando commando %s no Discord.", newCmd.Name)
+				if _, err := State.EditCommand(App.ID, prevCmd.ID, newCmd.RAW()); err != nil {
+					return errors.Wrapf(err, "failed to update \"%s\" command", newCmd.Name)
+				}
+			}
+			checked[newCmd.Name] = true
+		}
+	}
+
+	for _, command := range Commands {
+		if checked[command.Name] == nil {
+			logger.DebugF("Criando comando %s no Discord.", command.Name)
+			if _, err := State.CreateCommand(App.ID, command.RAW()); err != nil {
+				return errors.Wrapf(err, "failed to create \"%s\" command", command.Name)
+			}
+		}
+	}
+
+	return nil
 }
 
-func Me() *discord.User {
-	me, _ := Session.Me()
-	return me
+func Close() {
+	State.Close()
 }
 
-func SendMessage(id discord.ChannelID, emoji, text string, args ...interface{}) {
-	Session.SendMessage(id, utils.Fmt("%s | %s", emoji, utils.Fmt(text, args...)))
+func AddModules(modules ...*Module) {
+	for _, module := range modules {
+		AddModule(module)
+	}
 }
 
-func Disconnect() {
-	Session.Close()
+func AddModule(module *Module) {
+	for _, cmd := range module.Commands {
+		cmd.Module = module
+		Commands[cmd.Name] = cmd
+	}
+
+	for _, event := range module.Events {
+		State.AddHandler(event.Handler)
+	}
+
+	if module.StartFunc != nil {
+		go module.StartFunc()
+	}
 }

@@ -1,44 +1,45 @@
 package main
 
 import (
-	"errors"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/ItsClairton/Anny/core"
-	"github.com/ItsClairton/Anny/events"
+	"github.com/ItsClairton/Anny/misc"
+	"github.com/ItsClairton/Anny/music"
+	"github.com/ItsClairton/Anny/rest"
 	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/joho/godotenv"
-
-	_ "github.com/ItsClairton/Anny/interactions"
+	"github.com/pkg/errors"
 )
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			logger.Warn("Arquivo .env não encontrado, utilizando variaveis de ambiente fornecidas via linha de comando.")
-		} else {
-			logger.Fatal("Um erro ocorreu ao carregar as variaveis de ambiente do .env.", err)
+		if !errors.Is(err, os.ErrNotExist) {
+			logger.Fatal("Um erro ocorreu ao carregar as variaveis de ambiente.", err)
 		}
+		logger.Warn("Utilizando variaveis de ambiente fornecidas por linha de comando.")
 	}
 
-	if err := core.New(os.Getenv("DISCORD_TOKEN")); err != nil {
-		logger.Fatal("Um erro ocorreu ao tentar se conectar ao Discord.", err)
+	if err := core.NewClient(os.Getenv("DISCORD_TOKEN")); err != nil {
+		logger.Fatal("Um erro ocorreu ao criar um cliente do Discord.", err)
 	}
 
-	core.AddHandler(events.OnReady)
-	core.AddHandler(events.OnInteraction)
-	core.AddHandler(events.VoiceServerUpdate)
-	core.AddHandler(events.VoiceStateUpdate)
+	core.AddModules(music.Module, misc.Module, rest.Module)
 
-	if err := core.DeployInteractions(); err != nil {
-		logger.Fatal("Um erro ocorreu ao fazer o deploy das interações para o Discord.", err)
+	if err := core.Connect(); err != nil {
+		logger.Fatal("Um erro ocorreu ao tentar se autenticar com o Discord.")
 	}
 
-	logger.Info("Conexão com o Discord feita com Sucesso.")
+	if err := core.DeployCommands(); err != nil {
+		logger.Fatal("Um erro ocorreu ao fazer deploy dos comandos para o Discord.", err)
+	}
+
+	logger.Info("Yay, estou online, para me deixar offline basta usar CTRL + C.")
+
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-s
-	core.Disconnect()
+	core.Close()
 }

@@ -3,13 +3,10 @@ package utils
 import (
 	"errors"
 	"math/rand"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
 )
-
-var URLRegex = regexp.MustCompile(`https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)`)
 
 func RandomBool() bool {
 	return rand.Int63()&1 == 0

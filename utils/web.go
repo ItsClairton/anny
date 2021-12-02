@@ -3,9 +3,12 @@ package utils
 import (
 	"io"
 	"net/http"
+	"regexp"
 )
 
-func GetFromWeb(url string) ([]byte, error) {
+var LinkRegex = regexp.MustCompile(`https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)`)
+
+func FromWeb(url string) ([]byte, error) {
 	res, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -15,10 +18,11 @@ func GetFromWeb(url string) ([]byte, error) {
 	return io.ReadAll(res.Body)
 }
 
-func GetFromWebString(url string) (string, error) {
-	body, err := GetFromWeb(url)
+func FromWebString(url string) (string, error) {
+	body, err := FromWeb(url)
 	if err != nil {
 		return "", err
 	}
+
 	return string(body), nil
 }
