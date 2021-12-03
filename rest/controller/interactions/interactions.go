@@ -3,8 +3,6 @@ package interactions
 import (
 	"crypto/ed25519"
 	"encoding/hex"
-	"strconv"
-	"time"
 
 	"github.com/ItsClairton/Anny/core"
 	"github.com/ItsClairton/Anny/utils/logger"
@@ -24,8 +22,7 @@ func Post(ctx *fiber.Ctx) error {
 		return fiber.ErrBadRequest
 	}
 
-	parsedTime, _ := strconv.ParseInt(string(timestamp), 10, 64)
-	if time.Since(time.Unix(parsedTime, 0)).Seconds() > 10 || !isValid(signature, append(timestamp, ctx.Body()...)) {
+	if !isValid(signature, append(timestamp, ctx.Body()...)) {
 		return fiber.ErrUnauthorized
 	}
 
@@ -60,7 +57,7 @@ func Post(ctx *fiber.Ctx) error {
 }
 
 func isValid(signature, hash []byte) bool {
-	decodedSig, err := hex.DecodeString(string(signature))
+	n, err := hex.Decode(signature, signature)
 	if err != nil {
 		return false
 	}
@@ -73,5 +70,5 @@ func isValid(signature, hash []byte) bool {
 		}
 	}
 
-	return ed25519.Verify(decodedPubkey, hash, decodedSig)
+	return ed25519.Verify(decodedPubkey, hash, signature[:n])
 }
