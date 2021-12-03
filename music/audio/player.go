@@ -98,11 +98,11 @@ func NewPlayer(guildID discord.GuildID, textID, voiceID discord.ChannelID) *Play
 }
 
 func (p *Player) Play() {
-	if p.State != StoppedState {
+	if p.State != StoppedState || p.Voicy == nil {
 		return
 	}
 
-	if len(p.Queue) == 0 || p.Voicy == nil {
+	if len(p.Queue) == 0 {
 		p.Stop(true)
 		return
 	}
