@@ -13,8 +13,8 @@ var NowplayingCommand = core.Command{
 	Handler: func(ctx *core.CommandContext) {
 		player := music.GetPlayer(ctx.GuildID)
 
-		if player.State == music.StoppedState {
-			ctx.Ephemeral().Reply(emojis.Cry, "Você não pode fazer isso em transmissões ao vivo.")
+		if player == nil || player.State == music.StoppedState {
+			ctx.Ephemeral().Reply(emojis.Cry, "Não há nada tocando no momento.")
 			return
 		}
 

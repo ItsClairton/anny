@@ -25,7 +25,7 @@ const (
 
 var (
 	players   = map[discord.GuildID]*Player{}
-	TimerTime = 10 * time.Second
+	TimerTime = 3 * time.Minute
 )
 
 type Player struct {
@@ -133,7 +133,6 @@ func (p *Player) Play() {
 
 	if err := p.Voicy.PlayURL(song.StreamingURL, song.IsOpus); err != nil {
 		if errors.Is(err, context.Canceled) {
-			p.Play()
 			return
 		}
 
@@ -141,7 +140,6 @@ func (p *Player) Play() {
 	}
 
 	p.Current, p.State = nil, StoppedState
-	p.Play()
 }
 
 func (p *Player) Stop(schedule bool) {
