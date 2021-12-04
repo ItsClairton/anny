@@ -219,7 +219,11 @@ func removePlayer(player *Player, scheduled bool) {
 
 	player.State = DestroyedState
 	player.Queue = []*RequestedSong{}
-	player.Timer.Stop()
+
+	if player.Timer != nil {
+		player.Timer.Stop()
+	}
+
 	if player.Voicy != nil {
 		player.Voicy.Destroy()
 	}
