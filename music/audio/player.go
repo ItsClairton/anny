@@ -46,8 +46,8 @@ type Player struct {
 
 type RequestedSong struct {
 	*music.Song
-	Requester   *discord.User
-	RequestedAt time.Time
+	Requester   *discord.User `json:"requester"`
+	RequestedAt time.Time     `json:"requestedAt"`
 }
 
 func GetOrCreatePlayer(guildID discord.GuildID, textID, voiceID discord.ChannelID) *Player {

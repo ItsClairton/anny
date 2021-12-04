@@ -23,11 +23,16 @@ type Playlist struct {
 }
 
 type Song struct {
-	Title, Author, Thumbnail, URL, StreamingURL string
+	Title        string `json:"title"`
+	Author       string `json:"author"`
+	Thumbnail    string `json:"thumbnail"`
+	URL          string `json:"url"`
+	StreamingURL string `json:"-"`
 
-	Duration       time.Duration
-	IsLive, IsOpus bool
-	Expires        time.Time
+	Duration time.Duration `json:"duration"`
+	IsLive   bool          `json:"isLive"`
+	IsOpus   bool          `json:"-"`
+	Expires  time.Time     `json:"-"`
 
 	provider Provider
 }

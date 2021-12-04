@@ -15,11 +15,11 @@ var Module = &core.Module{StartFunc: func() {
 		DisableStartupMessage: true,
 		ErrorHandler: func(c *fiber.Ctx, e error) error {
 			if err, ok := e.(*fiber.Error); ok {
-				return c.Status(err.Code).JSON(&fiber.Map{"error": true, "message": err.Message})
+				return c.Status(err.Code).JSON(&fiber.Map{"data": nil, "error": err.Message})
 			}
 
 			logger.ErrorF("%s %s: %+v", c.Method(), c.Path(), e)
-			return c.Status(fiber.StatusInternalServerError).JSON(&fiber.Map{"error": true, "message": e.Error()})
+			return c.Status(fiber.StatusInternalServerError).JSON(&fiber.Map{"data": nil, "error": e.Error()})
 		},
 	})
 
