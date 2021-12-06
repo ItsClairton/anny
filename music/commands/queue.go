@@ -24,12 +24,12 @@ var QueueCommand = core.Command{
 		var count int
 
 		for _, track := range player.Queue {
-			if count > 9 {
+			if count > 19 {
 				break
 			}
 
 			count++
-			finalText += utils.Fmt("%s - [%s](%s)\n", emojis.GetNumberAsEmoji(count), track.Title, track.URL)
+			finalText += utils.Fmt("**%d** - [%s](%s)\n", count, track.Title, track.URL)
 		}
 
 		ctx.Reply(utils.NewEmbed().
