@@ -51,21 +51,21 @@ func New(state *state.State, guildID discord.GuildID, channelID discord.ChannelI
 	return &Session{Session: session}, nil
 }
 
-func (vs *Session) PlayURL(source string, isOpus bool) error {
-	if vs.state != stoppedState && vs.state != changingState {
-		vs.Stop()
+func (s *Session) PlayURL(source string, isOpus bool) error {
+	if s.state != stoppedState && s.state != changingState {
+		s.Stop()
 	}
 
-	vs.context, vs.cancel = context.WithCancel(context.Background())
-	vs.source, vs.isOpus = source, isOpus
+	s.context, s.cancel = context.WithCancel(context.Background())
+	s.source, s.isOpus = source, isOpus
 
-	ffmpeg := exec.CommandContext(vs.context, "ffmpeg",
-		"-loglevel", "error", "-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "5", "-ss", utils.FormatTime(vs.Position),
-		"-i", source, "-vn", "-codec", utils.Is(vs.isOpus, "copy", "libopus"), "-vbr", "off", "-frame_duration", "20", "-f", "opus", "-")
+	ffmpeg := exec.CommandContext(s.context, "ffmpeg",
+		"-loglevel", "error", "-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "5", "-ss", utils.FormatTime(s.Position),
+		"-i", source, "-vn", "-codec", utils.Is(s.isOpus, "copy", "libopus"), "-vbr", "off", "-frame_duration", "20", "-f", "opus", "-")
 
 	stdout, err := ffmpeg.StdoutPipe()
 	if err != nil {
-		vs.stop()
+		s.stop()
 		return errors.Wrapf(err, "failed to get ffmpeg stdout")
 	}
 
@@ -73,108 +73,100 @@ func (vs *Session) PlayURL(source string, isOpus bool) error {
 	ffmpeg.Stderr = &stderr
 
 	if err := ffmpeg.Start(); err != nil {
-		vs.stop()
+		s.stop()
 		return errors.Wrapf(err, "failed to start ffmpeg process")
 	}
 
-	if err := vs.SendSpeaking(); err != nil {
-		vs.stop()
+	if err := s.SendSpeaking(); err != nil {
+		s.stop()
 		return errors.Wrapf(err, "failed to send speaking packet to discord")
 	}
 
-	vs.setState(playingState)
+	s.setState(playingState)
 
-	if err := oggreader.DecodeBuffered(vs, stdout); err != nil && vs.state != changingState {
-		vs.stop()
+	if err := oggreader.DecodeBuffered(s, stdout); err != nil && s.state != changingState {
+		s.stop()
 		return err
 	}
 
 	if err, std := ffmpeg.Wait(), stderr.String(); err != nil && std != "" {
-		vs.stop()
-		return errors.Wrapf(errors.New(strings.ReplaceAll(std, vs.source, "source")), "ffmpeg returned error")
+		s.stop()
+		return errors.Wrapf(errors.New(strings.ReplaceAll(std, s.source, "source")), "ffmpeg returned error")
 	}
 
-	if vs.state == changingState {
-		return vs.PlayURL(vs.source, vs.isOpus)
+	if s.state == changingState {
+		return s.PlayURL(s.source, s.isOpus)
 	}
 
-	vs.stop()
+	s.stop()
 	return nil
 }
 
-func (vs *Session) Destroy() {
-	vs.Stop()
-	vs.Session.Leave()
+func (s *Session) Destroy() {
+	s.Stop()
+	s.Session.Leave()
 }
 
-func (vs *Session) Seek(position time.Duration) {
-	if vs.state == stoppedState {
-		return
-	}
-	vs.Position = position
-
-	vs.setState(changingState)
-	vs.Stop()
-}
-
-func (vs *Session) Resume() {
-	if vs.state == pausedState {
-		vs.setState(playingState)
-		vs.SendSpeaking()
-	}
-}
-
-func (vs *Session) Pause() {
-	if vs.state != stoppedState && vs.state != changingState {
-		vs.setState(pausedState)
-	}
-}
-
-func (vs *Session) Stop() {
-	if vs.state == stoppedState {
+func (s *Session) Seek(position time.Duration) {
+	if s.state == stoppedState {
 		return
 	}
 
-	if vs.cancel != nil {
-		vs.cancel()
-		vs.waitState(stoppedState, playingState, changingState, pausedState)
+	s.Position = position
+	s.setState(changingState)
+	s.Stop()
+}
+
+func (s *Session) Resume() {
+	if s.state == pausedState {
+		s.setState(playingState)
+		s.SendSpeaking()
 	}
 }
 
-func (vs *Session) stop() {
-	vs.cancel()
-	vs.setState(stoppedState)
-	vs.Position = 0
-}
-
-func (vs *Session) SendSpeaking() error {
-	return vs.Session.Speaking(voicegateway.Microphone)
-}
-
-func (vs *Session) Write(data []byte) (int, error) {
-	if vs.state == pausedState {
-		vs.waitState(playingState, stoppedState, changingState)
-	}
-
-	vs.Position = vs.Position + (20 * time.Millisecond)
-	return vs.Session.WriteCtx(vs.context, data)
-}
-
-func (vs *Session) setState(state int) {
-	vs.state = state
-	if vs.channel != nil {
-		vs.channel <- state
+func (s *Session) Pause() {
+	if s.state != stoppedState && s.state != changingState {
+		s.setState(pausedState)
 	}
 }
 
-func (vs *Session) waitState(states ...int) {
-	vs.channel = make(chan int)
+func (s *Session) Stop() {
+	if s.cancel != nil {
+		s.cancel()
+	}
+}
 
-	for {
-		if newState := <-vs.channel; utils.IntegerArrayContains(states, newState) {
-			close(vs.channel)
-			vs.channel = nil
-			break
+func (s *Session) stop() {
+	s.cancel()
+	s.setState(stoppedState)
+	s.Position = 0
+}
+
+func (s *Session) SendSpeaking() error {
+	return s.Session.Speaking(voicegateway.Microphone)
+}
+
+func (s *Session) Write(data []byte) (int, error) {
+	if s.state == pausedState {
+		s.channel = make(chan int)
+
+		for {
+			if newState := <-s.channel; newState != pausedState {
+				close(s.channel)
+				s.channel = nil
+				break
+			}
 		}
+	}
+
+	s.Position = s.Position + (20 * time.Millisecond)
+	return s.Session.WriteCtx(s.context, data)
+}
+
+func (s *Session) setState(state int) {
+	s.state = state
+
+	if s.channel != nil {
+		s.channel <- state
 	}
 }
