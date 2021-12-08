@@ -40,6 +40,6 @@ var SeekCommand = core.Command{
 		}
 
 		player.Voicy.Seek(duration)
-		ctx.Ephemeral().Reply(emojis.OK, "Posição do batidão alterada para os minutos `%s`.", utils.FormatTime(duration))
+		ctx.Reply(emojis.OK, "Posição do batidão alterada para os minutos `%s`.", utils.FormatTime(duration))
 	},
 }

@@ -42,13 +42,12 @@ func Post(ctx *fiber.Ctx) error {
 	if data, ok := event.Data.(*discord.CommandInteraction); ok {
 		if command := core.Commands[data.Name]; command != nil {
 			context := core.NewCommandContext(&event, core.State, data, ctx, command.Deffered)
+			go command.Handler(context)
 
 			if command.Deffered {
-				go command.Handler(context)
 				return ctx.JSON(api.InteractionResponse{Type: api.DeferredMessageInteractionWithSource})
 			}
 
-			go command.Handler(context)
 			return context.Wait()
 		}
 	}
