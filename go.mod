@@ -5,7 +5,6 @@ go 1.17
 // +heroku goVersion go1.17
 require (
 	github.com/Pauloo27/searchtube v0.0.0-20210906001334-44c3e43c257a
-	github.com/buger/jsonparser v1.1.1
 	github.com/diamondburned/arikawa/v3 v3.0.0-rc.3
 	github.com/diamondburned/oggreader v0.0.0-20201118014549-87df9534b647
 	github.com/gofiber/fiber/v2 v2.22.0
@@ -17,6 +16,7 @@ require (
 require (
 	github.com/andybalholm/brotli v1.0.2 // indirect
 	github.com/bitly/go-simplejson v0.5.0 // indirect
+	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/gorilla/schema v1.2.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/klauspost/compress v1.13.4 // indirect

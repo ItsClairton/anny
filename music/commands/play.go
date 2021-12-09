@@ -48,7 +48,7 @@ var PlayCommand = core.Command{
 		}
 
 		if result.Playlist != nil {
-			player.AddSong(ctx.User, shuffle, result.Songs...)
+			player.AddSong(ctx.Sender(), shuffle, result.Songs...)
 
 			ctx.Reply(embed.Color(0x00D166).
 				Description("%s Lista de reprodução [%s](%s) adicionada na fila", emojis.Yeah, result.Playlist.Title, result.Playlist.URL).
@@ -73,7 +73,7 @@ var PlayCommand = core.Command{
 			}
 		}
 
-		player.AddSong(ctx.User, shuffle, song)
+		player.AddSong(ctx.Sender(), shuffle, song)
 		ctx.Reply(embed.
 			Color(0x00D166).
 			Thumbnail(song.Thumbnail).

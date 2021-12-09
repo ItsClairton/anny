@@ -35,7 +35,7 @@ var QueueCommand = core.Command{
 		ctx.Reply(utils.NewEmbed().
 			Color(0xA652BB).
 			Description(finalText).
-			Footer(utils.Fmt("Mostrando %d de %d músicas", count, len(player.Queue)), ctx.User.AvatarURL()).
+			Footer(utils.Fmt("Mostrando %d de %d músicas", count, len(player.Queue)), ctx.Sender().AvatarURL()).
 			Timestamp(time.Now()))
 	},
 }

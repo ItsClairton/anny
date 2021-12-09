@@ -3,12 +3,13 @@ package core
 import (
 	"github.com/ItsClairton/Anny/utils"
 	"github.com/ItsClairton/Anny/utils/emojis"
+	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/diamondburned/arikawa/v3/api"
 	"github.com/diamondburned/arikawa/v3/discord"
+	"github.com/diamondburned/arikawa/v3/gateway"
 	"github.com/diamondburned/arikawa/v3/state"
 	"github.com/diamondburned/arikawa/v3/utils/json/option"
 	"github.com/diamondburned/arikawa/v3/utils/sendpart"
-	"github.com/gofiber/fiber/v2"
 )
 
 type Command struct {
@@ -21,37 +22,27 @@ type Command struct {
 }
 
 type CommandContext struct {
-	*discord.InteractionEvent
+	*gateway.InteractionCreateEvent
 
 	Data  *discord.CommandInteraction
 	State *state.State
 
 	response *api.InteractionResponseData
 	sended   bool
-
-	request     *fiber.Ctx
-	requestChan chan error
 }
 
 type Argument struct {
 	a *discord.CommandInteractionOption
 }
 
-func NewCommandContext(e *discord.InteractionEvent, state *state.State, data *discord.CommandInteraction, requestCtx *fiber.Ctx, sended bool) *CommandContext {
+func NewCommandContext(e *gateway.InteractionCreateEvent, state *state.State, data *discord.CommandInteraction, sended bool) *CommandContext {
 	return &CommandContext{
-		InteractionEvent: e,
-		State:            state,
-		Data:             data,
-		response:         &api.InteractionResponseData{},
-		request:          requestCtx,
-		requestChan:      make(chan error),
-		sended:           sended,
+		InteractionCreateEvent: e,
+		State:                  state,
+		Data:                   data,
+		response:               &api.InteractionResponseData{},
+		sended:                 sended,
 	}
-}
-
-func (ctx *CommandContext) Wait() error {
-	defer close(ctx.requestChan)
-	return <-ctx.requestChan
 }
 
 func (ctx *CommandContext) Argument(index int) *Argument {
@@ -103,8 +94,11 @@ func (ctx *CommandContext) Reply(args ...interface{}) {
 		return
 	}
 
-	ctx.sended = true
-	ctx.requestChan <- ctx.request.JSON(api.InteractionResponse{Type: api.MessageInteractionWithSource, Data: ctx.response})
+	if err := ctx.State.RespondInteraction(ctx.ID, ctx.Token, api.InteractionResponse{Type: 4, Data: ctx.response}); err == nil {
+		ctx.sended = true
+	} else {
+		logger.ErrorF("Não foi possível responder a interação \"%s\" (GuildID: %s): %v", ctx.Data.Name, ctx.GuildID, err)
+	}
 }
 
 func (ctx *CommandContext) Edit(args ...interface{}) (*discord.Message, error) {

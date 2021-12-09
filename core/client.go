@@ -32,6 +32,8 @@ var (
 func NewClient(token string) (err error) {
 	State, err = state.NewWithIntents("Bot "+token, gateway.IntentGuilds, gateway.IntentGuildVoiceStates)
 
+	State.AddHandler(InteractionEvent)
+
 	return err
 }
 
@@ -41,6 +43,7 @@ func Connect() error {
 	if err == nil {
 		Self, err = State.Me()
 	}
+
 	if err == nil {
 		App, err = State.CurrentApplication()
 	}
