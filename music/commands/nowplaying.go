@@ -9,7 +9,7 @@ import (
 
 var NowplayingCommand = core.Command{
 	Name:        "tocando",
-	Description: "Mostra que música que está tocando agora",
+	Description: "Mostra as informações dá música que estiver tocando no momento",
 	Handler: func(ctx *core.CommandContext) {
 		player := music.GetPlayer(ctx.GuildID)
 

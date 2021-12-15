@@ -16,17 +16,20 @@ type Event struct {
 }
 
 type Module struct {
-	Commands  []*Command
-	Events    []*Event
-	StartFunc func()
+	Name, Emote string
+
+	Commands []*Command
+	Events   []*Event
+
+	OnInit, OnLogin func()
 }
 
 var (
 	State *state.State
 	Self  *discord.User
-	App   *discord.Application
 
 	Commands = make(map[string]*Command)
+	Modules  = []*Module{}
 )
 
 func NewClient(token string) (err error) {
@@ -45,15 +48,23 @@ func Connect() error {
 	}
 
 	if err == nil {
-		App, err = State.CurrentApplication()
+		for _, module := range Modules {
+			if module.OnLogin != nil {
+				go module.OnLogin()
+			}
+		}
 	}
 
 	return err
 }
 
 func DeployCommands() error {
+	app, err := State.CurrentApplication()
+	if err != nil {
+		return errors.Wrap(err, "unable to get application information")
+	}
 
-	previous, err := State.Commands(App.ID)
+	previous, err := State.Commands(app.ID)
 	if err != nil {
 		return errors.Wrap(err, "Failed to get Discord command list")
 	}
@@ -64,13 +75,13 @@ func DeployCommands() error {
 
 		if newCmd == nil {
 			logger.DebugF("Removendo comando \"%s\" do Discord.", prevCmd.Name)
-			if err := State.DeleteCommand(App.ID, prevCmd.ID); err != nil {
+			if err := State.DeleteCommand(app.ID, prevCmd.ID); err != nil {
 				return errors.Wrapf(err, "failed to delete \"%s\" command", prevCmd.Name)
 			}
 		} else {
 			if !reflect.DeepEqual(prevCmd.Options, newCmd.Options) || newCmd.Description != prevCmd.Description {
 				logger.DebugF("Atualizando commando %s no Discord.", newCmd.Name)
-				if _, err := State.EditCommand(App.ID, prevCmd.ID, newCmd.RAW()); err != nil {
+				if _, err := State.EditCommand(app.ID, prevCmd.ID, newCmd.RAW()); err != nil {
 					return errors.Wrapf(err, "failed to update \"%s\" command", newCmd.Name)
 				}
 			}
@@ -81,7 +92,7 @@ func DeployCommands() error {
 	for _, command := range Commands {
 		if checked[command.Name] == nil {
 			logger.DebugF("Criando comando %s no Discord.", command.Name)
-			if _, err := State.CreateCommand(App.ID, command.RAW()); err != nil {
+			if _, err := State.CreateCommand(app.ID, command.RAW()); err != nil {
 				return errors.Wrapf(err, "failed to create \"%s\" command", command.Name)
 			}
 		}
@@ -110,7 +121,9 @@ func AddModule(module *Module) {
 		State.AddHandler(event.Handler)
 	}
 
-	if module.StartFunc != nil {
-		go module.StartFunc()
+	if module.OnInit != nil {
+		go module.OnInit()
 	}
+
+	Modules = append(Modules, module)
 }
