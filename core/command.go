@@ -101,13 +101,19 @@ func (ctx *CommandContext) Reply(args ...interface{}) {
 	}
 }
 
-func (ctx *CommandContext) Edit(args ...interface{}) (*discord.Message, error) {
+func (ctx *CommandContext) Edit(args ...interface{}) (msg *discord.Message, err error) {
 	ctx.checkArguments(args...)
 
-	return ctx.State.EditInteractionResponse(ctx.AppID, ctx.Token, api.EditInteractionResponseData{
+	msg, err = ctx.State.EditInteractionResponse(ctx.AppID, ctx.Token, api.EditInteractionResponseData{
 		Content: ctx.response.Content, Components: ctx.response.Components,
 		Embeds: ctx.response.Embeds, Files: ctx.response.Files,
 	})
+
+	if err != nil {
+		logger.ErrorF("Não foi possível editar a resposta da interação \"%s\" (GuildID: %s): %v", ctx.Data.Name, ctx.GuildID, err)
+	}
+
+	return
 }
 
 func (ctx *CommandContext) checkArguments(args ...interface{}) {
@@ -125,7 +131,11 @@ func (ctx *CommandContext) checkArguments(args ...interface{}) {
 }
 
 func (ctx *CommandContext) Stacktrace(err error) {
-	ctx.Reply(emojis.Cry, "Um erro ocorreu ao executar essa ação: ```go\n%+v```", err)
+	if !ctx.sended {
+		ctx.Reply(emojis.Cry, "Um erro ocorreu ao executar essa ação: `%v`", err)
+	} else {
+		ctx.Reply(utils.NewEmbed().Color(0xED4245).Description("%s Um erro ocorreu ao executar essa ação: `%v`", emojis.Cry, err))
+	}
 }
 
 func (cmd *Command) RAW() api.CreateCommandData {

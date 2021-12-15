@@ -31,7 +31,7 @@ var PlayCommand = core.Command{
 		}
 
 		embed := utils.NewEmbed().Color(0xF0FF00).Description("%s Obtendo resultados para sua pesquisa...", emojis.AnimatedStaff)
-		go ctx.Reply(embed)
+		ctx.Reply(embed)
 
 		player := music.GetOrCreatePlayer(ctx.GuildID, ctx.ChannelID, state.ChannelID)
 		defer checkIdle(player)

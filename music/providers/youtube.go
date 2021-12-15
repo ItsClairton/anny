@@ -93,6 +93,10 @@ func (ytProvider *YoutubeProvider) handlePlaylist(URL string) (*QueryResult, err
 		return nil, err
 	}
 
+	if len(playlist.Videos) == 0 {
+		return nil, errors.New("Invalid or private playlist")
+	}
+
 	result := &QueryResult{
 		Songs: []*Song{},
 		Playlist: &Playlist{
