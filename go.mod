@@ -17,6 +17,9 @@ require (
 	github.com/andybalholm/brotli v1.0.2 // indirect
 	github.com/bitly/go-simplejson v0.5.0 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
+	github.com/dlclark/regexp2 v1.4.1-0.20201116162257-a2a8dda75c91 // indirect
+	github.com/dop251/goja v0.0.0-20211211112501-fb27c91c26ed // indirect
+	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/gorilla/schema v1.2.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/klauspost/compress v1.13.4 // indirect
@@ -24,9 +27,10 @@ require (
 	github.com/valyala/fasthttp v1.31.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
-	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect
-	golang.org/x/sys v0.0.0-20211001092434-39dca1131b70 // indirect
+	golang.org/x/net v0.0.0-20211215060638-4ddde0e984e9 // indirect
+	golang.org/x/sys v0.0.0-20211214234402-4825e8c3871d // indirect
+	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 )
 
-replace github.com/kkdai/youtube/v2 => github.com/xesnault/youtube/v2 v2.7.5-0.20211016224312-4057b33ef4cf
+replace github.com/kkdai/youtube/v2 => github.com/ItsClairton/youtube/v2 v2.7.6-0.20211215211314-0936769c38d9
