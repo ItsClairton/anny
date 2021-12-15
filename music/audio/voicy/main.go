@@ -89,7 +89,7 @@ func (s *Session) PlayURL(source string, isOpus bool) error {
 		return err
 	}
 
-	if err, std := ffmpeg.Wait(), stderr.String(); err != nil && std != "" {
+	if err, std := ffmpeg.Wait(), stderr.String(); err != nil && s.state != changingState && std != "" {
 		s.stop()
 		return errors.Wrapf(errors.New(strings.ReplaceAll(std, s.source, "source")), "ffmpeg returned error")
 	}
