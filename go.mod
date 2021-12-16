@@ -33,4 +33,4 @@ require (
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 )
 
-replace github.com/kkdai/youtube/v2 => github.com/ItsClairton/youtube/v2 v2.7.6-0.20211215211314-0936769c38d9
+replace github.com/kkdai/youtube/v2 => github.com/ItsClairton/youtube/v2 v2.7.6-0.20211216215726-7f1f9d4862da

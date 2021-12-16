@@ -17,7 +17,7 @@ type YoutubeProvider struct{}
 
 var (
 	videoRegex    = regexp.MustCompile(`^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$`)
-	playlistRegex = regexp.MustCompile(`[&?]list=([A-Za-z0-9_-]{18,42})(&.*)?$`)
+	playlistRegex = regexp.MustCompile(`[&?]list=([A-Za-z0-9_-]{13,42})(&.*)?$`)
 	hlsRegex      = regexp.MustCompile(`(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#,?&*//=]*)(.m3u8)\b([-a-zA-Z0-9@:%_\+.~#,?&//=]*))`)
 
 	client = &youtube.Client{}
