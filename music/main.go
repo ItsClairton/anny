@@ -9,6 +9,6 @@ import (
 
 var Module = &core.Module{
 	Name: "Música", Emote: emojis.Yeah,
-	Commands: []*core.Command{&commands.PlayCommand, &commands.SkipCommand, &commands.StopCommand, &commands.PauseCommand, &commands.ResumeCommand, &commands.SeekCommand, &commands.NowplayingCommand, &commands.ShuffleCommand, &commands.QueueCommand},
+	Commands: []*core.Command{&commands.PlayCommand, &commands.SkipCommand, &commands.StopCommand, &commands.PauseCommand, &commands.ResumeCommand, &commands.SeekCommand, &commands.NowplayingCommand, &commands.ShuffleCommand, &commands.QueueCommand, &commands.LyricsCommand},
 	Events:   []*core.Event{&events.VServerUpdateEvent, &events.VStateUpdateEvent},
 }

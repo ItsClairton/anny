@@ -36,8 +36,8 @@ func (YoutubeProvider) IsLoaded(s *Song) bool {
 	return !s.Expires.IsZero() && !time.Now().Add(s.Duration).After(s.Expires)
 }
 
-func (ytProvider YoutubeProvider) Load(s *Song) error {
-	loadedSong, err := ytProvider.handleVideo(s.URL, 0)
+func (provider YoutubeProvider) Load(s *Song) error {
+	loadedSong, err := provider.handleVideo(s.URL, 0)
 	if err != nil {
 		return err
 	}
@@ -47,13 +47,13 @@ func (ytProvider YoutubeProvider) Load(s *Song) error {
 	return nil
 }
 
-func (ytProvider *YoutubeProvider) Find(term string) (*QueryResult, error) {
+func (provider *YoutubeProvider) Find(term string) (*QueryResult, error) {
 	if playlistRegex.MatchString(term) {
-		return ytProvider.handlePlaylist(term)
+		return provider.handlePlaylist(term)
 	}
 
 	if videoRegex.MatchString(term) {
-		if video, err := ytProvider.handleVideo(term, 0); err != nil {
+		if video, err := provider.handleVideo(term, 0); err != nil {
 			return nil, err
 		} else {
 			return &QueryResult{Songs: []*Song{video}}, nil
@@ -80,14 +80,14 @@ func (ytProvider *YoutubeProvider) Find(term string) (*QueryResult, error) {
 			Thumbnail: video.Thumbnail,
 			Duration:  duration,
 			IsLive:    video.Live,
-			provider:  ytProvider,
+			provider:  provider,
 		})
 	}
 
 	return result, nil
 }
 
-func (ytProvider *YoutubeProvider) handlePlaylist(URL string) (*QueryResult, error) {
+func (provider *YoutubeProvider) handlePlaylist(URL string) (*QueryResult, error) {
 	playlist, err := client.GetPlaylist(URL)
 	if err != nil {
 		return nil, err
@@ -115,19 +115,19 @@ func (ytProvider *YoutubeProvider) handlePlaylist(URL string) (*QueryResult, err
 			Duration:  item.Duration,
 			Thumbnail: utils.Fmt("https://img.youtube.com/vi/%s/mqdefault.jpg", item.ID),
 			URL:       utils.Fmt("https://youtu.be/%s", item.ID),
-			provider:  ytProvider,
+			provider:  provider,
 		})
 	}
 
 	return result, nil
 }
 
-func (ytProvier YoutubeProvider) handleVideo(term string, attempts int) (song *Song, err error) {
+func (provier YoutubeProvider) handleVideo(term string, attempts int) (song *Song, err error) {
 	if term, err = youtube.ExtractVideoID(term); err != nil {
 		return nil, err
 	}
 
-	if cached := cache[term]; cached != nil && ytProvier.IsLoaded(cached) {
+	if cached := cache[term]; cached != nil && provier.IsLoaded(cached) {
 		return cached, nil
 	}
 
@@ -158,7 +158,7 @@ func (ytProvier YoutubeProvider) handleVideo(term string, attempts int) (song *S
 		if attempts >= 5 {
 			return nil, err
 		}
-		return ytProvier.handleVideo(term, attempts+1)
+		return provier.handleVideo(term, attempts+1)
 	}
 
 	song = &Song{
@@ -171,7 +171,7 @@ func (ytProvier YoutubeProvider) handleVideo(term string, attempts int) (song *S
 		Expires:      expires,
 		IsLive:       video.HLSManifestURL != "",
 		IsOpus:       isOpus,
-		provider:     &ytProvier,
+		provider:     &provier,
 	}
 
 	if !song.IsLive {

@@ -49,6 +49,10 @@ dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
+github.com/ItsClairton/gonius v0.0.0-20211218202607-7066959b6d01 h1:fppOM+H21/zRnfCqAACNBpl3b42Dx9YIBGgvB+nexIw=
+github.com/ItsClairton/gonius v0.0.0-20211218202607-7066959b6d01/go.mod h1:DtqkqqwqD6YAtjIu/nKxq3rXv2dFEmv1FfPSaRQAo1E=
+github.com/ItsClairton/gonius v0.0.0-20211218204317-db006662769e h1:epMNe/7qMmSkP6QcmDV18WYP1/iaLNhwjVJmJp7KESo=
+github.com/ItsClairton/gonius v0.0.0-20211218204317-db006662769e/go.mod h1:DtqkqqwqD6YAtjIu/nKxq3rXv2dFEmv1FfPSaRQAo1E=
 github.com/ItsClairton/youtube/v2 v2.7.6-0.20211216215726-7f1f9d4862da h1:T1+Od+i6Wxxz6QLT2u1YTykAyJdcX6qbrNw16tj24O4=
 github.com/ItsClairton/youtube/v2 v2.7.6-0.20211216215726-7f1f9d4862da/go.mod h1:UXH13xWWkfsz2oLaXlO84+vCvFOI3XzUr7zrMkHkXws=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=

@@ -11,6 +11,7 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/kkdai/youtube/v2 v2.0.0-00010101000000-000000000000
 	github.com/pkg/errors v0.9.1
+	github.com/ItsClairton/gonius v0.0.0-20211218204317-db006662769e
 )
 
 require (
