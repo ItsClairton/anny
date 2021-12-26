@@ -136,17 +136,15 @@ func (s *Session) Stop() {
 	}
 }
 
-func (s *Session) stop() {
-	s.cancel()
-	s.setState(stoppedState)
-	s.Position = 0
-}
-
 func (s *Session) SendSpeaking() error {
 	return s.Session.Speaking(voicegateway.Microphone)
 }
 
 func (s *Session) Write(data []byte) (int, error) {
+	if s.state == stoppedState || s.state == changingState {
+		return 0, context.Canceled
+	}
+
 	if s.state == pausedState {
 		s.channel = make(chan int)
 
@@ -169,4 +167,10 @@ func (s *Session) setState(state int) {
 	if s.channel != nil {
 		s.channel <- state
 	}
+}
+
+func (s *Session) stop() {
+	s.cancel()
+	s.setState(stoppedState)
+	s.Position = 0
 }
