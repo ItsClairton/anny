@@ -4,6 +4,7 @@ go 1.17
 
 // +heroku goVersion go1.17
 require (
+	github.com/ItsClairton/gonius v0.0.0-20211227005814-7d51497160e5
 	github.com/Pauloo27/searchtube v0.0.0-20211210213129-1828077b9033
 	github.com/diamondburned/arikawa/v3 v3.0.0-rc.3
 	github.com/diamondburned/oggreader v0.0.0-20201118014549-87df9534b647
@@ -11,7 +12,6 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/kkdai/youtube/v2 v2.0.0-00010101000000-000000000000
 	github.com/pkg/errors v0.9.1
-	github.com/ItsClairton/gonius v0.0.0-20211218204317-db006662769e
 )
 
 require (
