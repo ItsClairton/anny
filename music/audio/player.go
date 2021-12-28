@@ -30,18 +30,18 @@ var (
 
 type Player struct {
 	*sync.Mutex
+	*core.BasicContext
+
 	Voicy *voicy.Session
 
 	Timer *time.Timer
+	State int
 
-	State   int
 	Current *RequestedSong
 	Queue   []*RequestedSong
 
 	GuildID         discord.GuildID
 	VoiceID, TextID discord.ChannelID
-
-	context *core.BasicContext
 }
 
 type RequestedSong struct {
@@ -75,12 +75,12 @@ func NewPlayer(guildID discord.GuildID, textID, voiceID discord.ChannelID) *Play
 	}
 
 	player := &Player{
-		Mutex:   &sync.Mutex{},
-		State:   StoppedState,
-		GuildID: guildID,
-		TextID:  textID,
-		VoiceID: voiceID,
-		context: core.NewBasicContext(textID, guildID),
+		Mutex:        &sync.Mutex{},
+		BasicContext: core.NewBasicContext(textID, guildID),
+		State:        StoppedState,
+		GuildID:      guildID,
+		TextID:       textID,
+		VoiceID:      voiceID,
 	}
 
 	players[guildID] = player
@@ -89,7 +89,7 @@ func NewPlayer(guildID discord.GuildID, textID, voiceID discord.ChannelID) *Play
 			player.Voicy = session
 			player.Play()
 		} else {
-			player.context.Send(emojis.Cry, "Um erro ocorreu ao tentar se conectar ao canal de voz: ```go\n%+v```", err)
+			player.Send(emojis.Cry, "Um erro ocorreu ao tentar se conectar ao canal de voz: ```go\n%+v```", err)
 			player.Stop(false)
 		}
 	}()
@@ -116,12 +116,12 @@ func (p *Player) Play() {
 	song := p.Queue[0]
 	if err := song.Load(); err != nil {
 		p.Queue = p.Queue[1:]
-		p.context.Send(emojis.Cry, "Um erro ocorreu ao carregar a música **%s**: `%v`", song.Title, err)
+		p.Send(emojis.Cry, "Um erro ocorreu ao carregar a música **%s**: `%v`", song.Title, err)
 		return
 	}
 
 	p.Queue, p.Current, p.State = p.Queue[1:], song, PlayingState
-	go p.context.Send(utils.NewEmbed().
+	go p.Send(utils.NewEmbed().
 		Description("%s Tocando agora [%s](%s)", emojis.AnimatedHype, song.Title, song.URL).
 		Image(song.Thumbnail).
 		Color(0x00C1FF).
@@ -136,7 +136,7 @@ func (p *Player) Play() {
 			return
 		}
 
-		p.context.Send(emojis.Cry, "Um erro ocorreu ao tocar a música **%s**: `%v`", song.Title, err)
+		p.Send(emojis.Cry, "Um erro ocorreu ao tocar a música **%s**: `%v`", song.Title, err)
 	}
 
 	p.Current, p.State = nil, StoppedState

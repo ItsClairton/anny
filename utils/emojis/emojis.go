@@ -15,6 +15,7 @@ var (
 
 	AnimatedStaff = "<a:1180staff:836709984909525032>"
 	AnimatedHype  = "<a:hypejump:913079244593168394>"
+	AnimatedBonk  = "<a:bonk:925364127524847656>"
 )
 
 func GetNumberAsEmoji(num int) string {
