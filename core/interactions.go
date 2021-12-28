@@ -28,11 +28,11 @@ func InteractionEvent(e *gateway.InteractionCreateEvent) {
 	switch data := e.Data.(type) {
 	case *discord.CommandInteraction:
 		if cmd := Commands[data.Name]; cmd != nil {
-			if cmd.Deffered {
+			if cmd.Deferred {
 				State.RespondInteraction(e.ID, e.Token, api.InteractionResponse{Type: api.DeferredMessageInteractionWithSource})
 			}
 
-			cmd.Handler(NewCommandContext(e, State, data, cmd.Deffered))
+			cmd.Handler(NewCommandContext(e, State, data, cmd.Deferred))
 		}
 	}
 }

@@ -122,12 +122,12 @@ func (provider *YoutubeProvider) handlePlaylist(URL string) (*QueryResult, error
 	return result, nil
 }
 
-func (provier YoutubeProvider) handleVideo(term string, attempts int) (song *Song, err error) {
+func (provider YoutubeProvider) handleVideo(term string, attempts int) (song *Song, err error) {
 	if term, err = youtube.ExtractVideoID(term); err != nil {
 		return nil, err
 	}
 
-	if cached := cache[term]; cached != nil && provier.IsLoaded(cached) {
+	if cached := cache[term]; cached != nil && provider.IsLoaded(cached) {
 		return cached, nil
 	}
 
@@ -158,7 +158,7 @@ func (provier YoutubeProvider) handleVideo(term string, attempts int) (song *Son
 		if attempts >= 5 {
 			return nil, err
 		}
-		return provier.handleVideo(term, attempts+1)
+		return provider.handleVideo(term, attempts+1)
 	}
 
 	song = &Song{
@@ -171,7 +171,7 @@ func (provier YoutubeProvider) handleVideo(term string, attempts int) (song *Son
 		Expires:      expires,
 		IsLive:       video.HLSManifestURL != "",
 		IsOpus:       isOpus,
-		provider:     &provier,
+		provider:     &provider,
 	}
 
 	if !song.IsLive {

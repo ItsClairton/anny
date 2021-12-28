@@ -15,7 +15,7 @@ import (
 type Command struct {
 	Name, Description string
 	Module            *Module
-	Deffered          bool
+	Deferred          bool
 	Type              discord.CommandType
 	Options           discord.CommandOptions
 	Handler           func(*CommandContext)
