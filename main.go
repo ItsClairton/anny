@@ -8,7 +8,6 @@ import (
 	"github.com/ItsClairton/Anny/core"
 	"github.com/ItsClairton/Anny/misc"
 	"github.com/ItsClairton/Anny/music"
-	"github.com/ItsClairton/Anny/rest"
 	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
@@ -26,7 +25,7 @@ func main() {
 		logger.Fatal("Um erro ocorreu ao criar um cliente do Discord.", err)
 	}
 
-	core.AddModules(music.Module, misc.Module, rest.Module)
+	core.AddModules(music.Module, misc.Module)
 
 	if err := core.Connect(); err != nil {
 		logger.Fatal("Um erro ocorreu ao tentar se autenticar com o Discord.")
@@ -36,7 +35,7 @@ func main() {
 		logger.Fatal("Um erro ocorreu ao fazer deploy dos comandos para o Discord.", err)
 	}
 
-	logger.Info("Yay, estou online, para me deixar offline basta usar CTRL + C.")
+	logger.Info("Conexão com o Discord feita com sucesso.")
 
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
