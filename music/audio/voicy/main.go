@@ -3,6 +3,7 @@ package voicy
 import (
 	"bytes"
 	"context"
+	"net"
 	"os/exec"
 	"strings"
 	"time"
@@ -77,7 +78,7 @@ func (s *Session) PlayURL(source string, isOpus bool) error {
 		return errors.Wrapf(err, "failed to start ffmpeg process")
 	}
 
-	if err := s.SendSpeaking(); err != nil {
+	if err := s.SendFlag(voicegateway.Microphone); err != nil {
 		s.stop()
 		return errors.Wrapf(err, "failed to send speaking packet to discord")
 	}
@@ -120,13 +121,14 @@ func (s *Session) Seek(position time.Duration) {
 func (s *Session) Resume() {
 	if s.state == pausedState {
 		s.setState(playingState)
-		s.SendSpeaking()
+		s.SendFlag(voicegateway.Microphone)
 	}
 }
 
 func (s *Session) Pause() {
 	if s.state != stoppedState && s.state != changingState {
 		s.setState(pausedState)
+		s.SendFlag(voicegateway.NotSpeaking)
 	}
 }
 
@@ -136,8 +138,12 @@ func (s *Session) Stop() {
 	}
 }
 
-func (s *Session) SendSpeaking() error {
-	return s.Session.Speaking(voicegateway.Microphone)
+func (s *Session) SendFlag(flag voicegateway.SpeakingFlag) error {
+	if s.Session.VoiceUDPConn() == nil {
+		return net.ErrClosed
+	}
+
+	return s.Session.Speaking(flag)
 }
 
 func (s *Session) Write(data []byte) (int, error) {
@@ -173,4 +179,5 @@ func (s *Session) stop() {
 	s.cancel()
 	s.setState(stoppedState)
 	s.Position = 0
+	s.SendFlag(voicegateway.NotSpeaking)
 }
