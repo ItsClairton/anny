@@ -37,7 +37,7 @@ func (YoutubeProvider) IsLoaded(s *Song) bool {
 }
 
 func (provider YoutubeProvider) Load(s *Song) error {
-	loadedSong, err := provider.handleVideo(s.URL, 0)
+	loadedSong, err := provider.handleVideo(s.URL)
 	if err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func (provider *YoutubeProvider) Find(term string) (*QueryResult, error) {
 	}
 
 	if videoRegex.MatchString(term) {
-		if video, err := provider.handleVideo(term, 0); err != nil {
+		if video, err := provider.handleVideo(term); err != nil {
 			return nil, err
 		} else {
 			return &QueryResult{Songs: []*Song{video}}, nil
@@ -94,6 +94,10 @@ func (provider *YoutubeProvider) handlePlaylist(URL string) (*QueryResult, error
 	}
 
 	if len(playlist.Videos) == 0 {
+		if video, err := provider.handleVideo(URL); err == nil {
+			return &QueryResult{Songs: []*Song{video}}, nil
+		}
+
 		return nil, errors.New("Invalid or private playlist")
 	}
 
@@ -122,7 +126,7 @@ func (provider *YoutubeProvider) handlePlaylist(URL string) (*QueryResult, error
 	return result, nil
 }
 
-func (provider YoutubeProvider) handleVideo(term string, attempts int) (song *Song, err error) {
+func (provider YoutubeProvider) handleVideo(term string) (song *Song, err error) {
 	if term, err = youtube.ExtractVideoID(term); err != nil {
 		return nil, err
 	}
