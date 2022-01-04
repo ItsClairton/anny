@@ -23,11 +23,11 @@ type Playlist struct {
 }
 
 type Song struct {
-	Title        string `json:"title"`
-	Author       string `json:"author"`
-	Thumbnail    string `json:"thumbnail"`
-	URL          string `json:"url"`
-	StreamingURL string `json:"-"`
+	Title     string `json:"title"`
+	Author    string `json:"author"`
+	Thumbnail string `json:"thumbnail"`
+	URL       string `json:"url"`
+	MediaURL  string `json:"-"`
 
 	Duration time.Duration `json:"duration"`
 	IsLive   bool          `json:"isLive"`

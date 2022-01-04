@@ -131,7 +131,7 @@ func (p *Player) Play() {
 		Timestamp(song.RequestedAt).
 		Footer(utils.Fmt("Adicionado por %s#%s", song.Requester.Username, song.Requester.Discriminator), song.Requester.AvatarURL()))
 
-	if err := p.Voicy.PlayURL(song.StreamingURL, song.IsOpus); err != nil {
+	if err := p.Voicy.PlayURL(song.MediaURL, song.IsOpus); err != nil {
 		if errors.Is(err, context.Canceled) {
 			return
 		}

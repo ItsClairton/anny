@@ -1,9 +1,9 @@
 package music
 
 import (
-	"net/http"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ItsClairton/Anny/utils"
@@ -33,7 +33,7 @@ func (YoutubeProvider) IsSupported(term string) bool {
 }
 
 func (YoutubeProvider) IsLoaded(s *Song) bool {
-	return !s.Expires.IsZero() && !time.Now().Add(s.Duration).After(s.Expires)
+	return !time.Now().Add(s.Duration).After(s.Expires)
 }
 
 func (provider YoutubeProvider) Load(s *Song) error {
@@ -42,7 +42,7 @@ func (provider YoutubeProvider) Load(s *Song) error {
 		return err
 	}
 
-	s.StreamingURL, s.IsOpus, s.Expires = loadedSong.StreamingURL, loadedSong.IsOpus, loadedSong.Expires
+	s.MediaURL, s.IsOpus, s.Expires = loadedSong.MediaURL, loadedSong.IsOpus, loadedSong.Expires
 	s.Thumbnail = loadedSong.Thumbnail
 	return nil
 }
@@ -136,7 +136,7 @@ func (provider YoutubeProvider) handleVideo(term string, attempts int) (song *So
 		return nil, err
 	}
 
-	streamingURL, isOpus := "", false
+	mediaURL, isOpus := "", false
 	if video.HLSManifestURL == "" {
 		var format *youtube.Format
 
@@ -144,54 +144,58 @@ func (provider YoutubeProvider) handleVideo(term string, attempts int) (song *So
 			format, isOpus = video.Formats.FindByItag(140), false // M4a
 		}
 
-		if streamingURL, err = client.GetStreamURL(video, format); err != nil {
+		if mediaURL, err = client.GetStreamURL(video, format); err != nil {
 			return nil, err
 		}
 	} else {
-		if streamingURL, err = getLiveURL(video.HLSManifestURL); err != nil {
+		if mediaURL, err = getLiveURL(video.HLSManifestURL); err != nil {
 			return nil, err
 		}
 	}
 
-	expires, err := getExpires(streamingURL)
-	if err != nil {
-		if attempts >= 5 {
+	expires := time.Now().Add(10 * time.Minute)
+	if video.HLSManifestURL == "" {
+		if expires, err = getExpires(mediaURL); err != nil {
 			return nil, err
 		}
-		return provider.handleVideo(term, attempts+1)
 	}
 
 	song = &Song{
-		Title:        video.Title,
-		Author:       video.Author,
-		URL:          utils.Fmt("https://youtu.be/%s", video.ID),
-		Duration:     video.Duration,
-		Thumbnail:    video.Thumbnails[len(video.Thumbnails)-1].URL,
-		StreamingURL: streamingURL,
-		Expires:      expires,
-		IsLive:       video.HLSManifestURL != "",
-		IsOpus:       isOpus,
-		provider:     &provider,
+		Title:     video.Title,
+		Author:    video.Author,
+		URL:       utils.Fmt("https://youtu.be/%s", video.ID),
+		Duration:  video.Duration,
+		Thumbnail: video.Thumbnails[len(video.Thumbnails)-1].URL,
+		MediaURL:  mediaURL,
+		Expires:   expires,
+		IsLive:    video.HLSManifestURL != "",
+		IsOpus:    isOpus,
+		provider:  &provider,
 	}
 
 	if !song.IsLive {
 		cache[term] = song
 	}
+
 	return song, nil
 }
 
-func getExpires(streamingURL string) (time.Time, error) {
-	response, err := http.Get(streamingURL)
+func getExpires(URL string) (time.Time, error) {
+	firstIndex := strings.Index(URL, "expire=")
+	if firstIndex == -1 {
+		return time.Time{}, errors.New("unexpected URL")
+	}
+
+	endIndex := strings.Index(URL[firstIndex:], "&")
+	if endIndex == -1 {
+		return time.Time{}, errors.New("unexpected URL")
+	}
+
+	expires, err := strconv.Atoi(URL[firstIndex+7 : firstIndex+endIndex])
 	if err != nil {
 		return time.Time{}, err
 	}
-	response.Body.Close()
 
-	if response.StatusCode >= 400 {
-		return time.Time{}, errors.Errorf("the server responded with unexpected %s status", response.Status)
-	}
-
-	expires, _ := strconv.Atoi(response.Request.URL.Query().Get("expire"))
 	return time.Unix(int64(expires), 0), nil
 }
 
