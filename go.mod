@@ -4,11 +4,11 @@ go 1.17
 
 // +heroku goVersion go1.17
 require (
-	github.com/ItsClairton/gonius v0.0.0-20211227005814-7d51497160e5
+	github.com/ItsClairton/gonius v0.0.0-20220104172845-2f30ca4d472d
 	github.com/Pauloo27/searchtube v0.0.0-20211210213129-1828077b9033
 	github.com/diamondburned/arikawa/v3 v3.0.0-rc.3
 	github.com/diamondburned/oggreader v0.0.0-20201118014549-87df9534b647
-	github.com/gofiber/fiber/v2 v2.23.0
+	github.com/gofiber/fiber/v2 v2.24.0
 	github.com/joho/godotenv v1.4.0
 	github.com/kkdai/youtube/v2 v2.0.0-00010101000000-000000000000
 	github.com/pkg/errors v0.9.1
@@ -24,6 +24,9 @@ require (
 	github.com/gorilla/schema v1.2.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/klauspost/compress v1.13.4 // indirect
+	github.com/tidwall/gjson v1.12.1 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.31.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
