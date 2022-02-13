@@ -93,16 +93,8 @@ func (provider *YoutubeProvider) handlePlaylist(URL string) (*QueryResult, error
 		return nil, err
 	}
 
-	if len(playlist.Videos) == 0 {
-		if video, err := provider.handleVideo(URL); err == nil {
-			return &QueryResult{Songs: []*Song{video}}, nil
-		}
-
-		return nil, errors.New("Invalid or private playlist")
-	}
-
 	result := &QueryResult{
-		Songs: []*Song{},
+		Songs: make([]*Song, len(playlist.Videos)),
 		Playlist: &Playlist{
 			Title:  playlist.Title,
 			Author: playlist.Author,
@@ -110,17 +102,17 @@ func (provider *YoutubeProvider) handlePlaylist(URL string) (*QueryResult, error
 		},
 	}
 
-	for _, item := range playlist.Videos {
+	for i, item := range playlist.Videos {
 		result.Playlist.Duration += item.Duration
 
-		result.Songs = append(result.Songs, &Song{
+		result.Songs[i] = &Song{
 			Title:     item.Title,
 			Author:    item.Author,
 			Duration:  item.Duration,
 			Thumbnail: utils.Fmt("https://img.youtube.com/vi/%s/mqdefault.jpg", item.ID),
 			URL:       utils.Fmt("https://youtu.be/%s", item.ID),
 			provider:  provider,
-		})
+		}
 	}
 
 	return result, nil
@@ -164,12 +156,17 @@ func (provider YoutubeProvider) handleVideo(term string) (song *Song, err error)
 		}
 	}
 
+	thumbnail := utils.Fmt("https://img.youtube.com/vi/%s/mqdefault.jpg", video.ID)
+	if format := video.Formats.FindByQuality("720p"); format != nil {
+		thumbnail = utils.Fmt("https://img.youtube.com/vi/%s/maxresdefault.jpg", video.ID)
+	}
+
 	song = &Song{
 		Title:     video.Title,
 		Author:    video.Author,
 		URL:       utils.Fmt("https://youtu.be/%s", video.ID),
 		Duration:  video.Duration,
-		Thumbnail: video.Thumbnails[len(video.Thumbnails)-1].URL,
+		Thumbnail: thumbnail,
 		MediaURL:  mediaURL,
 		Expires:   expires,
 		IsLive:    video.HLSManifestURL != "",
