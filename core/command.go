@@ -1,6 +1,8 @@
 package core
 
 import (
+	"sync"
+
 	"github.com/ItsClairton/Anny/utils"
 	"github.com/ItsClairton/Anny/utils/emojis"
 	"github.com/ItsClairton/Anny/utils/logger"
@@ -22,6 +24,7 @@ type Command struct {
 }
 
 type CommandContext struct {
+	*sync.Mutex
 	*gateway.InteractionCreateEvent
 
 	Data  *discord.CommandInteraction
@@ -37,6 +40,7 @@ type Argument struct {
 
 func NewCommandContext(e *gateway.InteractionCreateEvent, state *state.State, data *discord.CommandInteraction, sended bool) *CommandContext {
 	return &CommandContext{
+		Mutex:                  &sync.Mutex{},
 		InteractionCreateEvent: e,
 		State:                  state,
 		Data:                   data,
@@ -87,23 +91,31 @@ func (ctx *CommandContext) Ephemeral() *CommandContext {
 }
 
 func (ctx *CommandContext) Reply(args ...interface{}) {
-	ctx.checkArguments(args...)
+	go func() {
+		ctx.Lock()
 
-	if ctx.sended {
-		ctx.Edit(args...)
-		return
-	}
+		if ctx.sended {
+			ctx.Unlock()
+			ctx.Edit(args...)
+			return
+		}
 
-	if err := ctx.State.RespondInteraction(ctx.ID, ctx.Token, api.InteractionResponse{Type: 4, Data: ctx.response}); err == nil {
-		ctx.sended = true
-	} else {
-		logger.ErrorF("Não foi possível responder a interação \"%s\" (GuildID: %s): %v", ctx.Data.Name, ctx.GuildID, err)
-	}
+		defer ctx.Unlock()
+
+		ctx.checkArguments(args...)
+		if err := ctx.State.RespondInteraction(ctx.ID, ctx.Token, api.InteractionResponse{Type: 4, Data: ctx.response}); err == nil {
+			ctx.sended = true
+		} else {
+			logger.ErrorF("Não foi possível responder a interação \"%s\" (GuildID: %s): %v", ctx.Data.Name, ctx.GuildID, err)
+		}
+	}()
 }
 
 func (ctx *CommandContext) Edit(args ...interface{}) (msg *discord.Message, err error) {
-	ctx.checkArguments(args...)
+	ctx.Lock()
+	defer ctx.Unlock()
 
+	ctx.checkArguments(args...)
 	msg, err = ctx.State.EditInteractionResponse(ctx.AppID, ctx.Token, api.EditInteractionResponseData{
 		Content: ctx.response.Content, Components: ctx.response.Components,
 		Embeds: ctx.response.Embeds, Files: ctx.response.Files,

@@ -1,6 +1,8 @@
 package core
 
 import (
+	"sync"
+
 	"github.com/ItsClairton/Anny/utils"
 	"github.com/diamondburned/arikawa/v3/api"
 	"github.com/diamondburned/arikawa/v3/discord"
@@ -9,6 +11,8 @@ import (
 )
 
 type BasicContext struct {
+	*sync.Mutex
+
 	ChannelID discord.ChannelID
 	GuildID   discord.GuildID
 	State     *state.State
@@ -17,7 +21,7 @@ type BasicContext struct {
 }
 
 func NewBasicContext(channelID discord.ChannelID, guildID discord.GuildID) *BasicContext {
-	return &BasicContext{ChannelID: channelID, GuildID: guildID, State: State, response: &api.SendMessageData{}}
+	return &BasicContext{Mutex: &sync.Mutex{}, ChannelID: channelID, GuildID: guildID, State: State, response: &api.SendMessageData{}}
 }
 
 func (ctx *BasicContext) Guild() (*discord.Guild, error) {
@@ -37,6 +41,9 @@ func (ctx *BasicContext) Embed(embed *utils.Embed) {
 }
 
 func (ctx *BasicContext) Send(args ...interface{}) {
+	ctx.Lock()
+	defer ctx.Unlock()
+
 	if len(args) > 1 {
 		ctx.response.Content = utils.Fmt("%v | %v", args[0], utils.Fmt(args[1].(string), args[2:]...))
 	}
