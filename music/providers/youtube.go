@@ -90,6 +90,10 @@ func (provider *YoutubeProvider) Find(term string) (*QueryResult, error) {
 func (provider *YoutubeProvider) handlePlaylist(URL string) (*QueryResult, error) {
 	playlist, err := client.GetPlaylist(URL)
 	if err != nil {
+		if video, err := provider.handleVideo(URL); err == nil {
+			return &QueryResult{Songs: []*Song{video}}, nil
+		}
+
 		return nil, err
 	}
 
