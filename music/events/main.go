@@ -9,16 +9,15 @@ import (
 	"github.com/diamondburned/arikawa/v3/api"
 	"github.com/diamondburned/arikawa/v3/discord"
 	"github.com/diamondburned/arikawa/v3/gateway"
-	"github.com/diamondburned/arikawa/v3/voice/voicegateway"
 )
 
 var VServerUpdateEvent = core.Event{
 	Handler: func(e *gateway.VoiceServerUpdateEvent) {
-		time.Sleep(1 * time.Second)
+		/*time.Sleep(1 * time.Second)
 
 		if player := music.GetPlayer(e.GuildID); player != nil && player.State == music.PlayingState {
 			player.Voicy.SendFlag(voicegateway.Microphone)
-		}
+		}*/
 	},
 }
 

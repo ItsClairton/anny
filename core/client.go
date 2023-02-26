@@ -32,12 +32,10 @@ var (
 	Modules  = []*Module{}
 )
 
-func NewClient(token string) (err error) {
-	State, err = state.NewWithIntents("Bot "+token, gateway.IntentGuilds, gateway.IntentGuildVoiceStates)
+func NewClient(token string) {
+	State = state.NewWithIntents("Bot "+token, gateway.IntentGuilds, gateway.IntentGuildVoiceStates)
 
 	State.AddHandler(InteractionEvent)
-
-	return err
 }
 
 func Connect() error {

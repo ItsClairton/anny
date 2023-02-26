@@ -8,6 +8,7 @@ import (
 	"github.com/ItsClairton/Anny/core"
 	"github.com/ItsClairton/Anny/misc"
 	"github.com/ItsClairton/Anny/music"
+	"github.com/ItsClairton/Anny/rest"
 	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
@@ -21,11 +22,9 @@ func main() {
 		logger.Warn("Utilizando variaveis de ambiente fornecidas por linha de comando.")
 	}
 
-	if err := core.NewClient(os.Getenv("DISCORD_TOKEN")); err != nil {
-		logger.Fatal("Um erro ocorreu ao criar um cliente do Discord.", err)
-	}
+	core.NewClient(os.Getenv("DISCORD_TOKEN"))
 
-	core.AddModules(music.Module, misc.Module)
+	core.AddModules(rest.Module, music.Module, misc.Module)
 
 	if err := core.Connect(); err != nil {
 		logger.Fatal("Um erro ocorreu ao tentar se autenticar com o Discord.")

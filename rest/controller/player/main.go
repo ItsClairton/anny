@@ -18,6 +18,6 @@ func Index(c *fiber.Ctx) error {
 		"current":  player.Current,
 		"queue":    player.Queue,
 		"state":    player.State,
-		"position": player.Voicy.Position,
+		"position": player.Voicy.PlaybackPosition(),
 	}, "error": nil})
 }

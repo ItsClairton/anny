@@ -7,11 +7,11 @@ import (
 	"time"
 
 	"github.com/ItsClairton/Anny/core"
-	"github.com/ItsClairton/Anny/music/audio/voicy"
 	music "github.com/ItsClairton/Anny/music/providers"
 	"github.com/ItsClairton/Anny/utils"
 	"github.com/ItsClairton/Anny/utils/emojis"
 	"github.com/ItsClairton/Anny/utils/logger"
+	"github.com/ItsClairton/voicy"
 	"github.com/diamondburned/arikawa/v3/discord"
 	"github.com/pkg/errors"
 )
@@ -85,7 +85,7 @@ func NewPlayer(guildID discord.GuildID, textID, voiceID discord.ChannelID) *Play
 
 	players[guildID] = player
 	go func() {
-		if session, err := voicy.New(core.State, guildID, voiceID); err == nil {
+		if session, err := voicy.New(context.Background(), core.State, voiceID); err == nil {
 			player.Voicy = session
 			player.Play()
 		} else {

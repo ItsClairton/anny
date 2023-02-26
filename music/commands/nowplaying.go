@@ -23,7 +23,7 @@ var NowplayingCommand = core.Command{
 			Thumbnail(player.Current.Thumbnail).
 			Color(0x00FF59).
 			Field("Autor", player.Current.Author, true).
-			Field("Duração", utils.Fmt("%v/%v", utils.FormatTime(player.Voicy.Position), utils.Is(player.Current.IsLive, "--:--", utils.FormatTime(player.Current.Duration))), true).
+			Field("Duração", utils.Fmt("%v/%v", utils.FormatTime(player.Voicy.PlaybackPosition()), utils.Is(player.Current.IsLive, "--:--", utils.FormatTime(player.Current.Duration))), true).
 			Field("Provedor", player.Current.Provider(), true).
 			Footer(utils.Fmt("Adicionado por %s#%s", player.Current.Requester.Username, player.Current.Requester.Discriminator), player.Current.Requester.AvatarURL()).
 			Timestamp(player.Current.RequestedAt)
