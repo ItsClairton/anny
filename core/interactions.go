@@ -34,5 +34,14 @@ func InteractionEvent(e *gateway.InteractionCreateEvent) {
 
 			cmd.Handler(NewCommandContext(e, State, data, cmd.Deferred))
 		}
+	case *discord.AutocompleteInteraction:
+		if cmd := Commands[data.Name]; cmd != nil && cmd.AutoCompleteHandler != nil {
+			choices := cmd.AutoCompleteHandler(NewAutoCompleteContext(e, State, data))
+
+			State.RespondInteraction(e.ID, e.Token, api.InteractionResponse{
+				Type: api.AutocompleteResult,
+				Data: &api.InteractionResponseData{Choices: &choices},
+			})
+		}
 	}
 }

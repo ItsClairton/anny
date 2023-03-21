@@ -1,12 +1,17 @@
 package music
 
 import (
+	"net/url"
+	"strings"
+
 	"github.com/ItsClairton/Anny/core"
+	"github.com/tidwall/gjson"
 
 	music "github.com/ItsClairton/Anny/music/audio"
 	providers "github.com/ItsClairton/Anny/music/providers"
 	"github.com/ItsClairton/Anny/utils"
 	"github.com/ItsClairton/Anny/utils/emojis"
+	"github.com/diamondburned/arikawa/v3/api"
 	"github.com/diamondburned/arikawa/v3/discord"
 )
 
@@ -14,9 +19,10 @@ var PlayCommand = core.Command{
 	Name:        "tocar",
 	Description: "Sistema de músicas",
 	Options: discord.CommandOptions{&discord.StringOption{
-		OptionName:  "musica",
-		Description: "Nome, ou URL de uma música ou playlist",
-		Required:    true,
+		OptionName:   "musica",
+		Description:  "Nome, ou URL de uma música ou playlist",
+		Required:     true,
+		Autocomplete: true,
 	}, &discord.BooleanOption{
 		OptionName:  "embaralhar",
 		Description: "Embaralhar as músicas da fila",
@@ -36,7 +42,7 @@ var PlayCommand = core.Command{
 		player := music.GetOrCreatePlayer(ctx.GuildID, ctx.ChannelID, state.ChannelID)
 		defer checkIdle(player)
 
-		result, err := providers.FindSong(query)
+		result, err := providers.FindSong(query, true)
 		if err != nil {
 			ctx.Stacktrace(err)
 			return
@@ -78,6 +84,36 @@ var PlayCommand = core.Command{
 			Color(0x00D166).
 			Thumbnail(song.Thumbnail).
 			Description("%s Música [%s](%s) adicionada na fila", emojis.Yeah, song.Title, song.URL))
+	},
+	AutoCompleteHandler: func(ctx *core.AutoCompleteContext) api.AutocompleteStringChoices {
+		query := strings.ReplaceAll(ctx.Data.Options[0].Value.String(), "\"", "")
+		if strings.TrimSpace(query) == "" {
+			return api.AutocompleteStringChoices{}
+		}
+
+		if providers.FindByInput(query, false) != nil {
+			return api.AutocompleteStringChoices{{
+				Name:  query,
+				Value: query,
+			}}
+		}
+
+		data, err := utils.FromWebString("http://suggestqueries.google.com/complete/search?client=youtube&ds=yt&client=chrome&q=" + url.QueryEscape(query))
+		if err != nil {
+			panic(err)
+		}
+
+		result := api.AutocompleteStringChoices{}
+		for _, entry := range gjson.Get(data, "1").Array() {
+			choice := entry.String()
+
+			result = append(result, discord.StringChoice{
+				Name:  choice,
+				Value: choice,
+			})
+		}
+
+		return result
 	},
 }
 

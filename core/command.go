@@ -15,12 +15,13 @@ import (
 )
 
 type Command struct {
-	Name, Description string
-	Module            *Module
-	Deferred          bool
-	Type              discord.CommandType
-	Options           discord.CommandOptions
-	Handler           func(*CommandContext)
+	Name, Description   string
+	Module              *Module
+	Deferred            bool
+	Type                discord.CommandType
+	Options             discord.CommandOptions
+	Handler             func(*CommandContext)
+	AutoCompleteHandler func(*AutoCompleteContext) api.AutocompleteStringChoices
 }
 
 type CommandContext struct {
@@ -32,6 +33,13 @@ type CommandContext struct {
 
 	response *api.InteractionResponseData
 	sended   bool
+}
+
+type AutoCompleteContext struct {
+	*gateway.InteractionCreateEvent
+
+	Data  *discord.AutocompleteInteraction
+	State *state.State
 }
 
 type Argument struct {
@@ -46,6 +54,14 @@ func NewCommandContext(e *gateway.InteractionCreateEvent, state *state.State, da
 		Data:                   data,
 		response:               &api.InteractionResponseData{},
 		sended:                 sended,
+	}
+}
+
+func NewAutoCompleteContext(e *gateway.InteractionCreateEvent, state *state.State, data *discord.AutocompleteInteraction) *AutoCompleteContext {
+	return &AutoCompleteContext{
+		InteractionCreateEvent: e,
+		State:                  state,
+		Data:                   data,
 	}
 }
 

@@ -1,12 +1,14 @@
 package music
 
-import "time"
+import (
+	"time"
+)
 
 var availableProviders = []Provider{&YoutubeProvider{}}
 
 type Provider interface {
 	DisplayName() string
-	IsSupported(term string) bool
+	IsSupported(term string, query bool) bool
 	Find(term string) (*QueryResult, error)
 	IsLoaded(*Song) bool
 	Load(*Song) error
@@ -53,12 +55,22 @@ func (s *Song) Provider() string {
 	return s.provider.DisplayName()
 }
 
-func FindSong(term string) (*QueryResult, error) {
+func FindSong(term string, querySupport bool) (*QueryResult, error) {
+	provider := FindByInput(term, querySupport)
+
+	if provider == nil {
+		return nil, nil
+	}
+
+	return provider.Find(term)
+}
+
+func FindByInput(term string, querySupport bool) Provider {
 	for _, provider := range availableProviders {
-		if provider.IsSupported(term) {
-			return provider.Find(term)
+		if provider.IsSupported(term, querySupport) {
+			return provider
 		}
 	}
 
-	return nil, nil
+	return nil
 }

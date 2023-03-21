@@ -28,8 +28,8 @@ func (YoutubeProvider) DisplayName() string {
 	return utils.Fmt("%s YouTube", emojis.Youtube)
 }
 
-func (YoutubeProvider) IsSupported(term string) bool {
-	return videoRegex.MatchString(term) || !utils.LinkRegex.MatchString(term) || playlistRegex.MatchString(term)
+func (YoutubeProvider) IsSupported(term string, query bool) bool {
+	return videoRegex.MatchString(term) || (query && !utils.LinkRegex.MatchString(term)) || playlistRegex.MatchString(term)
 }
 
 func (YoutubeProvider) IsLoaded(s *Song) bool {
@@ -47,7 +47,7 @@ func (provider YoutubeProvider) Load(s *Song) error {
 	return nil
 }
 
-func (provider *YoutubeProvider) Find(term string) (*QueryResult, error) {
+func (provider YoutubeProvider) Find(term string) (*QueryResult, error) {
 	if playlistRegex.MatchString(term) {
 		return provider.handlePlaylist(term)
 	}
@@ -87,7 +87,7 @@ func (provider *YoutubeProvider) Find(term string) (*QueryResult, error) {
 	return result, nil
 }
 
-func (provider *YoutubeProvider) handlePlaylist(URL string) (*QueryResult, error) {
+func (provider YoutubeProvider) handlePlaylist(URL string) (*QueryResult, error) {
 	playlist, err := client.GetPlaylist(URL)
 	if err != nil {
 		if video, err := provider.handleVideo(URL); err == nil {

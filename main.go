@@ -8,7 +8,6 @@ import (
 	"github.com/ItsClairton/Anny/core"
 	"github.com/ItsClairton/Anny/misc"
 	"github.com/ItsClairton/Anny/music"
-	"github.com/ItsClairton/Anny/rest"
 	"github.com/ItsClairton/Anny/utils/logger"
 	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
@@ -24,10 +23,10 @@ func main() {
 
 	core.NewClient(os.Getenv("DISCORD_TOKEN"))
 
-	core.AddModules(rest.Module, music.Module, misc.Module)
+	core.AddModules(music.Module, misc.Module)
 
 	if err := core.Connect(); err != nil {
-		logger.Fatal("Um erro ocorreu ao tentar se autenticar com o Discord.")
+		logger.Fatal("Um erro ocorreu ao tentar se autenticar com o Discord.", err)
 	}
 
 	if err := core.DeployCommands(); err != nil {
