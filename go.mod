@@ -16,6 +16,7 @@ require (
 
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
+	github.com/bitly/go-simplejson v0.5.0 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/diamondburned/oggreader v0.0.0-20201118014549-87df9534b647 // indirect
 	github.com/dlclark/regexp2 v1.7.0 // indirect
@@ -45,6 +46,6 @@ require (
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 )
 
-replace github.com/kkdai/youtube/v2 => /home/clairton/dev/repositories/youtube
+replace github.com/kkdai/youtube/v2 => github.com/ItsClairton/youtube/v2 v2.7.7-0.20220213025140-32db65e01853
 
 replace github.com/diamondburned/arikawa/v3 => github.com/ItsClairton/arikawa/v3 v3.0.0-20230226081559-a6b0e2017470
