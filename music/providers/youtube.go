@@ -137,7 +137,7 @@ func (provider YoutubeProvider) handleVideo(term string) (song *Song, err error)
 	}
 
 	mediaURL, isOpus := "", false
-	if video.HLSManifestURL == "" {
+	if video.Duration > 0 {
 		var formatList youtube.FormatList
 
 		if formatList, isOpus = video.Formats.Itag(251), true; len(formatList) == 0 { // Opus

@@ -129,7 +129,7 @@ func (p *Player) Play() {
 		Field("Duração", utils.Is(song.IsLive, "--:--", utils.FormatTime(song.Duration)), true).
 		Field("Provedor", song.Provider(), true).
 		Timestamp(song.RequestedAt).
-		Footer(utils.Fmt("Adicionado por %s#%s", song.Requester.Username, song.Requester.Discriminator), song.Requester.AvatarURL()))
+		Footer(utils.Fmt("Adicionado por %s", song.Requester.Username), song.Requester.AvatarURL()))
 
 	if err := p.Voicy.PlayURL(song.MediaURL, song.IsOpus); err != nil {
 		if errors.Is(err, context.Canceled) {

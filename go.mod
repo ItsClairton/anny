@@ -3,7 +3,7 @@ module github.com/ItsClairton/Anny
 go 1.23.0
 
 require (
-	github.com/ItsClairton/gonius v0.0.0-20220104172845-2f30ca4d472d
+	github.com/ItsClairton/gonius v0.0.0-20250602151058-0998b281aacb
 	github.com/ItsClairton/voicy v0.0.0-20230225213503-6b9c757cf918
 	github.com/Pauloo27/searchtube v0.0.0-20220521202404-f65e288832a0
 	github.com/diamondburned/arikawa/v3 v3.5.0
