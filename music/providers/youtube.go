@@ -154,7 +154,7 @@ func (provider YoutubeProvider) handleVideo(term string) (song *Song, err error)
 	}
 
 	expires := time.Now().Add(10 * time.Minute)
-	if video.HLSManifestURL == "" {
+	if video.Duration > 0 {
 		if expires, err = getExpires(mediaURL); err != nil {
 			return nil, err
 		}
@@ -173,7 +173,7 @@ func (provider YoutubeProvider) handleVideo(term string) (song *Song, err error)
 		Thumbnail: thumbnail,
 		MediaURL:  mediaURL,
 		Expires:   expires,
-		IsLive:    video.HLSManifestURL != "",
+		IsLive:    video.Duration == 0,
 		IsOpus:    isOpus,
 		provider:  &provider,
 	}
