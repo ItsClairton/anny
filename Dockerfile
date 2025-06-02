@@ -1,13 +1,22 @@
-FROM golang:1.17-alpine
+FROM golang:1.24-alpine AS builder
 
-WORKDIR /prod
-RUN apk add ffmpeg
+WORKDIR /app
 
-COPY go.* ./
-RUN go mod download
+COPY . .
 
-COPY . ./
+ENV GOCACHE=/root/.cache/go-build
+ENV CGO_ENABLED=0
+RUN --mount=type=cache,target=/go/pkg/mod/ \
+    --mount=type=cache,target="/root/.cache/go-build" \
+    go build -v -o bin .
 
-RUN go build -v -o Anny
+FROM alpine:3.19
 
-CMD ["./Anny"]
+RUN --mount=type=cache,target=/etc/apk/cache apk add --update-cache ca-certificates \
+    ffmpeg
+
+WORKDIR /app
+
+COPY --from=builder /app/bin /app/bin
+
+CMD ["./bin"]

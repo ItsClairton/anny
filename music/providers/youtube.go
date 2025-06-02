@@ -138,13 +138,13 @@ func (provider YoutubeProvider) handleVideo(term string) (song *Song, err error)
 
 	mediaURL, isOpus := "", false
 	if video.HLSManifestURL == "" {
-		var format *youtube.Format
+		var formatList youtube.FormatList
 
-		if format, isOpus = video.Formats.FindByItag(251), true; format == nil { // Opus
-			format, isOpus = video.Formats.FindByItag(140), false // M4a
+		if formatList, isOpus = video.Formats.Itag(251), true; len(formatList) == 0 { // Opus
+			formatList, isOpus = video.Formats.Itag(140), false // M4a
 		}
 
-		if mediaURL, err = client.GetStreamURL(video, format); err != nil {
+		if mediaURL, err = client.GetStreamURL(video, &formatList[0]); err != nil {
 			return nil, err
 		}
 	} else {
@@ -161,7 +161,7 @@ func (provider YoutubeProvider) handleVideo(term string) (song *Song, err error)
 	}
 
 	thumbnail := utils.Fmt("https://img.youtube.com/vi/%s/mqdefault.jpg", video.ID)
-	if format := video.Formats.FindByQuality("720p"); format != nil {
+	if format := video.Formats.Quality("720p"); format != nil {
 		thumbnail = utils.Fmt("https://img.youtube.com/vi/%s/maxresdefault.jpg", video.ID)
 	}
 
