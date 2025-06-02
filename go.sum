@@ -2,6 +2,8 @@ github.com/ItsClairton/gonius v0.0.0-20220104172845-2f30ca4d472d h1:osG9CiGgrKJz
 github.com/ItsClairton/gonius v0.0.0-20220104172845-2f30ca4d472d/go.mod h1:aedw9lH+zUkiZbCYGy7xvpOXh4g5x5ksGO4xRsuHy6c=
 github.com/ItsClairton/gonius v0.0.0-20250602151058-0998b281aacb h1:wH2Cqa4iwWkhzEBAJiX8L8gyYepwOCII5XnUUyrmNQA=
 github.com/ItsClairton/gonius v0.0.0-20250602151058-0998b281aacb/go.mod h1:GUCGAuaIiqmzSLKnGMJ2MM2GnS+yRJXE7XwZQ7YeEPk=
+github.com/ItsClairton/gonius v0.0.0-20250602151422-6d88f967acb7 h1:5B5lV4mlBocn/tWzjWYtiSZn+7PX+ZP6ti5RJhdBehU=
+github.com/ItsClairton/gonius v0.0.0-20250602151422-6d88f967acb7/go.mod h1:GUCGAuaIiqmzSLKnGMJ2MM2GnS+yRJXE7XwZQ7YeEPk=
 github.com/ItsClairton/voicy v0.0.0-20230225213503-6b9c757cf918 h1:/SIJ00+xwpd+F+gUcNo0+RCKjyXGKbRvSo83fB4IfVo=
 github.com/ItsClairton/voicy v0.0.0-20230225213503-6b9c757cf918/go.mod h1:f64Zotqmbq0xnXqhuvhg6plyUyjxPz7xCaChHJFA6x4=
 github.com/Masterminds/semver/v3 v3.2.1 h1:RN9w6+7QoMeJVGyfmbcgs28Br8cvmnucEXnY0rYXWg0=
